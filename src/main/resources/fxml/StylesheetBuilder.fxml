@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.*?>
+<?import javafx.scene.web.*?>
+<?import javafx.scene.effect.*?>
+<?import java.lang.*?>
+<?import javafx.collections.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?scenebuilder-background-color 0x40404000?>
+
+<AnchorPane id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="777.000199999995" prefWidth="1037.9999000000025" snapToPixel="false" style="" visible="true" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
+   <children>
+      <TabPane layoutX="0.0" layoutY="0.0" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#dragged" onMousePressed="#dragStart" prefHeight="776.99977792969" prefWidth="1037.9998779296875" rotateGraphic="false" style="-fx-border-width: 5; -fx-border-color: #aaaaaa" tabClosingPolicy="UNAVAILABLE">
+         <tabs>
+            <Tab fx:id="build" closable="false" text="build styles">
+               <content>
+                  <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0">
+                     <children>
+                        <ComboBox fx:id="stylerCombo" layoutX="361.0" layoutY="61.0" onAction="#chooseStyleOrCondition" prefWidth="132.0" promptText="choose style">
+                           <items>
+                              <FXCollections fx:factory="observableArrayList">
+                                 <String fx:value="Item 1" />
+                                 <String fx:value="Item 2" />
+                                 <String fx:value="Item 3" />
+                              </FXCollections>
+                           </items>
+                        </ComboBox>
+                        <Button id="parHelp" graphicTextGap="4.0" layoutX="501.0" layoutY="61.0" minWidth="18.0" onAction="#showParHelp" onKeyPressed="#showParHelp" prefWidth="36.0" text="?" textAlignment="LEFT" textOverrun="ELLIPSIS">
+                           <font>
+                              <Font name="System Bold" size="13.0" />
+                           </font>
+                           <tooltip>
+                              <Tooltip text="show help for selected Styler or Condition" />
+                           </tooltip>
+                        </Button>
+                        <Button layoutX="549.0" layoutY="61.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
+                        <Button layoutX="697.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add to styleClass" />
+                        <Button layoutX="833.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
+                        <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="154.0" prefHeight="564.0" prefWidth="982.0">
+                           <columns>
+                              <TableColumn fx:id="pKey" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" styleClass="lightgray" text="key" />
+                              <TableColumn fx:id="pType" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="136.0" styleClass="lightgray" text="type" />
+                              <TableColumn fx:id="pValue" maxWidth="5000.0" minWidth="10.0" prefWidth="137.0" text="value" />
+                              <TableColumn fx:id="pDefault" maxWidth="5000.0" minWidth="10.0" prefWidth="37.0" styleClass="lightgray" text="" />
+                              <TableColumn fx:id="pHelp" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="605.0" styleClass="lightgray" text="help" />
+                           </columns>
+                        </TableView>
+                        <Label layoutX="27.0" layoutY="65.0" text="styleClass" />
+                        <Label layoutX="28.0" layoutY="130.0" text="Configuration" />
+                        <TextField fx:id="configString" editable="true" layoutX="165.0" layoutY="125.0" prefHeight="26.0" prefWidth="846.0" />
+                        <Button layoutX="954.0" layoutY="9.0" mnemonicParsing="false" onAction="#clear" text="reset" />
+                        <Button fx:id="pre" layoutX="166.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="prestylers" />
+                        <Button fx:id="post" layoutX="257.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="poststylers" />
+                        <Button fx:id="page" layoutX="359.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="pagestylers" />
+                        <Label fx:id="stylerHelp" layoutX="22.0" layoutY="39.0" prefHeight="16.0" prefWidth="987.0" />
+                        <CheckBox fx:id="toc" layoutX="165.0" layoutY="11.0" mnemonicParsing="false" onAction="#toggleToc" text="table of contents" />
+                        <CheckBox fx:id="footer" layoutX="311.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleFooter" text="footer" />
+                        <CheckBox fx:id="pdf1a" layoutX="386.0" layoutY="12.0" mnemonicParsing="false" onAction="#togglePdf1a" text="pdf 1/a" />
+                        <CheckBox fx:id="debug" layoutX="463.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleDebug" text="debug" />
+                        <ComboBox fx:id="stylerKeys" editable="true" layoutX="165.0" layoutY="61.0" onAction="#showStyleOrCondition" prefWidth="191.0">
+                           <tooltip>
+                              <Tooltip text="add or choose style classes" />
+                           </tooltip></ComboBox>
+                        <Label layoutX="28.0" layoutY="11.0" text="general options" />
+                        <Label layoutX="28.0" layoutY="98.0" text="special styleclasses" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab closable="false" onSelectionChanged="#showStylers" text="order stylers">
+               <content>
+                  <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0">
+                     <children>
+                        <TableView fx:id="stylerTable" layoutX="28.0" layoutY="70.0" prefHeight="648.0" prefWidth="982.0">
+                           <columns>
+                              <TableColumn fx:id="sUpDown" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" text="upDown" />
+                              <TableColumn fx:id="rm" maxWidth="5000.0" minWidth="10.0" prefWidth="50.0" text="rm" />
+                              <TableColumn fx:id="sCreates" maxWidth="5000.0" minWidth="10.0" prefWidth="66.0" text="creates" />
+                              <TableColumn fx:id="sHelp" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="839.0" text="help" />
+                           </columns>
+                        </TableView>
+                        <ComboBox fx:id="stylerKeysCopy" editable="false" layoutX="106.0" layoutY="16.0" onAction="#showStylers" prefWidth="191.0" />
+                        <Label layoutX="30.0" layoutY="19.0" text="styleClass" />
+                        <Label layoutX="27.0" layoutY="48.0" text="Change the order in which stylers will be applied. Stylers that create an element should be on top." />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab fx:id="styleTab" closable="false" text="stylesheet">
+               <content>
+                  <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="stylesheet" layoutX="1.0" layoutY="0.0" prefHeight="741.0" prefWidth="1027.9999000000025" wrapText="true" />
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab fx:id="helpTab" closable="false" onSelectionChanged="#searchHelp" text="reporting help">
+               <content>
+                  <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="help" editable="false" layoutX="1.0" layoutY="0.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="742.0" prefWidth="1027.9999000000025" wrapText="true">
+                           <tooltip>
+                              <Tooltip maxWidth="400" text="click text then type to search (supports F3 and backspace)" wrapText="true" />
+                           </tooltip>
+                        </TextArea>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab onSelectionChanged="#searchMapping" text="xsd data mapping">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="datamappingxml" editable="false" layoutY="66.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="670.0" prefWidth="1026.0">
+                           <tooltip>
+                              <Tooltip maxWidth="400" text="click text then type to search (supports F3 and backspace)" wrapText="true" />
+                           </tooltip>
+                        </TextArea>
+                        <Button layoutX="935.0" layoutY="22.0" mnemonicParsing="false" onAction="#validateDataMappingXml" prefHeight="26.0" prefWidth="75.0" text="validate">
+                           <tooltip>
+                              <Tooltip text="validate data mapping xml" />
+                           </tooltip>
+                        </Button>
+                        <Label layoutX="17.0" layoutY="26.0" text="data mapping xml" />
+                        <TextField layoutX="139.0" layoutY="22.0" onAction="#checkUrl" prefHeight="26.0" prefWidth="791.0" promptText="(url to) xml file containing xml for mapping java classes to report parts" fx:id="xmlconfig">
+                           <tooltip>
+                              <Tooltip text="(url to) xml file containing xml for mapping java classes to report parts" />
+                           </tooltip>
+                        </TextField>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab fx:id="errorTab" closable="false" onSelectionChanged="#searchError" text="errors">
+               <content>
+                  <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="error" editable="false" layoutX="1.0" layoutY="0.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="741.0" prefWidth="1027.9999000000025" wrapText="true">
+                           <tooltip>
+                              <Tooltip maxWidth="400" text="click text then type to search (supports F3 and backspace)" wrapText="true" />
+                           </tooltip>
+                        </TextArea>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+         </tabs>
+         <effect>
+            <Lighting diffuseConstant="1.26" specularConstant="0.16" specularExponent="22.38" surfaceScale="0.91">
+               <bumpInput>
+                  <Shadow />
+               </bumpInput>
+               <light>
+                  <Light.Distant azimuth="195.0" />
+               </light>
+            </Lighting>
+         </effect>
+      </TabPane>
+      <Label fx:id="search" layoutX="771.0" layoutY="12.0" prefWidth="200.0" />
+      <MenuBar blendMode="SRC_ATOP" layoutX="974.0" layoutY="5.0" useSystemMenuBar="false">
+         <menus>
+            <Menu text="File">
+               <items>
+                  <MenuItem onAction="#save" text="Save">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem onAction="#importStyle" text="Import">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem onAction="#importCss" text="Import css">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+                  <MenuItem onAction="#quit" text="Quit">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
+               </items>
+            </Menu>
+         </menus>
+      </MenuBar>
+      <CheckBox fx:id="cssvalidate" layoutX="836.0" layoutY="11.0" mnemonicParsing="false" text="validate css" />
+   </children>
+   <effect>
+      <Glow level="0.1" />
+   </effect>
+</AnchorPane>
