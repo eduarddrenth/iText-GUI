@@ -13,6 +13,7 @@ import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.VectorPrintProperties;
+import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.ParameterHelper;
 import com.vectorprint.configuration.parameters.Parameterizable;
@@ -35,7 +36,6 @@ import com.vectorprint.report.itext.style.stylers.DocumentSettings;
 import com.vectorprint.report.itext.style.stylers.NewLine;
 import com.vectorprint.report.itext.style.stylers.NewPage;
 import com.vectorprint.report.itext.style.stylers.Padding;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -1005,7 +1005,7 @@ public class Controller implements Initializable {
       }
    }
 
-   private void importStyle(EnhancedMap settings) throws DocumentException, VectorPrintException {
+   private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
       settings.put(DefaultStylerFactory.DOFIRSTLAST, Boolean.FALSE.toString());
       StylerFactory sf = new DefaultStylerFactory();
       StylerFactoryHelper.SETTINGS_ANNOTATION_PROCESSOR.initSettings(sf, settings);
@@ -1056,7 +1056,7 @@ public class Controller implements Initializable {
          clear(event);
          File f = FileChooserBuilder.create().title("import stylesheet").build().showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            importStyle(new VectorPrintProperties(f.getPath()));
+            importStyle(new ParsingProperties(new VectorPrintProperties(),f.getPath()));
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1072,7 +1072,7 @@ public class Controller implements Initializable {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
             CssTransformer.transform(new FileInputStream(f), bo, cssvalidate.isSelected());
-            importStyle(new VectorPrintProperties(new ByteArrayInputStream(bo.toByteArray()), f.getName(), null));
+            importStyle(new ParsingProperties(new VectorPrintProperties(),new StringReader(bo.toString())));
          }
       } catch (Exception ex) {
          toError(ex);
