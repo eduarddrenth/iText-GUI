@@ -12,7 +12,7 @@ import com.vectorprint.IOHelper;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
-import com.vectorprint.configuration.VectorPrintProperties;
+import com.vectorprint.configuration.Settings;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.ParameterHelper;
@@ -182,7 +182,7 @@ public class Controller implements Initializable {
    @FXML
    private TableColumn<ParameterProps, ParameterProps> pDefault;
    @FXML
-   private TableColumn<ParameterProps, String> pHelp;
+   private TableColumn<ParameterProps, String> pDeclaringClass;
    @FXML
    private TableView<BaseStyler> stylerTable;
    @FXML
@@ -642,8 +642,8 @@ public class Controller implements Initializable {
          parameterTable.setItems(parameters);
          stylerTable.setItems(stylersForClass);
 
-         pHelp.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("help"));
-         pHelp.setCellFactory(new Callback<TableColumn<ParameterProps, String>, TableCell<ParameterProps, String>>() {
+         pDeclaringClass.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("declaringClass"));
+         pDeclaringClass.setCellFactory(new Callback<TableColumn<ParameterProps, String>, TableCell<ParameterProps, String>>() {
             @Override
             public TableCell<ParameterProps, String> call(TableColumn<ParameterProps, String> p) {
                return new TableCell<ParameterProps, String>() {
@@ -652,7 +652,7 @@ public class Controller implements Initializable {
                      super.updateItem(t, bln);
                      setText(t);
                      if (t != null) {
-                        setTooltip(tip(t));
+                        setTooltip(tip(((ParameterProps)getTableRow().getItem()).getHelp()));
                      }
                   }
                };
@@ -696,7 +696,7 @@ public class Controller implements Initializable {
                         public void handle(MouseEvent event) {
                            Parameterizable p = stylerCombo.getValue();
                            searchArea(help, p.getClass().getSimpleName() + ": ");
-                           searchArea(help, "key: " + item);
+                           searchArea(help, "key=" + item);
                            helpTab.getTabPane().getSelectionModel().select(helpTab);
                            help.requestFocus();
                         }
@@ -1056,7 +1056,7 @@ public class Controller implements Initializable {
          clear(event);
          File f = FileChooserBuilder.create().title("import stylesheet").build().showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            importStyle(new ParsingProperties(new VectorPrintProperties(),f.getPath()));
+            importStyle(new ParsingProperties(new Settings(),f.getPath()));
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1072,7 +1072,7 @@ public class Controller implements Initializable {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
             CssTransformer.transform(new FileInputStream(f), bo, cssvalidate.isSelected());
-            importStyle(new ParsingProperties(new VectorPrintProperties(),new StringReader(bo.toString())));
+            importStyle(new ParsingProperties(new Settings(),new StringReader(bo.toString())));
          }
       } catch (Exception ex) {
          toError(ex);

@@ -134,7 +134,7 @@
             <artifactId>ReportSVGSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>5.1</version>
+            <version>5.3</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
@@ -151,19 +151,19 @@
             <artifactId>ReportjFreeChartSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>5.1</version>
+            <version>5.3</version>
         </dependency>
         <dependency>
             <artifactId>ReportQrSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>5.1</version>
+            <version>5.3</version>
         </dependency>
         <dependency>
             <artifactId>ConfigurableReports</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>5.1</version>
+            <version>5.3</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>

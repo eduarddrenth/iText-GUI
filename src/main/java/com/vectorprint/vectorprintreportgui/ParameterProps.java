@@ -21,13 +21,15 @@ public class ParameterProps implements Comparable<ParameterProps>{
    private StringProperty type = new SimpleStringProperty();
    private StringProperty value = new SimpleStringProperty();
    private StringProperty help = new SimpleStringProperty();
+   private StringProperty declaringClass = new SimpleStringProperty();
    private Parameter p;
 
    public ParameterProps(Parameter p) {
       this.p = p;
-      setKey(p.getKey());
-      setHelp(p.getHelp());
-      setType(ClassHelper.findParameterClass(0, p.getClass(), Parameter.class).getName());
+      key.set(p.getKey());
+      help.set(p.getHelp());
+      type.set(ClassHelper.findParameterClass(0, p.getClass(), Parameter.class).getName());
+      declaringClass.set(p.getDeclaringClass().getName());
       value.set(p.serializeValue(p.getValue()));
    }
    
@@ -36,17 +38,9 @@ public class ParameterProps implements Comparable<ParameterProps>{
    public String getKey() {
       return key.get();
    }
-
-   public void setKey(String key) {
-      this.key.set(key);
-   }
-
+   
    public String getType() {
       return type.get();
-   }
-
-   public void setType(String type) {
-      this.type.set(type);
    }
 
    public String getValue() {
@@ -62,8 +56,8 @@ public class ParameterProps implements Comparable<ParameterProps>{
       return help.get();
    }
 
-   public void setHelp(String help) {
-      this.help.set(help);
+   public String getDeclaringClass() {
+      return declaringClass.get();
    }
 
    @Override
