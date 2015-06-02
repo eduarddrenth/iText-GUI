@@ -6,7 +6,12 @@
 package com.vectorprint.vectorprintreportgui;
 
 import com.vectorprint.ClassHelper;
+import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
+import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
+import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
 import com.vectorprint.configuration.parameters.Parameter;
+import java.io.Serializable;
+import java.io.StringReader;
 import java.util.Objects;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -23,6 +28,8 @@ public class ParameterProps implements Comparable<ParameterProps>{
    private StringProperty help = new SimpleStringProperty();
    private StringProperty declaringClass = new SimpleStringProperty();
    private Parameter p;
+   private final ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
+   private final ParamBindingHelper helper = factory.getBindingHelper();
 
    public ParameterProps(Parameter p) {
       this.p = p;
@@ -30,7 +37,11 @@ public class ParameterProps implements Comparable<ParameterProps>{
       help.set(p.getHelp());
       type.set(ClassHelper.findParameterClass(0, p.getClass(), Parameter.class).getName());
       declaringClass.set(p.getDeclaringClass().getName());
-      value.set(p.serializeValue(p.getValue()));
+      value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
+   }
+
+   public Parameter getP() {
+      return p;
    }
    
    
@@ -48,7 +59,8 @@ public class ParameterProps implements Comparable<ParameterProps>{
    }
 
    public void setValue(String value) {
-      p.setValue(p.convert(value)); // validates value
+      Serializable parseAsParameterValue = factory.getParser(new StringReader("")).parseAsParameterValue(value, p);
+      helper.setValueOrDefault(p, parseAsParameterValue, false);
       this.value.set(value==null?"":value);
    }
 

@@ -13,9 +13,14 @@ import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
+import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
-import com.vectorprint.configuration.parameters.ParameterHelper;
+import com.vectorprint.configuration.binding.parameters.ParameterHelper;
+import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
+import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
+import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
+import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactoryImpl;
 import com.vectorprint.configuration.parameters.Parameterizable;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.itext.EventHelper;
@@ -128,6 +133,9 @@ public class Controller implements Initializable {
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
    private final ObservableList<BaseStyler> stylersForClass = FXCollections.observableArrayList(new ArrayList<BaseStyler>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(50));
+
+   private final ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
+   private final EnhancedMapBindingFactory embf = EnhancedMapBindingFactoryImpl.getDefaultFactory();
 
    @FXML
    private ComboBox<Parameterizable> stylerCombo;
@@ -290,9 +298,11 @@ public class Controller implements Initializable {
                continue;
             }
             Parameter p = bs.getParameters().get(pp.getKey());
-            p.setValue(p.convert(pp.getValue()));
+            p.setValue(pp.getP().getValue());
          }
-         configString.setText(ParameterHelper.toConfig(bs, true));
+         StringWriter sw = new StringWriter();
+         factory.getSerializer().setPrintOnlyNonDefault(true).serialize(bs, sw);
+         configString.setText(sw.toString());
       } catch (Exception ex) {
          toError(ex);
       }
@@ -333,7 +343,7 @@ public class Controller implements Initializable {
    }
    private static final StylerComparator STYLER_COMPARATOR = new StylerComparator();
 
-   private boolean add(Parameterizable p) {
+   private boolean add(Parameterizable p) throws IOException {
       if ("".equals(stylerKeys.getValue())) {
          stylerKeys.requestFocus();
          return false;
@@ -464,11 +474,13 @@ public class Controller implements Initializable {
       st.show();
    }
 
-   private String toConfigString(String clazz, List<? extends Parameterizable> sp) {
+   private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
       StringBuilder sb = new StringBuilder(clazz);
       sb.append("=");
       for (Parameterizable p : sp) {
-         sb.append(ParameterHelper.toConfig(p, true)).append(";");
+         StringWriter sw = new StringWriter();
+         factory.getSerializer().setPrintOnlyNonDefault(true).serialize(p, sw);
+         sb.append(sw.toString()).append(";");
       }
       return sb.toString().substring(0, sb.length() - 1);
    }
@@ -909,7 +921,11 @@ public class Controller implements Initializable {
                      super.updateItem(t, bln);
                      if (t != null && stylingConfig.containsKey(t)) {
                         setText(t);
-                        setTooltip(tip(toConfigString(t, stylingConfig.get(t))));
+                        try {
+                           setTooltip(tip(toConfigString(t, stylingConfig.get(t))));
+                        } catch (IOException ex) {
+                           toError(ex);
+                        }
                      }
                   }
 
@@ -1014,11 +1030,8 @@ public class Controller implements Initializable {
       w.setPageEvent(new EventHelper());
       sf.setDocument(d, w);
 
-      for (Map.Entry<String, String> e : settings.entrySet()) {
-         String v = e.getValue();
-         if (v.endsWith(";")) {
-            e.setValue(v.substring(0, v.length() - 1));
-         }
+      for (Map.Entry<String, String[]> e : settings.entrySet()) {
+         String[] v = e.getValue();
          commentsBefore.put(e.getKey(), settings.getCommentBeforeKey(e.getKey()));
          if (ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             stylingConfig.put(e.getKey(), new ArrayList<BaseStyler>(1));
@@ -1037,7 +1050,7 @@ public class Controller implements Initializable {
             }
             styleClasses.add(e.getKey());
          } else if (!isCondition(e.getKey(), settings)) {
-            extraSettings.put(e.getKey(), e.getValue());
+            extraSettings.put(e.getKey(), e.getValue()[0]);
          }
       }
       for (Iterator it = extraSettings.entrySet().iterator(); it.hasNext();) {
@@ -1080,7 +1093,7 @@ public class Controller implements Initializable {
    }
 
    private boolean isCondition(String key, EnhancedMap settings) {
-      String[] classes = settings.getStringProperties(key, null);
+      String[] classes = settings.getStringProperties(null, key);
       if (classes == null) {
          return false;
       }
@@ -1095,7 +1108,7 @@ public class Controller implements Initializable {
    }
 
    private boolean isStyler(String key, EnhancedMap settings) {
-      String[] classes = settings.getStringProperties(key, null);
+      String[] classes = settings.getStringProperties( null, key);
       if (classes == null) {
          return false;
       }
@@ -1132,12 +1145,12 @@ public class Controller implements Initializable {
    private void getDefaults(Collection<? extends Parameterizable> l, EnhancedMap settings) {
       for (Parameterizable pz : l) {
          for (Parameter p : pz.getParameters().values()) {
-            if (ParameterHelper.findDefaultKey(p.getKey(), pz.getClass(), settings) != null) {
+            if (ParameterHelper.findKey(p.getKey(), pz.getClass(), settings, ParameterHelper.SUFFIX.set_default) != null) {
                if (!defaults.containsKey(pz.getClass().getSimpleName())) {
                   defaults.put(pz.getClass().getSimpleName(), new TreeSet<ParameterProps>());
                }
                defaults.get(pz.getClass().getSimpleName()).add(new ParameterProps(p));
-               processed.add(pz.getClass().getSimpleName() + "." + p.getKey());
+               processed.add(pz.getClass().getSimpleName() + "." + p.getKey() + ParameterHelper.SUFFIX.set_default);
             }
          }
       }
