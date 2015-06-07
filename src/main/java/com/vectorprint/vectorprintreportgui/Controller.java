@@ -13,7 +13,6 @@ import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
-import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
@@ -301,7 +300,7 @@ public class Controller implements Initializable {
             p.setValue(pp.getP().getValue());
          }
          StringWriter sw = new StringWriter();
-         factory.getSerializer().setPrintOnlyNonDefault(true).serialize(bs, sw);
+         factory.getSerializer().serialize(bs, sw);
          configString.setText(sw.toString());
       } catch (Exception ex) {
          toError(ex);
@@ -477,9 +476,18 @@ public class Controller implements Initializable {
    private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
       StringBuilder sb = new StringBuilder(clazz);
       sb.append("=");
+      if (!DefaultStylerFactory.DEFAULTSTYLERSFIRST.equals(clazz) && !DefaultStylerFactory.DEFAULTSTYLERSLAST.equals(clazz)) {
+         // strip defaults
+         for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
+            sp.remove(p);
+         }
+         for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
+            sp.remove(p);
+         }
+      }
       for (Parameterizable p : sp) {
          StringWriter sw = new StringWriter();
-         factory.getSerializer().setPrintOnlyNonDefault(true).serialize(p, sw);
+         factory.getSerializer().serialize(p, sw);
          sb.append(sw.toString()).append(";");
       }
       return sb.toString().substring(0, sb.length() - 1);
