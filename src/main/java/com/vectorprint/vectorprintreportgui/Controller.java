@@ -13,6 +13,7 @@ import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
+import com.vectorprint.configuration.binding.BindingHelper;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
@@ -20,6 +21,7 @@ import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFa
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactoryImpl;
+import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameterizable;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.itext.EventHelper;
@@ -133,8 +135,8 @@ public class Controller implements Initializable {
    private final ObservableList<BaseStyler> stylersForClass = FXCollections.observableArrayList(new ArrayList<BaseStyler>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(50));
 
-   private final ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
-   private final EnhancedMapBindingFactory embf = EnhancedMapBindingFactoryImpl.getDefaultFactory();
+   private ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
+   private EnhancedMapBindingFactory embf = EnhancedMapBindingFactoryImpl.getDefaultFactory();
 
    @FXML
    private ComboBox<Parameterizable> stylerCombo;
@@ -147,7 +149,11 @@ public class Controller implements Initializable {
    @FXML
    private TextField xmlconfig;
    @FXML
-   private TextArea datamappingxml;
+   private TextArea datamappingxsd;
+   @FXML
+   private TextField xmlsettings;
+   @FXML
+   private TextArea settingsxsd;
    @FXML
    private CheckBox toc;
    @FXML
@@ -452,7 +458,7 @@ public class Controller implements Initializable {
       for (BaseStyler s : stylers) {
          final BaseStyler kopie = s;
          RadioButton rb = new RadioButton(s.getClass().getSimpleName());
-         rb.setTooltip(tip(s.toConfig()));
+         rb.setTooltip(tip(s.toString()));
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
          rb.setOnAction(new EventHandler<ActionEvent>() {
@@ -958,7 +964,11 @@ public class Controller implements Initializable {
          help.setText(bo.toString());
          bo.reset();
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
-         datamappingxml.setText(bo.toString());
+         datamappingxsd.setText(bo.toString());
+
+         bo.reset();
+         IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
+         settingsxsd.setText(bo.toString());
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
@@ -984,11 +994,11 @@ public class Controller implements Initializable {
    @FXML
    private void saveXML(ActionEvent event) {
       try {
-         Datamappingstype fromXML = DatamappingHelper.fromXML(new StringReader(datamappingxml.getText()));
+         Datamappingstype fromXML = DatamappingHelper.fromXML(new StringReader(datamappingxsd.getText()));
          if (fromXML != null) {
             File f = FileChooserBuilder.create().title("save data mapping xml").build().showSaveDialog(StylesheetBuilder.topWindow);
             if (f != null) {
-               Files.write(f.toPath(), datamappingxml.getText().getBytes());
+               Files.write(f.toPath(), datamappingxsd.getText().getBytes());
             }
          }
       } catch (UnmarshalException ex) {
@@ -1006,7 +1016,8 @@ public class Controller implements Initializable {
    private void validateDataMappingXml(ActionEvent event) {
       try {
          try {
-            DatamappingHelper.validateXml(new URL(xmlconfig.getText()));
+            DatamappingHelper.validateXml(BindingHelper.URL_PARSER.convert(xmlconfig.getText()));
+            notify("ok", "valid xml", "valid xml");
          } catch (MalformedURLException malformedURLException) {
             System.out.println("wrong url, trying xml directly");
             malformedURLException.printStackTrace();
@@ -1020,11 +1031,38 @@ public class Controller implements Initializable {
    }
 
    @FXML
-   private void checkUrl(ActionEvent event) {
+   private void validateSettingsXml(ActionEvent event) {
       try {
-         new URL(xmlconfig.getText());
+         try {
+            SettingsXMLHelper.validateXml(BindingHelper.URL_PARSER.convert(xmlsettings.getText()));
+            notify("ok", "valid xml", "valid xml");
+         } catch (MalformedURLException malformedURLException) {
+            System.out.println("wrong url, trying xml directly");
+            malformedURLException.printStackTrace();
+            SettingsXMLHelper.validateXml(xmlsettings.getText());
+         }
+      } catch (SAXException ex) {
+         toError(ex);
+      } catch (IOException ex) {
+         toError(ex);
+      }
+   }
+
+   @FXML
+   private void checkUrlConfig(ActionEvent event) {
+      try {
+         BindingHelper.URL_PARSER.convert(xmlconfig.getText());
          extraSettings.put(ReportConstants.DATAMAPPINGXML, xmlconfig.getText());
-      } catch (MalformedURLException ex) {
+      } catch (VectorPrintRuntimeException ex) {
+         toError(ex);
+      }
+   }
+
+   @FXML
+   private void checkUrlSettings(ActionEvent event) {
+      try {
+         BindingHelper.URL_PARSER.convert(xmlsettings.getText());
+      } catch (VectorPrintRuntimeException ex) {
          toError(ex);
       }
    }
@@ -1231,8 +1269,14 @@ public class Controller implements Initializable {
    }
 
    @FXML
+   private void searchSettings(Event event) {
+      area = settingsxsd;
+      area.requestFocus();
+   }
+
+   @FXML
    private void searchMapping(Event event) {
-      area = datamappingxml;
+      area = datamappingxsd;
       area.requestFocus();
    }
 

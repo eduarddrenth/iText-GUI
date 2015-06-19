@@ -115,7 +115,7 @@
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
-                        <TextArea fx:id="datamappingxml" editable="false" layoutY="66.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="670.0" prefWidth="1026.0">
+                        <TextArea fx:id="datamappingxsd" editable="false" layoutY="66.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="670.0" prefWidth="1026.0">
                            <tooltip>
                               <Tooltip maxWidth="400" text="click text then type to search (supports F3 and backspace)" wrapText="true" />
                            </tooltip>
@@ -126,9 +126,33 @@
                            </tooltip>
                         </Button>
                         <Label layoutX="17.0" layoutY="26.0" text="data mapping xml" />
-                        <TextField layoutX="139.0" layoutY="22.0" onAction="#checkUrl" prefHeight="26.0" prefWidth="791.0" promptText="(url to) xml file containing xml for mapping java classes to report parts" fx:id="xmlconfig">
+                        <TextField layoutX="139.0" layoutY="22.0" onAction="#checkUrlConfig" prefHeight="26.0" prefWidth="791.0" promptText="(url to) xml file containing xml for mapping java classes to report parts" fx:id="xmlconfig">
                            <tooltip>
                               <Tooltip text="(url to) xml file containing xml for mapping java classes to report parts" />
+                           </tooltip>
+                        </TextField>
+                     </children>
+                  </AnchorPane>
+               </content>
+            </Tab>
+            <Tab onSelectionChanged="#searchSettings" text="settings xsd">
+               <content>
+                  <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                     <children>
+                        <TextArea fx:id="settingsxsd" editable="false" layoutY="66.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="670.0" prefWidth="1026.0">
+                           <tooltip>
+                              <Tooltip maxWidth="400" text="click text then type to search (supports F3 and backspace)" wrapText="true" />
+                           </tooltip>
+                        </TextArea>
+                        <Button layoutX="935.0" layoutY="22.0" mnemonicParsing="false" onAction="#validateSettingsXml" prefHeight="26.0" prefWidth="75.0" text="validate">
+                           <tooltip>
+                              <Tooltip text="validate settings xml" />
+                           </tooltip>
+                        </Button>
+                        <Label layoutX="17.0" layoutY="26.0" text="settings xml" />
+                        <TextField layoutX="139.0" layoutY="22.0" onAction="#checkUrlSettings" prefHeight="26.0" prefWidth="791.0" promptText="(url to) xml file containing xml for settings" fx:id="xmlsettings">
+                           <tooltip>
+                              <Tooltip text="(url to) xml file containing xml for settings" />
                            </tooltip>
                         </TextField>
                      </children>
