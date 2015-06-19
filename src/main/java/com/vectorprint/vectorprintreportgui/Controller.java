@@ -233,7 +233,7 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
-      if (stylingConfig.isEmpty()||!stylingConfig.containsKey(stylerKeys.getValue())) {
+      if (stylingConfig.isEmpty() || !stylingConfig.containsKey(stylerKeys.getValue())) {
          return;
       }
       try {
@@ -357,17 +357,17 @@ public class Controller implements Initializable {
       if (p instanceof BaseStyler) {
          if (conditionConfig.containsKey(styleClass)) {
             notify("ok",
-                toConfigString(styleClass, conditionConfig.get(styleClass)),String.format("style class %s in use, choose another", styleClass));
+                toConfigString(styleClass, conditionConfig.get(styleClass)), String.format("style class %s in use, choose another", styleClass));
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
             notify("ok",
-                styleClass,String.format("style class %s reserved for document settings, choose another",ReportConstants.DOCUMENTSETTINGS));
+                styleClass, String.format("style class %s reserved for document settings, choose another", ReportConstants.DOCUMENTSETTINGS));
             return false;
          }
          if (!ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && p instanceof DocumentStyler) {
             notify("ok",
-                styleClass,String.format("style class should be %s for document settings",ReportConstants.DOCUMENTSETTINGS));
+                styleClass, String.format("style class should be %s for document settings", ReportConstants.DOCUMENTSETTINGS));
             return false;
          }
          if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
@@ -390,12 +390,12 @@ public class Controller implements Initializable {
       } else {
          if (stylingConfig.containsKey(styleClass)) {
             notify("ok",
-                toConfigString(styleClass, stylingConfig.get(styleClass)),String.format("style class %s in use, choose another", styleClass));
+                toConfigString(styleClass, stylingConfig.get(styleClass)), String.format("style class %s in use, choose another", styleClass));
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass)) {
             notify("ok",
-                "",String.format("style class %s reserved for document settings, choose another", styleClass));
+                "", String.format("style class %s reserved for document settings, choose another", styleClass));
             return false;
          }
          if (!conditionConfig.containsKey(styleClass) && !"".equals(styleClass)) {
@@ -483,12 +483,16 @@ public class Controller implements Initializable {
       StringBuilder sb = new StringBuilder(clazz);
       sb.append("=");
       if (!DefaultStylerFactory.DEFAULTSTYLERSFIRST.equals(clazz) && !DefaultStylerFactory.DEFAULTSTYLERSLAST.equals(clazz)) {
-         // strip defaults
-         for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
-            sp.remove(p);
+         if (stylingConfig.containsKey(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
+            // strip defaults
+            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
+               sp.remove(p);
+            }
          }
-         for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
-            sp.remove(p);
+         if (stylingConfig.containsKey(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
+            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
+               sp.remove(p);
+            }
          }
       }
       for (Parameterizable p : sp) {
@@ -678,7 +682,7 @@ public class Controller implements Initializable {
                      super.updateItem(t, bln);
                      setText(t);
                      if (t != null) {
-                        setTooltip(tip(((ParameterProps)getTableRow().getItem()).getHelp()));
+                        setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
                      }
                   }
                };
@@ -1115,7 +1119,7 @@ public class Controller implements Initializable {
          clear(event);
          File f = FileChooserBuilder.create().title("import stylesheet").build().showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            importStyle(new ParsingProperties(new Settings(),f.getPath()));
+            importStyle(new ParsingProperties(new Settings(), f.getPath()));
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1131,7 +1135,7 @@ public class Controller implements Initializable {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
             CssTransformer.transform(new FileInputStream(f), bo, cssvalidate.isSelected());
-            importStyle(new ParsingProperties(new Settings(),new StringReader(bo.toString())));
+            importStyle(new ParsingProperties(new Settings(), new StringReader(bo.toString())));
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1154,7 +1158,7 @@ public class Controller implements Initializable {
    }
 
    private boolean isStyler(String key, EnhancedMap settings) {
-      String[] classes = settings.getStringProperties( null, key);
+      String[] classes = settings.getStringProperties(null, key);
       if (classes == null) {
          return false;
       }
