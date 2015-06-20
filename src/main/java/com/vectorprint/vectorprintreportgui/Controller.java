@@ -155,6 +155,18 @@ public class Controller implements Initializable {
    @FXML
    private TextArea settingsxsd;
    @FXML
+   private TextField settingsparser;
+   @FXML
+   private TextField settingsserializer;
+   @FXML
+   private TextField settingshelper;
+   @FXML
+   private TextField paramparser;
+   @FXML
+   private TextField paramserializer;
+   @FXML
+   private TextField paramhelper;
+   @FXML
    private CheckBox toc;
    @FXML
    private CheckBox footer;
@@ -518,6 +530,8 @@ public class Controller implements Initializable {
    @FXML
    private void buildStylesheet(ActionEvent event) {
       try {
+         // TODO this must go through serializer
+         EnhancedMap eh = new Settings();
          stylesheet.clear();
 
          stylesheet.appendText("# default values for styler parameters");
@@ -973,6 +987,13 @@ public class Controller implements Initializable {
          bo.reset();
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
+         
+         settingsparser.setText(embf.getParser(new StringReader("")).getClass().getName());
+         settingsserializer.setText(embf.getSerializer().getClass().getName());
+         settingshelper.setText(embf.getBindingHelper().getClass().getName());
+         paramparser.setText(factory.getParser(new StringReader("")).getClass().getName());
+         paramserializer.setText(factory.getSerializer().getClass().getName());
+         paramhelper.setText(factory.getBindingHelper().getClass().getName());
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
