@@ -531,7 +531,11 @@ public class Controller implements Initializable {
    private void buildStylesheet(ActionEvent event) {
       try {
          // TODO this must go through serializer
-         EnhancedMap eh = new Settings();
+         File f = File.createTempFile("a", "b");
+         f.deleteOnExit();
+         Files.write(f.toPath(), "a=b".getBytes());
+         ParsingProperties eh = new ParsingProperties(new Settings(),f);
+         eh.clear();
          stylesheet.clear();
 
          stylesheet.appendText("# default values for styler parameters");
