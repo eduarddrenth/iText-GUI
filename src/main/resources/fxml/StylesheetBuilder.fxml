@@ -151,21 +151,40 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="26.0" layoutY="15.0" prefHeight="16.0" prefWidth="975.0" text="Here you can control the syntax used for reading and writing stylesheets." />
-                        <TextField fx:id="settingsparser" layoutX="139.0" layoutY="83.0" prefHeight="26.0" prefWidth="738.0" />
-                        <TextField fx:id="settingsserializer" layoutX="139.0" layoutY="123.0" prefHeight="26.0" prefWidth="738.0" />
-                        <TextField fx:id="settingshelper" layoutX="139.0" layoutY="164.0" prefHeight="26.0" prefWidth="740.0" />
+                        <TextField fx:id="settingsparser" layoutX="139.0" layoutY="83.0" prefHeight="26.0" prefWidth="738.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.settings.EnhancedMapParser" />
+                           </tooltip></TextField>
+                        <TextField fx:id="settingsserializer" layoutX="139.0" layoutY="123.0" prefHeight="26.0" prefWidth="738.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.settings.EnhancedMapSerializer" />
+                           </tooltip></TextField>
+                        <TextField fx:id="settingshelper" layoutX="139.0" layoutY="164.0" prefHeight="26.0" prefWidth="740.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.BindingHelper" />
+                           </tooltip></TextField>
                         <Label layoutX="29.0" layoutY="90.0" text="parser class" />
                         <Label layoutX="26.0" layoutY="128.0" text="serializer class" />
                         <Label layoutX="26.0" layoutY="169.0" text="value helper" />
                         <Label layoutX="26.0" layoutY="339.0" text="value helper" />
                         <Label layoutX="26.0" layoutY="300.0" text="serializer class" />
                         <Label layoutX="28.0" layoutY="263.0" text="parser class" />
-                        <TextField fx:id="paramserializer" layoutX="139.0" layoutY="294.0" prefHeight="26.0" prefWidth="740.0" />
-                        <TextField fx:id="paramhelper" layoutX="138.0" layoutY="332.0" prefHeight="26.0" prefWidth="740.0" />
-                        <TextField fx:id="paramparser" layoutX="139.0" layoutY="256.0" prefHeight="26.0" prefWidth="738.0" />
+                        <TextField fx:id="paramserializer" layoutX="139.0" layoutY="294.0" prefHeight="26.0" prefWidth="740.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.parameters.ParameterizableSerializer" />
+                           </tooltip></TextField>
+                        <TextField fx:id="paramhelper" layoutX="138.0" layoutY="332.0" prefHeight="26.0" prefWidth="740.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.parameters.ParamBindingHelper" />
+                           </tooltip></TextField>
+                        <TextField fx:id="paramparser" layoutX="139.0" layoutY="256.0" prefHeight="26.0" prefWidth="738.0">
+                           <tooltip>
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.parameters.ParameterizableParser" />
+                           </tooltip></TextField>
                         <Separator layoutX="29.0" layoutY="213.0" prefHeight="0.0" prefWidth="843.0" />
-                        <Label layoutX="26.0" layoutY="56.0" text="classes for settings syntax" />
-                        <Label layoutX="29.0" layoutY="231.0" text="classes for styler syntax" />
+                        <Label layoutX="27.0" layoutY="56.0" text="classes for settings syntax (syntax for properties)" />
+                        <Label layoutX="29.0" layoutY="231.0" text="classes for styler syntax (syntax for Objects with parameters)" />
+                        <Button layoutX="812.0" layoutY="23.0" mnemonicParsing="false" onAction="#changeSyntax" text="change" />
                      </children>
                   </AnchorPane>
               </content>

@@ -14,13 +14,18 @@ import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
 import com.vectorprint.configuration.binding.BindingHelper;
+import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
+import com.vectorprint.configuration.binding.parameters.ParameterizableParser;
+import com.vectorprint.configuration.binding.parameters.ParameterizableSerializer;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactoryImpl;
+import com.vectorprint.configuration.binding.settings.EnhancedMapParser;
+import com.vectorprint.configuration.binding.settings.EnhancedMapSerializer;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameterizable;
 import com.vectorprint.report.ReportConstants;
@@ -531,11 +536,12 @@ public class Controller implements Initializable {
    private void buildStylesheet(ActionEvent event) {
       try {
          // TODO this must go through serializer
-         File f = File.createTempFile("a", "b");
+         File f = File.createTempFile("settings", "b");
          f.deleteOnExit();
          Files.write(f.toPath(), "a=b".getBytes());
-         ParsingProperties eh = new ParsingProperties(new Settings(),f);
+         ParsingProperties eh = new ParsingProperties(new Settings(), f);
          eh.clear();
+         f.delete();
          stylesheet.clear();
 
          stylesheet.appendText("# default values for styler parameters");
@@ -991,13 +997,8 @@ public class Controller implements Initializable {
          bo.reset();
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
-         
-         settingsparser.setText(embf.getParser(new StringReader("")).getClass().getName());
-         settingsserializer.setText(embf.getSerializer().getClass().getName());
-         settingshelper.setText(embf.getBindingHelper().getClass().getName());
-         paramparser.setText(factory.getParser(new StringReader("")).getClass().getName());
-         paramserializer.setText(factory.getSerializer().getClass().getName());
-         paramhelper.setText(factory.getBindingHelper().getClass().getName());
+
+         defaultSyntax();
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
@@ -1039,6 +1040,39 @@ public class Controller implements Initializable {
       } catch (Exception ex) {
          toError(ex);
       }
+   }
+
+   @FXML
+   private void changeSyntax(ActionEvent event) {
+      try {
+         embf = EnhancedMapBindingFactoryImpl.getFactory(
+             (Class<? extends EnhancedMapParser>)Class.forName(settingsparser.getText()),
+             (Class<? extends EnhancedMapSerializer>)Class.forName(settingsserializer.getText()),
+             (BindingHelper)Class.forName(settingshelper.getText()).newInstance(), false);
+         factory = ParameterizableBindingFactoryImpl.getFactory(
+             (Class<? extends ParameterizableParser>)Class.forName(paramparser.getText()),
+             (Class<? extends ParameterizableSerializer>)Class.forName(paramserializer.getText()),
+             (ParamBindingHelper)Class.forName(paramhelper.getText()).newInstance(), false);
+      } catch (ClassNotFoundException ex) {
+         defaultSyntax();
+         toError(ex);
+      } catch (InstantiationException ex) {
+         defaultSyntax();
+         toError(ex);
+      } catch (IllegalAccessException ex) {
+         defaultSyntax();
+         toError(ex);
+      }
+
+   }
+
+   private void defaultSyntax() {
+      settingsparser.setText(embf.getParser(new StringReader("")).getClass().getName());
+      settingsserializer.setText(embf.getSerializer().getClass().getName());
+      settingshelper.setText(embf.getBindingHelper().getClass().getName());
+      paramparser.setText(factory.getParser(new StringReader("")).getClass().getName());
+      paramserializer.setText(factory.getSerializer().getClass().getName());
+      paramhelper.setText(factory.getBindingHelper().getClass().getName());
    }
 
    @FXML
