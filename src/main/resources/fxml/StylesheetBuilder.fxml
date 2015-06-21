@@ -216,16 +216,6 @@
                </content>
             </Tab>
          </tabs>
-         <effect>
-            <Lighting diffuseConstant="1.26" specularConstant="0.16" specularExponent="22.38" surfaceScale="0.91">
-               <bumpInput>
-                  <Shadow />
-               </bumpInput>
-               <light>
-                  <Light.Distant azimuth="195.0" />
-               </light>
-            </Lighting>
-         </effect>
       </TabPane>
       <Label fx:id="search" layoutX="671.0" layoutY="14.0" prefHeight="16.0" prefWidth="188.0" />
       <MenuBar blendMode="SRC_ATOP" layoutX="974.0" layoutY="5.0" useSystemMenuBar="false">
@@ -258,7 +248,4 @@
       </MenuBar>
       <CheckBox fx:id="cssvalidate" layoutX="864.0" layoutY="11.0" mnemonicParsing="false" text="validate css" />
    </children>
-   <effect>
-      <Glow level="0.1" />
-   </effect>
 </AnchorPane>

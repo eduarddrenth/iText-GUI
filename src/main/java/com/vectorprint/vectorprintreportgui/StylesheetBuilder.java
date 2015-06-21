@@ -4,6 +4,7 @@
  */
 package com.vectorprint.vectorprintreportgui;
 
+import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -35,7 +36,7 @@ public class StylesheetBuilder extends Application {
       System.exit(0);
    }
 
-   public static void main(String[] args) {
+   public static void main(String[] args) throws IOException {
       launch(args);
    }
 }
