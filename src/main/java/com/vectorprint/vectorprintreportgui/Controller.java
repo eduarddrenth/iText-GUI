@@ -8,6 +8,7 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.steadystate.css.parser.SACParser;
+import com.vectorprint.ArrayHelper;
 import com.vectorprint.IOHelper;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
@@ -374,7 +375,7 @@ public class Controller implements Initializable {
       if (p instanceof BaseStyler) {
          if (conditionConfig.containsKey(styleClass)) {
             notify("ok",
-                toConfigString(styleClass, conditionConfig.get(styleClass)), String.format("style class %s in use, choose another", styleClass));
+                String.format("style class %s in use, choose another", styleClass), conditionConfig.get(styleClass).toString());
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
@@ -407,7 +408,7 @@ public class Controller implements Initializable {
       } else {
          if (stylingConfig.containsKey(styleClass)) {
             notify("ok",
-                toConfigString(styleClass, stylingConfig.get(styleClass)), String.format("style class %s in use, choose another", styleClass));
+                String.format("style class %s in use, choose another", styleClass), stylingConfig.get(styleClass).toString());
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass)) {
@@ -496,9 +497,7 @@ public class Controller implements Initializable {
       st.show();
    }
 
-   private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
-      StringBuilder sb = new StringBuilder(clazz);
-      sb.append("=");
+   private void toConfigString(String clazz, List<? extends Parameterizable> sp, ParsingProperties eh) throws IOException {
       if (!DefaultStylerFactory.DEFAULTSTYLERSFIRST.equals(clazz) && !DefaultStylerFactory.DEFAULTSTYLERSLAST.equals(clazz)) {
          if (stylingConfig.containsKey(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
             // strip defaults
@@ -512,22 +511,23 @@ public class Controller implements Initializable {
             }
          }
       }
+      List<String> pp = new ArrayList<>(sp.size());
       for (Parameterizable p : sp) {
          StringWriter sw = new StringWriter();
          factory.getSerializer().serialize(p, sw);
-         sb.append(sw.toString()).append(";");
+         pp.add(sw.toString());
       }
-      return sb.toString().substring(0, sb.length() - 1);
+      eh.put(clazz, ArrayHelper.toArray(pp));
    }
 
-   private void printComment(String key) {
+   private void printComment(String key, ParsingProperties eh) {
       if (key != null && commentsBefore.containsKey(key)) {
          for (String s : commentsBefore.get(key)) {
-            stylesheet.appendText(s);
+            eh.addCommentBeforeKey(key, s);
          }
       } else {
          for (String s : commentsAfter) {
-            stylesheet.appendText(s);
+            eh.addTrailingComment(s);
          }
       }
    }
@@ -535,7 +535,6 @@ public class Controller implements Initializable {
    @FXML
    private void buildStylesheet(ActionEvent event) {
       try {
-         // TODO this must go through serializer
          File f = File.createTempFile("settings", "b");
          f.deleteOnExit();
          Files.write(f.toPath(), "a=b".getBytes());
@@ -544,51 +543,30 @@ public class Controller implements Initializable {
          f.delete();
          stylesheet.clear();
 
-         stylesheet.appendText("# default values for styler parameters");
-         stylesheet.appendText(System.getProperty("line.separator"));
-
          for (Map.Entry<String, Set<ParameterProps>> def : defaults.entrySet()) {
             for (ParameterProps pp : def.getValue()) {
-               printComment(def.getKey() + "." + pp.getKey());
-               stylesheet.appendText(def.getKey());
-               stylesheet.appendText(".");
-               stylesheet.appendText(pp.getKey());
-               stylesheet.appendText("=");
-               stylesheet.appendText(pp.getValue());
-               stylesheet.appendText(System.getProperty("line.separator"));
+               printComment(def.getKey() + "." + pp.getKey(), eh);
+               eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
             }
          }
 
-         stylesheet.appendText(System.getProperty("line.separator"));
-         stylesheet.appendText("# style classes that define conditions for styling");
-         stylesheet.appendText(System.getProperty("line.separator"));
-
          for (Map.Entry<String, List<StylingCondition>> e : conditionConfig.entrySet()) {
-            printComment(e.getKey());
-            stylesheet.appendText(toConfigString(e.getKey(), e.getValue()));
-            stylesheet.appendText(System.getProperty("line.separator"));
+            printComment(e.getKey(), eh);
+            toConfigString(e.getKey(), e.getValue(), eh);
          }
-
-         stylesheet.appendText(System.getProperty("line.separator"));
-         stylesheet.appendText("# style classes that define styling");
-         stylesheet.appendText(System.getProperty("line.separator"));
 
          for (Map.Entry<String, List<BaseStyler>> e : stylingConfig.entrySet()) {
-            printComment(e.getKey());
-            stylesheet.appendText(toConfigString(e.getKey(), e.getValue()));
-            stylesheet.appendText(System.getProperty("line.separator"));
+            printComment(e.getKey(), eh);
+            toConfigString(e.getKey(), e.getValue(), eh);
          }
-
-         stylesheet.appendText(System.getProperty("line.separator"));
-         stylesheet.appendText("# several extra settings");
-         stylesheet.appendText(System.getProperty("line.separator"));
 
          for (Map.Entry<String, String> e : extraSettings.entrySet()) {
-            printComment(e.getKey());
-            stylesheet.appendText(e.getKey() + '=' + e.getValue());
-            stylesheet.appendText(System.getProperty("line.separator"));
+            printComment(e.getKey(), eh);
+            eh.put(e.getKey(), e.getValue());
          }
-         printComment(null);
+         StringWriter sw = new StringWriter(eh.size() * 30);
+         embf.getSerializer().serialize(eh, sw);
+         stylesheet.appendText(sw.toString());
 
          styleTab.getTabPane().getSelectionModel().select(styleTab);
       } catch (Exception ex) {
@@ -963,11 +941,7 @@ public class Controller implements Initializable {
                      super.updateItem(t, bln);
                      if (t != null && stylingConfig.containsKey(t)) {
                         setText(t);
-                        try {
-                           setTooltip(tip(toConfigString(t, stylingConfig.get(t))));
-                        } catch (IOException ex) {
-                           toError(ex);
-                        }
+                        setTooltip(tip(stylingConfig.get(t).toString()));
                      }
                   }
 
@@ -1046,13 +1020,13 @@ public class Controller implements Initializable {
    private void changeSyntax(ActionEvent event) {
       try {
          embf = EnhancedMapBindingFactoryImpl.getFactory(
-             (Class<? extends EnhancedMapParser>)Class.forName(settingsparser.getText()),
-             (Class<? extends EnhancedMapSerializer>)Class.forName(settingsserializer.getText()),
-             (BindingHelper)Class.forName(settingshelper.getText()).newInstance(), false);
+             (Class<? extends EnhancedMapParser>) Class.forName(settingsparser.getText()),
+             (Class<? extends EnhancedMapSerializer>) Class.forName(settingsserializer.getText()),
+             (BindingHelper) Class.forName(settingshelper.getText()).newInstance(), false);
          factory = ParameterizableBindingFactoryImpl.getFactory(
-             (Class<? extends ParameterizableParser>)Class.forName(paramparser.getText()),
-             (Class<? extends ParameterizableSerializer>)Class.forName(paramserializer.getText()),
-             (ParamBindingHelper)Class.forName(paramhelper.getText()).newInstance(), false);
+             (Class<? extends ParameterizableParser>) Class.forName(paramparser.getText()),
+             (Class<? extends ParameterizableSerializer>) Class.forName(paramserializer.getText()),
+             (ParamBindingHelper) Class.forName(paramhelper.getText()).newInstance(), false);
       } catch (ClassNotFoundException ex) {
          defaultSyntax();
          toError(ex);
