@@ -7,8 +7,6 @@ package com.vectorprint.vectorprintreportgui;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import javafx.application.Application;
@@ -41,12 +39,12 @@ public class StylesheetBuilder extends Application {
    public void stop() throws Exception {
       System.exit(0);
    }
-
+   
    public static void main(String[] args) throws IOException {
       if (new File(LOGGINGPROPERTIES).canRead()) {
          LogManager.getLogManager().readConfiguration(new FileInputStream(LOGGINGPROPERTIES));
       } else {
-         Logger.getGlobal().warning(LOGGINGPROPERTIES + " not found, provide it to configure logging");
+         Logger.getGlobal().warning(LOGGINGPROPERTIES + " not found, using built in configuration");
          LogManager.getLogManager().readConfiguration(StylesheetBuilder.class.getResourceAsStream("/logging.properties"));
       }
       launch(args);

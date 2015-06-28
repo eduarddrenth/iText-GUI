@@ -234,9 +234,9 @@ public class Controller implements Initializable {
    @FXML
    private void chooseStandardStyle(ActionEvent event) {
       if (pre.equals(event.getSource())) {
-         chooseOrAdd(DefaultStylerFactory.DEFAULTSTYLERSFIRST);
+         chooseOrAdd(DefaultStylerFactory.PRESTYLERS);
       } else if (post.equals(event.getSource())) {
-         chooseOrAdd(DefaultStylerFactory.DEFAULTSTYLERSLAST);
+         chooseOrAdd(DefaultStylerFactory.POSTSTYLERS);
       } else if (page.equals(event.getSource())) {
          chooseOrAdd(DefaultStylerFactory.PAGESTYLERS);
       }
@@ -498,15 +498,15 @@ public class Controller implements Initializable {
    }
 
    private void toConfigString(String clazz, List<? extends Parameterizable> sp, ParsingProperties eh) throws IOException {
-      if (!DefaultStylerFactory.DEFAULTSTYLERSFIRST.equals(clazz) && !DefaultStylerFactory.DEFAULTSTYLERSLAST.equals(clazz)) {
-         if (stylingConfig.containsKey(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
+      if (!DefaultStylerFactory.PRESTYLERS.equals(clazz) && !DefaultStylerFactory.POSTSTYLERS.equals(clazz)) {
+         if (stylingConfig.containsKey(DefaultStylerFactory.PRESTYLERS)) {
             // strip defaults
-            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSFIRST)) {
+            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.PRESTYLERS)) {
                sp.remove(p);
             }
          }
-         if (stylingConfig.containsKey(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
-            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.DEFAULTSTYLERSLAST)) {
+         if (stylingConfig.containsKey(DefaultStylerFactory.POSTSTYLERS)) {
+            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.POSTSTYLERS)) {
                sp.remove(p);
             }
          }
@@ -535,12 +535,7 @@ public class Controller implements Initializable {
    @FXML
    private void buildStylesheet(ActionEvent event) {
       try {
-         File f = File.createTempFile("settings", "b");
-         f.deleteOnExit();
-         Files.write(f.toPath(), "a=b".getBytes());
-         ParsingProperties eh = new ParsingProperties(new Settings(), f);
-         eh.clear();
-         f.delete();
+         ParsingProperties eh = new ParsingProperties(new Settings());
          stylesheet.clear();
 
          for (Map.Entry<String, Set<ParameterProps>> def : defaults.entrySet()) {
@@ -1105,7 +1100,7 @@ public class Controller implements Initializable {
    }
 
    private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
-      settings.put(DefaultStylerFactory.DOFIRSTLAST, Boolean.FALSE.toString());
+      settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, Boolean.FALSE.toString());
       StylerFactory sf = new DefaultStylerFactory();
       StylerFactoryHelper.SETTINGS_ANNOTATION_PROCESSOR.initSettings(sf, settings);
       Document d = new Document();
