@@ -60,7 +60,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1210,7 +1209,7 @@ public class Controller implements Initializable {
 
    private void getConditions(Collection<? extends BaseStyler> l) {
       for (BaseStyler bs : l) {
-         String scKey = Arrays.toString(bs.getValue(AbstractStyler.CONDITONS, String[].class));
+         String scKey = bs.getValue(AbstractStyler.CONDITONS, String.class);
          if (bs.getConditions() != null && !bs.getConditions().isEmpty() && !processed.contains(scKey)) {
             processed.add(scKey);
             for (StylingCondition sc : (List<StylingCondition>) bs.getConditions()) {
