@@ -60,6 +60,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -108,6 +109,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.TooltipBuilder;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -198,6 +200,10 @@ public class Controller implements Initializable {
    private Tab build;
    @FXML
    private Tab errorTab;
+   @FXML
+   private Tab viewTab;
+   @FXML
+   private ImageView image;
    @FXML
    private Tab helpTab;
    @FXML
@@ -1204,11 +1210,11 @@ public class Controller implements Initializable {
 
    private void getConditions(Collection<? extends BaseStyler> l) {
       for (BaseStyler bs : l) {
-         String scKey = bs.getValue(AbstractStyler.CONDITONS, String.class);
+         String scKey = Arrays.toString(bs.getValue(AbstractStyler.CONDITONS, String[].class));
          if (bs.getConditions() != null && !bs.getConditions().isEmpty() && !processed.contains(scKey)) {
             processed.add(scKey);
             for (StylingCondition sc : (List<StylingCondition>) bs.getConditions()) {
-               if (!AbstractStyler.NOT_FROM_CONFIGURATION.equals(sc.getConfigKey())) {
+               if (!AbstractStyler.NOT_FROM_CONFIGURATION.equals(sc.getConfigKey()) && scKey.equals(sc.getConfigKey())) {
                   if (conditionConfig.get(sc.getConfigKey()) == null) {
                      conditionConfig.put(sc.getConfigKey(), new ArrayList<StylingCondition>(bs.getConditions().size()));
                   }

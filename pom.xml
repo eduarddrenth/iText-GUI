@@ -14,9 +14,50 @@
       <mainClass>com.vectorprint.vectorprintreportgui.StylesheetBuilder</mainClass>
    </properties>
 
+   <url>https://github.com/eduarddrenth/iText-GUI</url>
+   <description>GUI that supports stylesheet features of Configurable Reports. Basic features are create, modify and save.
+      The GUI also supports syntax change of stylesheets, validation of xml for settings and validation of xml for datamapping.
+   </description>
+   <distributionManagement>
+      <repository>
+         <id>ossrh</id>
+         <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+      </repository>
+   </distributionManagement>
+   <licenses>
+      <license>
+         <name>GNU Affero General Public License v3</name>
+         <url>http://www.fsf.org/licensing/licenses/agpl-3.0.html</url>
+         <distribution>repo</distribution>
+      </license>
+   </licenses>
+   <ciManagement>
+      <system>hudson</system>
+      <url>http://www.vectorprint.nl</url>
+   </ciManagement>
+   <scm>
+      <url>https://github.com/eduarddrenth/iText-GUI</url>
+      <connection>scm:git:git://github.com/eduarddrenth/iText-GUI.git</connection>
+      <developerConnection>scm:git:git@github.com:eduarddrenth/iText-GUI.git</developerConnection>
+   </scm>
+   <issueManagement>
+      <url>https://github.com/eduarddrenth/iText-GUI/issues</url>
+   </issueManagement>
+   <developers>
+      <developer>
+         <email>eduarddrenth@gmail.com</email>
+         <name>Eduard Drenth</name>
+         <organization>VectorPrint</organization>
+         <roles>
+            <role>owner</role>
+            <role>lead developer</role>
+         </roles>
+      </developer>
+   </developers>
+    
    <organization>
-      <!-- Used as the 'Vendor' for JNLP generation -->
-      <name>Your Organisation</name>
+      <name>VectorPrint</name>
+      <url>http://www.vectorprint.nl</url>
    </organization>
 
    <build>
@@ -24,7 +65,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.8</version>
+            <version>2.10</version>
             <executions>
                <execution>
                   <id>unpack-dependencies</id>
@@ -43,7 +84,7 @@
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
-            <version>1.3</version>
+            <version>1.4.0</version>
             <executions>
                <execution>
                   <id>unpack-dependencies</id>
@@ -108,10 +149,10 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.1</version>
+            <version>3.3</version>
             <configuration>
-               <source>1.7</source>
-               <target>1.7</target>
+               <source>1.8</source>
+               <target>1.8</target>
                <compilerArguments>
                   <bootclasspath>${sun.boot.class.path}${path.separator}${java.home}/lib/jfxrt.jar</bootclasspath>
                </compilerArguments>
@@ -120,7 +161,7 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.17</version>
+            <version>2.18.1</version>
             <configuration>
                <additionalClasspathElements>
                   <additionalClasspathElement>${java.home}/lib/jfxrt.jar</additionalClasspathElement>
@@ -134,7 +175,7 @@
             <artifactId>ReportSVGSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>6.2</version>
+            <version>7.1</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
@@ -151,25 +192,13 @@
             <artifactId>ReportjFreeChartSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>6.2</version>
+            <version>7.1</version>
         </dependency>
         <dependency>
             <artifactId>ReportQrSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>6.2</version>
-        </dependency>
-        <dependency>
-            <artifactId>ConfigurableReports</artifactId>
-            <groupId>com.vectorprint</groupId>
-            <type>jar</type>
-            <version>6.2</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>*</artifactId>
-                    <groupId>bouncycastle</groupId>
-                </exclusion>
-            </exclusions>
+            <version>7.1</version>
         </dependency>
     </dependencies>
 </project>
