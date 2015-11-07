@@ -87,6 +87,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.GroupBuilder;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -106,6 +107,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.TooltipBuilder;
+import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
@@ -256,7 +258,7 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
-      if (stylingConfig.isEmpty() || !stylingConfig.containsKey(stylerKeys.getValue())) {
+      if (stylingConfig.isEmpty() || stylerKeys.getValue() == null || !stylingConfig.containsKey(stylerKeys.getValue())) {
          return;
       }
       try {
@@ -481,7 +483,7 @@ public class Controller implements Initializable {
       for (BaseStyler s : stylers) {
          final BaseStyler kopie = s;
          RadioButton rb = new RadioButton(s.getClass().getSimpleName());
-         rb.setTooltip(tip(s.toString()));
+         rb.setTooltip(tip(s.getHelp()));
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
          rb.setOnAction(new EventHandler<ActionEvent>() {
@@ -683,7 +685,7 @@ public class Controller implements Initializable {
                   protected void updateItem(String t, boolean bln) {
                      super.updateItem(t, bln);
                      setText(t);
-                     if (t != null) {
+                     if (t != null&&getTableRow().getItem()!=null) {
                         setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
                      }
                   }
@@ -880,7 +882,7 @@ public class Controller implements Initializable {
                         }
                      });
 
-                     setGraphic(GroupBuilder.create().children(b, bd).build());
+                     setGraphic(new Group(b, bd));
                   }
                };
 
