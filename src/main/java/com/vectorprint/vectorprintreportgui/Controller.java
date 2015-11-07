@@ -496,6 +496,12 @@ public class Controller implements Initializable {
                for (Parameter p : kopie.getParameters().values()) {
                   parameters.add(new ParameterProps(p));
                }
+               for (int j = 0; j < stylerCombo.getItems().size(); j++) {
+                  if (stylerCombo.getItems().get(j).getClass().equals(bs.getClass())) {
+                     stylerCombo.getSelectionModel().select(j);
+                     break;
+                  }
+               }
             }
          });
       }
