@@ -88,7 +88,6 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.GroupBuilder;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -106,8 +105,6 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.TooltipBuilder;
-import javafx.scene.control.cell.ComboBoxTableCell;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
@@ -117,7 +114,7 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.stage.FileChooserBuilder;
+import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
@@ -133,17 +130,23 @@ import org.xml.sax.SAXParseException;
  */
 public class Controller implements Initializable {
 
-   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
+   /* State of the stylesheet */
    private final Map<String, List<BaseStyler>> stylingConfig = new TreeMap<String, List<BaseStyler>>();
    private final Map<String, List<String>> commentsBefore = new HashMap<String, List<String>>();
    private final List<String> commentsAfter = new ArrayList<String>(3);
    private final Map<String, List<StylingCondition>> conditionConfig = new TreeMap<String, List<StylingCondition>>();
    private final Map<String, Set<ParameterProps>> defaults = new TreeMap<String, Set<ParameterProps>>();
    private final Map<String, String> extraSettings = new TreeMap<String, String>();
-   private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
+
+   /* State of the GUI */
+   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
    private final ObservableList<BaseStyler> stylersForClass = FXCollections.observableArrayList(new ArrayList<BaseStyler>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(50));
 
+   /* parameterizables in this set can be used more then once for a styleClass */
+   private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
+
+   /* syntax factories for reading and writing stylesheets */
    private ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
    private EnhancedMapBindingFactory embf = EnhancedMapBindingFactoryImpl.getDefaultFactory();
 
@@ -510,6 +513,14 @@ public class Controller implements Initializable {
       st.show();
    }
 
+   private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
+      ParsingProperties p = new ParsingProperties(new Settings());
+      toConfigString(clazz, sp, p);
+      StringWriter sw = new StringWriter(p.size() * 30);
+      embf.getSerializer().serialize(p, sw);
+      return sw.toString();
+   }
+
    private void toConfigString(String clazz, List<? extends Parameterizable> sp, ParsingProperties eh) throws IOException {
       if (!DefaultStylerFactory.PRESTYLERS.equals(clazz) && !DefaultStylerFactory.POSTSTYLERS.equals(clazz)) {
          if (stylingConfig.containsKey(DefaultStylerFactory.PRESTYLERS)) {
@@ -530,8 +541,11 @@ public class Controller implements Initializable {
          factory.getSerializer().serialize(p, sw);
          pp.add(sw.toString());
       }
-      eh.put(clazz, ArrayHelper.toArray(pp));
+      String[] toArray = ArrayHelper.toArray(pp);
+      eh.put(clazz, toArray == null ? EMPTY : toArray);
    }
+
+   private static final String[] EMPTY = new String[0];
 
    private void printComment(String key, ParsingProperties eh) {
       if (key != null && commentsBefore.containsKey(key)) {
@@ -597,7 +611,12 @@ public class Controller implements Initializable {
    }
 
    private Tooltip tip(String text) {
-      return TooltipBuilder.create().maxWidth(400).autoHide(false).autoFix(true).wrapText(true).text(text).build();
+      Tooltip t = new Tooltip(text);
+      t.setMaxWidth(400);
+      t.setAutoHide(false);
+      t.setAutoFix(true);
+      t.setWrapText(true);
+      return t;
    }
 
    @FXML
@@ -691,7 +710,7 @@ public class Controller implements Initializable {
                   protected void updateItem(String t, boolean bln) {
                      super.updateItem(t, bln);
                      setText(t);
-                     if (t != null&&getTableRow().getItem()!=null) {
+                     if (t != null && getTableRow().getItem() != null) {
                         setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
                      }
                   }
@@ -932,7 +951,7 @@ public class Controller implements Initializable {
                         }
                      });
 
-                     setGraphic(GroupBuilder.create().children(b).build());
+                     setGraphic(b);
                   }
                };
 
@@ -949,7 +968,13 @@ public class Controller implements Initializable {
                      super.updateItem(t, bln);
                      if (t != null && stylingConfig.containsKey(t)) {
                         setText(t);
-                        setTooltip(tip(stylingConfig.get(t).toString()));
+                        String tooltip = "";
+                        try {
+                           tooltip += toConfigString(t, stylingConfig.get(t)) + " ";
+                        } catch (IOException ex) {
+                           Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        setTooltip(tip(tooltip));
                      }
                   }
 
@@ -994,7 +1019,9 @@ public class Controller implements Initializable {
    @FXML
    private void save(ActionEvent event) {
       try {
-         File f = FileChooserBuilder.create().title("save stylesheet").build().showSaveDialog(StylesheetBuilder.topWindow);
+         FileChooser fc = new FileChooser();
+         fc.setTitle("save stylesheet");
+         File f = fc.showSaveDialog(StylesheetBuilder.topWindow);
          if (f != null) {
             Files.write(f.toPath(), stylesheet.getText().getBytes());
          }
@@ -1008,7 +1035,9 @@ public class Controller implements Initializable {
       try {
          Datamappingstype fromXML = DatamappingHelper.fromXML(new StringReader(datamappingxsd.getText()));
          if (fromXML != null) {
-            File f = FileChooserBuilder.create().title("save data mapping xml").build().showSaveDialog(StylesheetBuilder.topWindow);
+            FileChooser fc = new FileChooser();
+            fc.setTitle("save data mapping xml");
+            File f = fc.showSaveDialog(StylesheetBuilder.topWindow);
             if (f != null) {
                Files.write(f.toPath(), datamappingxsd.getText().getBytes());
             }
@@ -1158,7 +1187,9 @@ public class Controller implements Initializable {
    private void importStyle(ActionEvent event) {
       try {
          clear(event);
-         File f = FileChooserBuilder.create().title("import stylesheet").build().showOpenDialog(StylesheetBuilder.topWindow);
+         FileChooser fc = new FileChooser();
+         fc.setTitle("import stylesheet");
+         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
             importStyle(new ParsingProperties(new Settings(), f.getPath()));
          }
@@ -1171,7 +1202,9 @@ public class Controller implements Initializable {
    private void importCss(ActionEvent event) {
       try {
          clear(event);
-         File f = FileChooserBuilder.create().title("import css").build().showOpenDialog(StylesheetBuilder.topWindow);
+         FileChooser fc = new FileChooser();
+         fc.setTitle("import css");
+         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
