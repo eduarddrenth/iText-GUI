@@ -108,6 +108,7 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -766,8 +767,67 @@ public class Controller implements Initializable {
             }
 
          });
-         pValue.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("value"));
-         pValue.setCellFactory(TextFieldTableCell.forTableColumn());
+         pValue.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ParameterProps, ParameterProps>, ObservableValue<ParameterProps>>() {
+            @Override
+            public ObservableValue<ParameterProps> call(TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) {
+               return new ReadOnlyObjectWrapper<ParameterProps>(p.getValue());
+            }
+         });
+         pValue.setCellFactory(new Callback<TableColumn<ParameterProps, ParameterProps>, TableCell<ParameterProps, ParameterProps>>() {
+            
+            @Override
+            public TableCell<ParameterProps, ParameterProps> call(TableColumn<ParameterProps, ParameterProps> param) {
+               
+               return new TableCell<ParameterProps, ParameterProps>() {
+
+                  @Override
+                  protected void updateItem(final ParameterProps item, boolean empty) {
+                     if (item == null) {
+                        return;
+                     }
+                     Class valueClass = item.getP().getValueClass();
+                     if (Boolean.class.equals(valueClass)||boolean.class.equals(valueClass)) {
+                        final CheckBox checkBox = new CheckBox();
+                        checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
+                        checkBox.setOnAction(new EventHandler<ActionEvent>() {
+                           @Override
+                           public void handle(ActionEvent event) {
+                              item.setValue(String.valueOf(checkBox.isSelected()));
+                           }
+                        });
+                        setGraphic(checkBox);
+                     } else if (valueClass.isEnum()) {
+                        final ComboBox<String> comboBox = new ComboBox();
+                        ObservableList<String> ol = FXCollections.observableArrayList();
+                        for (Object o : valueClass.getEnumConstants()) {
+                           ol.add(String.valueOf(o));
+                        }
+                        comboBox.setItems(ol);
+                        comboBox.getSelectionModel().select(item.getValue());
+                        comboBox.setOnAction(new EventHandler() {
+                           @Override
+                           public void handle(Event event) {
+                              item.setValue(comboBox.getSelectionModel().getSelectedItem());
+                           }
+                        });
+                        setGraphic(comboBox);
+                     } else {
+                        final TextField textField = new TextField(item.getValue());
+                        textField.textProperty().addListener(new ChangeListener<String>() {
+                           @Override
+                           public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+                              item.setValue(newValue);
+                           }
+                           
+                        });
+                        setGraphic(textField);
+                     }
+                  }
+
+               };
+            }
+
+         });
          pValue.setOnEditCommit(new EventHandler<TableColumn.CellEditEvent<ParameterProps, String>>() {
             @Override
             public void handle(TableColumn.CellEditEvent<ParameterProps, String> t) {
