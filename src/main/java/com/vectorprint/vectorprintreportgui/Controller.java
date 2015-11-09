@@ -72,17 +72,19 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -106,9 +108,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -119,6 +119,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import javax.xml.bind.UnmarshalException;
@@ -132,12 +133,12 @@ import org.xml.sax.SAXParseException;
 public class Controller implements Initializable {
 
    /* State of the stylesheet */
-   private final Map<String, List<BaseStyler>> stylingConfig = new TreeMap<String, List<BaseStyler>>();
-   private final Map<String, List<String>> commentsBefore = new HashMap<String, List<String>>();
-   private final List<String> commentsAfter = new ArrayList<String>(3);
-   private final Map<String, List<StylingCondition>> conditionConfig = new TreeMap<String, List<StylingCondition>>();
-   private final Map<String, Set<ParameterProps>> defaults = new TreeMap<String, Set<ParameterProps>>();
-   private final Map<String, String> extraSettings = new TreeMap<String, String>();
+   private final Map<String, List<BaseStyler>> stylingConfig = new TreeMap<>();
+   private final Map<String, List<String>> commentsBefore = new HashMap<>();
+   private final List<String> commentsAfter = new ArrayList<>(3);
+   private final Map<String, List<StylingCondition>> conditionConfig = new TreeMap<>();
+   private final Map<String, Set<ParameterProps>> defaults = new TreeMap<>();
+   private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
    private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
@@ -218,7 +219,7 @@ public class Controller implements Initializable {
    @FXML
    private TableColumn<ParameterProps, String> pKey;
    @FXML
-   private TableColumn pValue;
+   private TableColumn<ParameterProps, ParameterProps> pValue;
    @FXML
    private TableColumn<ParameterProps, String> pType;
    @FXML
@@ -228,13 +229,13 @@ public class Controller implements Initializable {
    @FXML
    private TableView<BaseStyler> stylerTable;
    @FXML
-   private TableColumn sUpDown;
+   private TableColumn<BaseStyler, BaseStyler> sUpDown;
    @FXML
-   private TableColumn rm;
+   private TableColumn<BaseStyler, BaseStyler> rm;
    @FXML
-   private TableColumn sCreates;
+   private TableColumn<BaseStyler, String> sCreates;
    @FXML
-   private TableColumn sHelp;
+   private TableColumn<BaseStyler, String> sHelp;
    @FXML
    private Button pre;
    @FXML
@@ -286,9 +287,9 @@ public class Controller implements Initializable {
       try {
          Parameterizable _st = stylerCombo.getValue();
          stylerHelp.setText((_st instanceof BaseStyler) ? ((BaseStyler) _st).getHelp() : "condition to determine when to style or not");
-         for (Parameter p : _st.getParameters().values()) {
+         _st.getParameters().values().stream().forEach((p) -> {
             parameters.add(new ParameterProps(p));
-         }
+         });
       } catch (Exception ex) {
          toError(ex);
       }
@@ -314,9 +315,9 @@ public class Controller implements Initializable {
    private void showStylers(Event event) {
       stylersForClass.clear();
       if (stylerKeysCopy.getValue() != null && stylingConfig.containsKey(stylerKeysCopy.getValue())) {
-         for (BaseStyler bs : stylingConfig.get(stylerKeysCopy.getValue())) {
+         stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
             stylersForClass.add(bs);
-         }
+         });
       }
    }
 
@@ -327,13 +328,10 @@ public class Controller implements Initializable {
          return;
       }
       try {
-         for (ParameterProps pp : parameters) {
-            if (pp.getValue() == null || "".equals(pp.getValue())) {
-               continue;
-            }
+         parameters.stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
             Parameter p = bs.getParameters().get(pp.getKey());
             p.setValue(pp.getP().getValue());
-         }
+         });
          StringWriter sw = new StringWriter();
          factory.getSerializer().serialize(bs, sw);
          configString.setText(sw.toString());
@@ -400,7 +398,7 @@ public class Controller implements Initializable {
             return false;
          }
          if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
-            stylingConfig.put(styleClass, new ArrayList<BaseStyler>());
+            stylingConfig.put(styleClass, new ArrayList<>());
          } else if (((BaseStyler) p).creates() && !stylingConfig.get(styleClass).isEmpty()) {
             notify("ok", "must be first",
                 String.format("styler %s creates a report element, should be the first styler for a style class, you should probably reorder your stylers", p.getClass().getSimpleName()));
@@ -428,7 +426,7 @@ public class Controller implements Initializable {
             return false;
          }
          if (!conditionConfig.containsKey(styleClass) && !"".equals(styleClass)) {
-            conditionConfig.put(styleClass, new ArrayList<StylingCondition>());
+            conditionConfig.put(styleClass, new ArrayList<>());
          }
          if (!configString.getText().startsWith(bs.getClass().getSimpleName() + ".")) {
             prepareAdd(p, conditionConfig.get(styleClass));
@@ -437,8 +435,8 @@ public class Controller implements Initializable {
       }
       return true;
    }
-   private Button b = new Button("add condition");
-   private Label l = new Label("detail message");
+   private final Button b = new Button("add condition");
+   private final Label l = new Label("detail message");
    private Stage st = new Stage(StageStyle.UTILITY);
 
    {
@@ -490,21 +488,17 @@ public class Controller implements Initializable {
          rb.setTooltip(tip(s.getHelp()));
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
-         rb.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent event) {
-               parameters.clear();
-               bs = kopie;
-               stylerHelp.setText((bs instanceof BaseStyler) ? ((BaseStyler) bs).getHelp() : "condition to determine when to style or not");
-               for (Parameter p : kopie.getParameters().values()) {
-                  parameters.add(new ParameterProps(p));
-               }
-               for (int j = 0; j < stylerCombo.getItems().size(); j++) {
-                  if (stylerCombo.getItems().get(j).getClass().equals(bs.getClass())) {
-                     stylerCombo.getSelectionModel().select(j);
-                     break;
-                  }
+         rb.setOnAction((ActionEvent event) -> {
+            parameters.clear();
+            bs = kopie;
+            stylerHelp.setText((bs instanceof BaseStyler) ? ((BaseStyler) bs).getHelp() : "condition to determine when to style or not");
+            for (Parameter p : kopie.getParameters().values()) {
+               parameters.add(new ParameterProps(p));
+            }
+            for (int j = 0; j < stylerCombo.getItems().size(); j++) {
+               if (stylerCombo.getItems().get(j).getClass().equals(bs.getClass())) {
+                  stylerCombo.getSelectionModel().select(j);
+                  break;
                }
             }
          });
@@ -526,14 +520,14 @@ public class Controller implements Initializable {
       if (!DefaultStylerFactory.PRESTYLERS.equals(clazz) && !DefaultStylerFactory.POSTSTYLERS.equals(clazz)) {
          if (stylingConfig.containsKey(DefaultStylerFactory.PRESTYLERS)) {
             // strip defaults
-            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.PRESTYLERS)) {
+            stylingConfig.get(DefaultStylerFactory.PRESTYLERS).stream().forEach((p) -> {
                sp.remove(p);
-            }
+            });
          }
          if (stylingConfig.containsKey(DefaultStylerFactory.POSTSTYLERS)) {
-            for (Parameterizable p : stylingConfig.get(DefaultStylerFactory.POSTSTYLERS)) {
+            stylingConfig.get(DefaultStylerFactory.POSTSTYLERS).stream().forEach((p) -> {
                sp.remove(p);
-            }
+            });
          }
       }
       List<String> pp = new ArrayList<>(sp.size());
@@ -550,13 +544,13 @@ public class Controller implements Initializable {
 
    private void printComment(String key, ParsingProperties eh) {
       if (key != null && commentsBefore.containsKey(key)) {
-         for (String s : commentsBefore.get(key)) {
+         commentsBefore.get(key).stream().forEach((s) -> {
             eh.addCommentBeforeKey(key, s);
-         }
+         });
       } else {
-         for (String s : commentsAfter) {
+         commentsAfter.stream().forEach((s) -> {
             eh.addTrailingComment(s);
-         }
+         });
       }
    }
 
@@ -566,12 +560,14 @@ public class Controller implements Initializable {
          ParsingProperties eh = new ParsingProperties(new Settings());
          stylesheet.clear();
 
-         for (Map.Entry<String, Set<ParameterProps>> def : defaults.entrySet()) {
-            for (ParameterProps pp : def.getValue()) {
+         defaults.entrySet().stream().forEach((def) -> {
+            def.getValue().stream().map((pp) -> {
                printComment(def.getKey() + "." + pp.getKey(), eh);
+               return pp;
+            }).forEach((pp) -> {
                eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
-            }
-         }
+            });
+         });
 
          for (Map.Entry<String, List<StylingCondition>> e : conditionConfig.entrySet()) {
             printComment(e.getKey(), eh);
@@ -583,10 +579,12 @@ public class Controller implements Initializable {
             toConfigString(e.getKey(), e.getValue(), eh);
          }
 
-         for (Map.Entry<String, String> e : extraSettings.entrySet()) {
+         extraSettings.entrySet().stream().map((e) -> {
             printComment(e.getKey(), eh);
+            return e;
+         }).forEach((e) -> {
             eh.put(e.getKey(), e.getValue());
-         }
+         });
          StringWriter sw = new StringWriter(eh.size() * 30);
          embf.getSerializer().serialize(eh, sw);
          stylesheet.appendText(sw.toString());
@@ -655,7 +653,7 @@ public class Controller implements Initializable {
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       try {
-         List<Parameterizable> sorted = new ArrayList<Parameterizable>(Help.getStylersAndConditions());
+         List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
          Collections.sort(sorted, STYLER_COMPARATOR);
          synchronized (duplicatesAllowed) {
             if (duplicatesAllowed.isEmpty()) {
@@ -669,18 +667,15 @@ public class Controller implements Initializable {
                }
             }
          }
-         stylerCombo.setCellFactory(new Callback<ListView<Parameterizable>, ListCell<Parameterizable>>() {
-            @Override
-            public ListCell<Parameterizable> call(ListView<Parameterizable> p) {
-               return new ListCell<Parameterizable>() {
-                  @Override
-                  protected void updateItem(Parameterizable t, boolean bln) {
-                     super.updateItem(t, bln);
-                     setText(t == null ? "" : t.getClass().getSimpleName());
-                     setTooltip(t != null ? tip(t.getClass().getName() + ": " + help(t)) : null);
-                  }
-               };
-            }
+         stylerCombo.setCellFactory((ListView<Parameterizable> p) -> {
+            return new ListCell<Parameterizable>() {
+               @Override
+               protected void updateItem(Parameterizable t, boolean bln) {
+                  super.updateItem(t, bln);
+                  setText(t == null ? "" : t.getClass().getSimpleName());
+                  setTooltip(t != null ? tip(t.getClass().getName() + ": " + help(t)) : null);
+               }
+            };
          });
          stylerCombo.setConverter(new StringConverter<Parameterizable>() {
             private Parameterizable p = null;
@@ -702,68 +697,47 @@ public class Controller implements Initializable {
          parameterTable.setItems(parameters);
          stylerTable.setItems(stylersForClass);
 
-         pDeclaringClass.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("declaringClass"));
-         pDeclaringClass.setCellFactory(new Callback<TableColumn<ParameterProps, String>, TableCell<ParameterProps, String>>() {
+         pDeclaringClass.setCellValueFactory(new PropertyValueFactory<>("declaringClass"));
+         pDeclaringClass.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
-            public TableCell<ParameterProps, String> call(TableColumn<ParameterProps, String> p) {
-               return new TableCell<ParameterProps, String>() {
-                  @Override
-                  protected void updateItem(String t, boolean bln) {
-                     super.updateItem(t, bln);
-                     setText(t);
-                     if (t != null && getTableRow().getItem() != null) {
-                        setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
-                     }
-                  }
-               };
+            protected void updateItem(String t, boolean bln) {
+               super.updateItem(t, bln);
+               setText(t);
+               if (t != null && getTableRow().getItem() != null) {
+                  setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
+               }
             }
          });
 
-         pType.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("type"));
-         pType.setCellFactory(new Callback<TableColumn<ParameterProps, String>, TableCell<ParameterProps, String>>() {
+         pType.setCellValueFactory(new PropertyValueFactory<>("type"));
+         pType.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
-            public TableCell<ParameterProps, String> call(TableColumn<ParameterProps, String> p) {
-               return new TableCell<ParameterProps, String>() {
-                  @Override
-                  protected void updateItem(final String t, boolean bln) {
-                     super.updateItem(t, bln);
-                     setText(t);
-                     if (t == null) {
-                        return;
-                     }
-                     setTooltip(tip(t));
-                  }
-               };
+            protected void updateItem(final String t, boolean bln) {
+               super.updateItem(t, bln);
+               setText(t);
+               if (t == null) {
+                  return;
+               }
+               setTooltip(tip(t));
             }
          });
-         pKey.setCellValueFactory(new PropertyValueFactory<ParameterProps, String>("key"));
-         pKey.setCellFactory(new Callback<TableColumn<ParameterProps, String>, TableCell<ParameterProps, String>>() {
+         pKey.setCellValueFactory(new PropertyValueFactory<>("key"));
+         pKey.setCellFactory((TableColumn<ParameterProps, String> param) -> new TableCell<ParameterProps, String>() {
 
             @Override
-            public TableCell<ParameterProps, String> call(TableColumn<ParameterProps, String> param) {
-               return new TableCell<ParameterProps, String>() {
-
-                  @Override
-                  protected void updateItem(final String item, boolean empty) {
-                     setText(item);
-                     if (item == null) {
-                        return;
-                     }
-                     setTooltip(tip(item + " (click for help)"));
-                     setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-                        @Override
-                        public void handle(MouseEvent event) {
-                           Parameterizable p = stylerCombo.getValue();
-                           searchArea(help, p.getClass().getSimpleName() + ": ");
-                           searchArea(help, "key=" + item);
-                           helpTab.getTabPane().getSelectionModel().select(helpTab);
-                           help.requestFocus();
-                        }
-                     });
-                  }
-
-               };
+            protected void updateItem(final String item, boolean empty) {
+               setText(item);
+               if (item == null) {
+                  return;
+               }
+               setTooltip(tip(item + " (click for help)"));
+               setOnMouseClicked((MouseEvent event) -> {
+                  Parameterizable p = stylerCombo.getValue();
+                  searchArea(help, p.getClass().getSimpleName() + ": ");
+                  searchArea(help, "key=" + item);
+                  helpTab.getTabPane().getSelectionModel().select(helpTab);
+                  help.requestFocus();
+               });
             }
 
          });
@@ -773,285 +747,188 @@ public class Controller implements Initializable {
                return new ReadOnlyObjectWrapper<ParameterProps>(p.getValue());
             }
          });
-         pValue.setCellFactory(new Callback<TableColumn<ParameterProps, ParameterProps>, TableCell<ParameterProps, ParameterProps>>() {
-            
-            @Override
-            public TableCell<ParameterProps, ParameterProps> call(TableColumn<ParameterProps, ParameterProps> param) {
-               
-               return new TableCell<ParameterProps, ParameterProps>() {
+         pValue.setCellFactory((TableColumn<ParameterProps, ParameterProps> param) -> {
+            return new TableCell<ParameterProps, ParameterProps>() {
 
-                  @Override
-                  protected void updateItem(final ParameterProps item, boolean empty) {
-                     if (item == null) {
-                        return;
-                     }
-                     Class valueClass = item.getP().getValueClass();
-                     if (Boolean.class.equals(valueClass)||boolean.class.equals(valueClass)) {
-                        final CheckBox checkBox = new CheckBox();
-                        checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
-                        checkBox.setOnAction(new EventHandler<ActionEvent>() {
-                           @Override
-                           public void handle(ActionEvent event) {
-                              item.setValue(String.valueOf(checkBox.isSelected()));
-                           }
-                        });
-                        setGraphic(checkBox);
-                     } else if (valueClass.isEnum()) {
-                        final ComboBox<String> comboBox = new ComboBox();
-                        ObservableList<String> ol = FXCollections.observableArrayList();
-                        for (Object o : valueClass.getEnumConstants()) {
-                           ol.add(String.valueOf(o));
-                        }
-                        comboBox.setItems(ol);
-                        comboBox.getSelectionModel().select(item.getValue());
-                        comboBox.setOnAction(new EventHandler() {
-                           @Override
-                           public void handle(Event event) {
-                              item.setValue(comboBox.getSelectionModel().getSelectedItem());
-                           }
-                        });
-                        setGraphic(comboBox);
-                     } else {
-                        final TextField textField = new TextField(item.getValue());
-                        textField.textProperty().addListener(new ChangeListener<String>() {
-                           @Override
-                           public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                              item.setValue(newValue);
-                           }
-                           
-                        });
-                        setGraphic(textField);
-                     }
+               @Override
+               protected void updateItem(final ParameterProps item, boolean empty) {
+                  if (item == null) {
+                     return;
                   }
+                  Class valueClass = item.getP().getValueClass();
+                  if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
+                     final CheckBox checkBox = new CheckBox();
+                     checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
+                     checkBox.setOnAction((ActionEvent event) -> {
+                        item.setValue(String.valueOf(checkBox.isSelected()));
+                     });
+                     setGraphic(checkBox);
+                  } else if (valueClass.isEnum()) {
+                     final ComboBox<String> comboBox = new ComboBox();
+                     ObservableList<String> ol = FXCollections.observableArrayList();
+                     for (Object o : valueClass.getEnumConstants()) {
+                        ol.add(String.valueOf(o));
+                     }
+                     comboBox.setItems(ol);
+                     comboBox.getSelectionModel().select(item.getValue());
+                     comboBox.setOnAction((ActionEvent event) -> {
+                        item.setValue(comboBox.getSelectionModel().getSelectedItem());
+                     });
+                     setGraphic(comboBox);
+                  } else {
+                     final TextField textField = new TextField(item.getValue());
+                     textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                        item.setValue(newValue);
+                     });
+                     setGraphic(textField);
+                  }
+               }
 
-               };
-            }
-
+            };
+         }
+         );
+         pDefault.setCellValueFactory((TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) -> {
+            return new ReadOnlyObjectWrapper<>(p.getValue());
          });
-         pValue.setOnEditCommit(new EventHandler<TableColumn.CellEditEvent<ParameterProps, String>>() {
+         pDefault.setCellFactory((TableColumn<ParameterProps, ParameterProps> p) -> new TableCell<ParameterProps, ParameterProps>() {
             @Override
-            public void handle(TableColumn.CellEditEvent<ParameterProps, String> t) {
-               try {
-                  t.getRowValue().setValue(t.getNewValue());
-               } catch (Exception ex) {
-                  IllegalArgumentException illegalArgumentException = new IllegalArgumentException("wrong value (" + ex.getMessage() + ")", ex);
-                  toError(illegalArgumentException);
-                  throw illegalArgumentException;
+            protected void updateItem(final ParameterProps t, boolean bln) {
+               super.updateItem(t, bln);
+               setGraphic(null);
+               if (t == null) {
+                  return;
+               }
+               Button b = new Button("D");
+               b.setTooltip(tip(String.format("use value as default for %s in %s", t.getKey(), bs.getClass().getSimpleName())));
+               setGraphic(b);
+               b.setOnAction((ActionEvent e) -> {
+                  if (!defaults.containsKey(bs.getClass().getSimpleName())) {
+                     defaults.put(bs.getClass().getSimpleName(), new TreeSet<ParameterProps>());
+                  }
+                  if (defaults.get(bs.getClass().getSimpleName()).contains(t)) {
+                     defaults.get(bs.getClass().getSimpleName()).remove(t);
+                  }
+                  defaults.get(bs.getClass().getSimpleName()).add(t);
+                  configString.clear();
+                  configString.appendText(bs.getClass().getSimpleName());
+                  configString.appendText(".");
+                  configString.appendText(t.getKey());
+                  configString.appendText("=");
+                  configString.appendText(t.getValue());
+               });
+            }
+         });
+
+         sHelp.setCellValueFactory((CellDataFeatures<BaseStyler, String> p) -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + p.getValue().getHelp()));
+         sHelp.setCellFactory((TableColumn<BaseStyler, String> p) -> new TableCell<BaseStyler, String>() {
+            @Override
+            protected void updateItem(String t, boolean bln) {
+               super.updateItem(t, bln);
+               setText(t);
+               if (t != null) {
+                  setTooltip(tip(t));
                }
             }
          });
-         pDefault.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ParameterProps, ParameterProps>, ObservableValue<ParameterProps>>() {
+         sCreates.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, String> p) -> new ReadOnlyObjectWrapper<>(String.valueOf(p.getValue().creates())));
+         sUpDown.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
+         sUpDown.setCellFactory((TableColumn<BaseStyler, BaseStyler> p) -> new TableCell<BaseStyler, BaseStyler>() {
             @Override
-            public ObservableValue<ParameterProps> call(TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) {
-               return new ReadOnlyObjectWrapper<ParameterProps>(p.getValue());
-            }
-         });
-         pDefault.setCellFactory(new Callback<TableColumn<ParameterProps, ParameterProps>, TableCell<ParameterProps, ParameterProps>>() {
-            @Override
-            public TableCell<ParameterProps, ParameterProps> call(TableColumn<ParameterProps, ParameterProps> p) {
-               return new TableCell<ParameterProps, ParameterProps>() {
-                  @Override
-                  protected void updateItem(final ParameterProps t, boolean bln) {
-                     super.updateItem(t, bln);
-                     setGraphic(null);
-                     if (t == null) {
-                        return;
-                     }
-                     Button b = new Button("D");
-                     {
-                        b.setTooltip(tip(t == null ? "" : String.format("use value as default for %s in %s", t.getKey(), bs.getClass().getSimpleName())));
-                     }
-                     setGraphic(b);
-                     b.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent e) {
-                           if (!defaults.containsKey(bs.getClass().getSimpleName())) {
-                              defaults.put(bs.getClass().getSimpleName(), new TreeSet<ParameterProps>());
-                           }
-                           if (defaults.get(bs.getClass().getSimpleName()).contains(t)) {
-                              defaults.get(bs.getClass().getSimpleName()).remove(t);
-                           }
-                           defaults.get(bs.getClass().getSimpleName()).add(t);
-                           configString.clear();
-                           configString.appendText(bs.getClass().getSimpleName());
-                           configString.appendText(".");
-                           configString.appendText(t.getKey());
-                           configString.appendText("=");
-                           configString.appendText(t.getValue());
-                        }
-                     });
+            protected void updateItem(final BaseStyler bs, boolean bln) {
+               super.updateItem(bs, bln);
+               setGraphic(null);
+               if (bs == null || getTableRow() == null) {
+                  return;
+               }
+               final Integer t = getTableRow().getIndex();
+               Button b = new Button("/\\");
+               b.setTooltip(tip("move styler up"));
+               b.setOnAction((ActionEvent e) -> {
+                  if (t == null || stylersForClass == null) {
+                     return;
                   }
-               };
+                  if (t > 0) {
+                     BaseStyler toMove = stylersForClass.get(t);
+                     BaseStyler sp = stylersForClass.set(t - 1, toMove);
+                     stylersForClass.set(t, sp);
+                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
+                  }
+               });
+               Button bd = new Button("\\/");
+               bd.setLayoutX(35);
+               bd.setTooltip(tip("move styler down"));
+               bd.setOnAction((ActionEvent e) -> {
+                  if (t == null || stylersForClass == null) {
+                     return;
+                  }
+                  if (t < stylersForClass.size() - 1) {
+                     BaseStyler toMove = stylersForClass.get(t);
+                     BaseStyler sp = stylersForClass.set(t + 1, toMove);
+                     stylersForClass.set(t, sp);
+                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
+                  }
+               });
 
+               setGraphic(new Group(b, bd));
             }
          });
-
-         sHelp.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<BaseStyler, String>, ObservableValue<String>>() {
-            public ObservableValue<String> call(CellDataFeatures<BaseStyler, String> p) {
-               return new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + p.getValue().getHelp());
-            }
-         });
-         sHelp.setCellFactory(new Callback<TableColumn<BaseStyler, String>, TableCell<BaseStyler, String>>() {
+         rm.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) -> new ReadOnlyObjectWrapper<BaseStyler>(p.getValue()));
+         rm.setCellFactory((TableColumn<BaseStyler, BaseStyler> p) -> new TableCell<BaseStyler, BaseStyler>() {
             @Override
-            public TableCell<BaseStyler, String> call(TableColumn<BaseStyler, String> p) {
-               return new TableCell<BaseStyler, String>() {
-                  @Override
-                  protected void updateItem(String t, boolean bln) {
-                     super.updateItem(t, bln);
-                     setText(t);
-                     if (t != null) {
-                        setTooltip(tip(t));
+            protected void updateItem(final BaseStyler bs, boolean bln) {
+               super.updateItem(bs, bln);
+               setGraphic(null);
+               if (bs == null || getTableRow() == null) {
+                  return;
+               }
+               final Integer t = getTableRow().getIndex();
+               Button b = new Button("X");
+               b.setTooltip(tip("remove styler"));
+               b.setOnAction((ActionEvent e) -> {
+                  if (t == null) {
+                     return;
+                  }
+                  BaseStyler bs1 = stylersForClass.get(t);
+                  System.out.println("removed styler: " + stylersForClass.remove(bs1));
+                  if (stylersForClass.isEmpty()) {
+                     String clazz = stylerKeysCopy.getValue();
+                     if (clazz != null) {
+                        System.out.println("removed style config: " + stylingConfig.remove(clazz));
                      }
                   }
-               };
-            }
-         });
-         sCreates.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<BaseStyler, String>, ObservableValue<String>>() {
-            @Override
-            public ObservableValue<String> call(TableColumn.CellDataFeatures<BaseStyler, String> p) {
-               return new ReadOnlyObjectWrapper<String>(String.valueOf(p.getValue().creates()));
-            }
-         });
-         sUpDown.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<BaseStyler, BaseStyler>, ObservableValue<BaseStyler>>() {
+               });
 
-            @Override
-            public ObservableValue<BaseStyler> call(TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) {
-               return new ReadOnlyObjectWrapper<BaseStyler>(p.getValue());
-            }
-         });
-         sUpDown.setCellFactory(new Callback<TableColumn<BaseStyler, BaseStyler>, TableCell<BaseStyler, BaseStyler>>() {
-            @Override
-            public TableCell<BaseStyler, BaseStyler> call(TableColumn<BaseStyler, BaseStyler> p) {
-               return new TableCell<BaseStyler, BaseStyler>() {
-                  @Override
-                  protected void updateItem(final BaseStyler bs, boolean bln) {
-                     super.updateItem(bs, bln);
-                     setGraphic(null);
-                     if (bs == null || getTableRow() == null) {
-                        return;
-                     }
-                     final Integer t = getTableRow().getIndex();
-                     Button b = new Button("/\\");
-                     b.setTooltip(tip("move styler up"));
-                     b.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent e) {
-                           if (t == null || stylersForClass == null) {
-                              return;
-                           }
-                           if (t > 0) {
-                              BaseStyler toMove = stylersForClass.get(t);
-                              BaseStyler sp = stylersForClass.set(t - 1, toMove);
-                              stylersForClass.set(t, sp);
-                              stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                              stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
-                           }
-                        }
-                     });
-                     Button bd = new Button("\\/");
-                     bd.setLayoutX(35);
-                     bd.setTooltip(tip("move styler down"));
-                     bd.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent e) {
-                           if (t == null || stylersForClass == null) {
-                              return;
-                           }
-                           if (t < stylersForClass.size() - 1) {
-                              BaseStyler toMove = stylersForClass.get(t);
-                              BaseStyler sp = stylersForClass.set(t + 1, toMove);
-                              stylersForClass.set(t, sp);
-                              stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                              stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
-                           }
-                        }
-                     });
-
-                     setGraphic(new Group(b, bd));
-                  }
-               };
-
-            }
-         });
-         rm.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<BaseStyler, BaseStyler>, ObservableValue<BaseStyler>>() {
-
-            @Override
-            public ObservableValue<BaseStyler> call(TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) {
-               return new ReadOnlyObjectWrapper<BaseStyler>(p.getValue());
-            }
-         });
-         rm.setCellFactory(new Callback<TableColumn<BaseStyler, BaseStyler>, TableCell<BaseStyler, BaseStyler>>() {
-            @Override
-            public TableCell<BaseStyler, BaseStyler> call(TableColumn<BaseStyler, BaseStyler> p) {
-               return new TableCell<BaseStyler, BaseStyler>() {
-                  @Override
-                  protected void updateItem(final BaseStyler bs, boolean bln) {
-                     super.updateItem(bs, bln);
-                     setGraphic(null);
-                     if (bs == null || getTableRow() == null) {
-                        return;
-                     }
-                     final Integer t = getTableRow().getIndex();
-                     Button b = new Button("X");
-                     b.setTooltip(tip("remove styler"));
-                     b.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent e) {
-                           if (t == null) {
-                              return;
-                           }
-                           BaseStyler bs = stylersForClass.get(t);
-                           System.out.println("removed styler: " + stylersForClass.remove(bs));
-                           if (stylersForClass.isEmpty()) {
-                              String clazz = stylerKeysCopy.getValue();
-                              if (clazz != null) {
-                                 System.out.println("removed style config: " + stylingConfig.remove(clazz));
-                              }
-                           }
-                        }
-                     });
-
-                     setGraphic(b);
-                  }
-               };
-
+               setGraphic(b);
             }
          });
          stylerKeys.setItems(styleClasses);
          stylerKeysCopy.setItems(styleClasses);
-         stylerKeys.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+         stylerKeys.setCellFactory((ListView<String> p) -> new ListCell<String>() {
             @Override
-            public ListCell<String> call(ListView<String> p) {
-               return new ListCell<String>() {
-                  @Override
-                  protected void updateItem(String t, boolean bln) {
-                     super.updateItem(t, bln);
-                     if (t != null && stylingConfig.containsKey(t)) {
-                        setText(t);
-                        String tooltip = "";
-                        try {
-                           tooltip += toConfigString(t, stylingConfig.get(t)) + " ";
-                        } catch (IOException ex) {
-                           Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        setTooltip(tip(tooltip));
+            protected void updateItem(final String t, boolean bln) {
+               super.updateItem(t, bln);
+               if (t != null && stylingConfig.containsKey(t)) {
+                  setText(t);
+                  final Tooltip tip = tip("config....");
+                  tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
+                     try {
+                        tip.setText(toConfigString(t, stylingConfig.get(t)));
+                     } catch (IOException ex) {
+                        Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
                      }
-                  }
-
-               };
+                  });
+                  setTooltip(tip);
+               }
             }
 
          });
          stylerKeysCopy.setCellFactory(stylerKeys.getCellFactory());
-         stylerKeys.valueProperty().addListener(new ChangeListener<String>() {
-
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-               if (newValue != null && newValue != "" && !styleClasses.contains(newValue)) {
-                  styleClasses.add(newValue);
-               }
+         stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            if (newValue != null && !"".equals(newValue) && !styleClasses.contains(newValue)) {
+               styleClasses.add(newValue);
             }
-
          });
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
@@ -1214,12 +1091,12 @@ public class Controller implements Initializable {
          String[] v = e.getValue();
          commentsBefore.put(e.getKey(), settings.getCommentBeforeKey(e.getKey()));
          if (ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
-            stylingConfig.put(e.getKey(), new ArrayList<BaseStyler>(1));
+            stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
          } else if (isStyler(e.getKey(), settings)) {
             // assume styler
-            stylingConfig.put(e.getKey(), new ArrayList<BaseStyler>(3));
+            stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
                List<BaseStyler> l = sf.getStylers(e.getKey());
                stylingConfig.get(e.getKey()).addAll(l);
@@ -1306,38 +1183,38 @@ public class Controller implements Initializable {
       return true;
    }
 
-   private final Set<String> processed = new HashSet<String>(10);
+   private final Set<String> processed = new HashSet<>(10);
 
    private void getConditions(Collection<? extends BaseStyler> l) {
-      for (BaseStyler bs : l) {
+      l.stream().forEach((bs) -> {
          String scKey = bs.getValue(AbstractStyler.CONDITONS, String.class);
          if (bs.getConditions() != null && !bs.getConditions().isEmpty() && !processed.contains(scKey)) {
             processed.add(scKey);
-            for (StylingCondition sc : (List<StylingCondition>) bs.getConditions()) {
+            for (StylingCondition sc : bs.getConditions()) {
                if (!AbstractStyler.NOT_FROM_CONFIGURATION.equals(sc.getConfigKey()) && scKey.equals(sc.getConfigKey())) {
                   if (conditionConfig.get(sc.getConfigKey()) == null) {
-                     conditionConfig.put(sc.getConfigKey(), new ArrayList<StylingCondition>(bs.getConditions().size()));
+                     conditionConfig.put(sc.getConfigKey(), new ArrayList<>(bs.getConditions().size()));
                   }
                   conditionConfig.get(sc.getConfigKey()).add(sc);
                }
             }
             getDefaults(bs.getConditions(), ((AbstractStyler) bs).getSettings());
          }
-      }
+      });
    }
 
    private void getDefaults(Collection<? extends Parameterizable> l, EnhancedMap settings) {
-      for (Parameterizable pz : l) {
-         for (Parameter p : pz.getParameters().values()) {
+      l.stream().forEach((pz) -> {
+         pz.getParameters().values().stream().forEach((p) -> {
             if (ParameterHelper.findKey(p.getKey(), pz.getClass(), settings, ParameterHelper.SUFFIX.set_default) != null) {
                if (!defaults.containsKey(pz.getClass().getSimpleName())) {
-                  defaults.put(pz.getClass().getSimpleName(), new TreeSet<ParameterProps>());
+                  defaults.put(pz.getClass().getSimpleName(), new TreeSet<>());
                }
                defaults.get(pz.getClass().getSimpleName()).add(new ParameterProps(p));
                processed.add(pz.getClass().getSimpleName() + "." + p.getKey() + ParameterHelper.SUFFIX.set_default);
             }
-         }
-      }
+         });
+      });
    }
 
    @FXML
@@ -1458,7 +1335,7 @@ public class Controller implements Initializable {
       if (contents.indexOf(s, pos) != -1) {
          area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
          scroll = true;
-      } else if (contents.indexOf(s) != -1) {
+      } else if (contents.contains(s)) {
          // wrap
          area.selectRange(contents.indexOf(s), contents.indexOf(s) + s.length());
       } else {
@@ -1488,7 +1365,6 @@ public class Controller implements Initializable {
          help.requestFocus();
       } else {
          stylerCombo.requestFocus();
-         return;
       }
    }
 
