@@ -281,11 +281,16 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
-      if (stylingConfig.isEmpty() || stylerKeys.getValue() == null || !stylingConfig.containsKey(stylerKeys.getValue())) {
+      if (stylingConfig.isEmpty() || stylerKeys.getValue() == null ||
+          (!stylingConfig.containsKey(stylerKeys.getValue()) && !conditionConfig.containsKey(stylerKeys.getValue()))) {
          return;
       }
       try {
-         pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
+         if (stylingConfig.containsKey(stylerKeys.getValue())) {
+            pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
+         } else {
+            pickStylerToConfigure(conditionConfig.get(stylerKeys.getValue()));
+         }
       } catch (Exception ex) {
          toError(ex);
       }
@@ -502,7 +507,7 @@ public class Controller implements Initializable {
       st.show();
    }
 
-   private void pickStylerToConfigure(final List<BaseStyler> stylers) {
+   private void pickStylerToConfigure(final List<? extends Parameterizable> stylers) {
       if (stylers.size() == 1) {
          for (int j = 0; j < stylerCombo.getItems().size(); j++) {
             if (stylerCombo.getItems().get(j).getClass().equals(stylers.get(0).getClass())) {
@@ -516,10 +521,14 @@ public class Controller implements Initializable {
       Scene sc = new Scene(vb);
       vb.setPadding(new Insets(20d));
       int i = -1;
-      for (BaseStyler s : stylers) {
-         final BaseStyler kopie = s;
+      for (Parameterizable s : stylers) {
+         final Parameterizable kopie = s;
          RadioButton rb = new RadioButton(s.getClass().getSimpleName());
-         rb.setTooltip(tip(s.getHelp()));
+         if (s instanceof BaseStyler) {
+            rb.setTooltip(tip(((BaseStyler)s).getHelp()));
+         } else {
+            rb.setTooltip(tip(((StylingCondition)s).getHelp()));            
+         }
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
          rb.setOnAction((ActionEvent event) -> {
