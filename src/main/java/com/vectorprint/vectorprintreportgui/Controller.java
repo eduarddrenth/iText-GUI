@@ -407,7 +407,7 @@ public class Controller implements Initializable {
       if (p instanceof BaseStyler) {
          if (conditionConfig.containsKey(styleClass)) {
             notify("ok",
-                String.format("style class %s in use, choose another", styleClass), conditionConfig.get(styleClass).toString());
+                String.format("style class %s in use for conditions, choose another", styleClass), conditionConfig.get(styleClass).toString());
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
@@ -440,7 +440,7 @@ public class Controller implements Initializable {
       } else {
          if (stylingConfig.containsKey(styleClass)) {
             notify("ok",
-                String.format("style class %s in use, choose another", styleClass), stylingConfig.get(styleClass).toString());
+                String.format("style class %s in use for stylers, choose another", styleClass), stylingConfig.get(styleClass).toString());
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass)) {
@@ -455,14 +455,12 @@ public class Controller implements Initializable {
             prepareAdd(p, conditionConfig.get(styleClass));
             conditionConfig.get(styleClass).add((StylingCondition) p);
          }
-         if (!stylingConfig.isEmpty()) {
-            // place dummy condition in all stylers so a condition parameter can be added
-            stylingConfig.entrySet().stream().forEach((stylers) -> {
-               stylers.getValue().stream().forEach((bs) -> {
-                  bs.getSettings().put(styleClass, p.getClass().getSimpleName());
-               });
+         // place dummy condition in all stylers so a condition parameter can be added
+         stylingConfig.entrySet().stream().forEach((stylers) -> {
+            stylers.getValue().stream().forEach((bs) -> {
+               bs.getSettings().put(styleClass, p.getClass().getSimpleName());
             });
-         }
+         });
       }
       return true;
    }
