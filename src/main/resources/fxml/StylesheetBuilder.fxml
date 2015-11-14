@@ -51,7 +51,11 @@
                         <Label layoutX="27.0" layoutY="65.0" text="styleClass" />
                         <Label layoutX="28.0" layoutY="130.0" text="Configuration" />
                         <TextField fx:id="configString" editable="true" layoutX="165.0" layoutY="125.0" prefHeight="26.0" prefWidth="846.0" />
-                        <Button layoutX="954.0" layoutY="9.0" mnemonicParsing="false" onAction="#clear" text="reset" />
+                        <Button layoutX="954.0" layoutY="9.0" mnemonicParsing="false" onAction="#clear" text="reset" >
+                           <tooltip>
+                              <Tooltip text="remove everything" />
+                           </tooltip>
+                        </Button>
                         <Button fx:id="pre" layoutX="166.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="prestylers" />
                         <Button fx:id="post" layoutX="257.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="poststylers" />
                         <Button fx:id="page" layoutX="359.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="pagestylers" />
@@ -66,7 +70,11 @@
                            </tooltip></ComboBox>
                         <Label layoutX="28.0" layoutY="11.0" text="general options" />
                         <Label layoutX="28.0" layoutY="98.0" text="special styleclasses" />
-                        <Button layoutX="971.0" layoutY="61.0" mnemonicParsing="false" text="X" styleClass="remove" onAction="#removeFromStylesheet"/>
+                        <Button layoutX="971.0" layoutY="61.0" mnemonicParsing="false" text="X" styleClass="remove" onAction="#removeFromStylesheet">
+                           <tooltip>
+                              <Tooltip text="remove this styleclass" />
+                           </tooltip>
+                        </Button>
                      </children>
                   </AnchorPane>
                </content>

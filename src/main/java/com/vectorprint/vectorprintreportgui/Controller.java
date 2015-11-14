@@ -503,6 +503,14 @@ public class Controller implements Initializable {
    }
 
    private void pickStylerToConfigure(final List<BaseStyler> stylers) {
+      if (stylers.size() == 1) {
+         for (int j = 0; j < stylerCombo.getItems().size(); j++) {
+            if (stylerCombo.getItems().get(j).getClass().equals(stylers.get(0).getClass())) {
+               stylerCombo.getSelectionModel().select(j);
+               return;
+            }
+         }
+      }
       ToggleGroup tg = new ToggleGroup();
       VBox vb = new VBox(10d);
       Scene sc = new Scene(vb);
@@ -579,37 +587,37 @@ public class Controller implements Initializable {
          });
       }
    }
-   
+
    private EnhancedMap buildSettings() throws IOException {
-         ParsingProperties eh = new ParsingProperties(new Settings());
-         stylesheet.clear();
+      ParsingProperties eh = new ParsingProperties(new Settings());
+      stylesheet.clear();
 
-         defaults.entrySet().stream().forEach((def) -> {
-            def.getValue().stream().map((pp) -> {
-               printComment(def.getKey() + "." + pp.getKey(), eh);
-               return pp;
-            }).forEach((pp) -> {
-               eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
-            });
+      defaults.entrySet().stream().forEach((def) -> {
+         def.getValue().stream().map((pp) -> {
+            printComment(def.getKey() + "." + pp.getKey(), eh);
+            return pp;
+         }).forEach((pp) -> {
+            eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
          });
+      });
 
-         for (Map.Entry<String, List<StylingCondition>> e : conditionConfig.entrySet()) {
-            printComment(e.getKey(), eh);
-            toConfigString(e.getKey(), e.getValue(), eh);
-         }
+      for (Map.Entry<String, List<StylingCondition>> e : conditionConfig.entrySet()) {
+         printComment(e.getKey(), eh);
+         toConfigString(e.getKey(), e.getValue(), eh);
+      }
 
-         for (Map.Entry<String, List<BaseStyler>> e : stylingConfig.entrySet()) {
-            printComment(e.getKey(), eh);
-            toConfigString(e.getKey(), e.getValue(), eh);
-         }
+      for (Map.Entry<String, List<BaseStyler>> e : stylingConfig.entrySet()) {
+         printComment(e.getKey(), eh);
+         toConfigString(e.getKey(), e.getValue(), eh);
+      }
 
-         extraSettings.entrySet().stream().map((e) -> {
-            printComment(e.getKey(), eh);
-            return e;
-         }).forEach((e) -> {
-            eh.put(e.getKey(), e.getValue());
-         });
-         return eh;
+      extraSettings.entrySet().stream().map((e) -> {
+         printComment(e.getKey(), eh);
+         return e;
+      }).forEach((e) -> {
+         eh.put(e.getKey(), e.getValue());
+      });
+      return eh;
    }
 
    @FXML
