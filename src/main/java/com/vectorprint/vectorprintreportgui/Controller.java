@@ -72,7 +72,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -80,11 +79,9 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
@@ -261,8 +258,12 @@ public class Controller implements Initializable {
          stylerKeys.requestFocus();
          return;
       }
-      stylersForClass.clear();
-      styleClasses.clear();
+      for (Iterator<BaseStyler> it = stylersForClass.iterator(); it.hasNext();) {
+         if (clazz.equals(it.next().getStyleClass())) {
+            it.remove();
+         }
+      }
+      styleClasses.remove(clazz);
       if (conditionConfig.containsKey(clazz)) {
          conditionConfig.remove(clazz);
       } else {
@@ -449,6 +450,14 @@ public class Controller implements Initializable {
             prepareAdd(p, conditionConfig.get(styleClass));
             conditionConfig.get(styleClass).add((StylingCondition) p);
          }
+         if (!stylingConfig.isEmpty()) {
+            // place dummy condition in all stylers so a condition parameter can be added
+            stylingConfig.entrySet().stream().forEach((stylers) -> {
+               stylers.getValue().stream().forEach((bs) -> {
+                  bs.getSettings().put(styleClass, p.getClass().getSimpleName());
+               });
+            });
+         }
       }
       return true;
    }
@@ -570,10 +579,8 @@ public class Controller implements Initializable {
          });
       }
    }
-
-   @FXML
-   private void buildStylesheet(ActionEvent event) {
-      try {
+   
+   private EnhancedMap buildSettings() throws IOException {
          ParsingProperties eh = new ParsingProperties(new Settings());
          stylesheet.clear();
 
@@ -602,6 +609,13 @@ public class Controller implements Initializable {
          }).forEach((e) -> {
             eh.put(e.getKey(), e.getValue());
          });
+         return eh;
+   }
+
+   @FXML
+   private void buildStylesheet(ActionEvent event) {
+      try {
+         EnhancedMap eh = buildSettings();
          StringWriter sw = new StringWriter(eh.size() * 30);
          embf.getSerializer().serialize(eh, sw);
          stylesheet.appendText(sw.toString());
@@ -795,7 +809,11 @@ public class Controller implements Initializable {
                   } else {
                      final TextField textField = new TextField(item.getValue());
                      textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-                        item.setValue(newValue);
+                        try {
+                           item.setValue(newValue);
+                        } catch (Exception e) {
+                           toError(e);
+                        }
                      });
                      setGraphic(textField);
                   }
