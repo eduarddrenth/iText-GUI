@@ -11,7 +11,7 @@
 <?import javafx.scene.text.*?>
 <?scenebuilder-background-color 0x40404000?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="777.000199999995" prefWidth="1037.9999000000025" snapToPixel="false" style="" visible="true" xmlns="http://javafx.com/javafx/8" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
+<AnchorPane id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="777.000199999995" prefWidth="1037.9999000000025" snapToPixel="false" style="" visible="true" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
    <children>
       <TabPane layoutX="0.0" layoutY="0.0" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#dragged" onMousePressed="#dragStart" prefHeight="776.99977792969" prefWidth="1037.9998779296875" rotateGraphic="false" style="-fx-border-width: 5; -fx-border-color: #aaaaaa" tabClosingPolicy="UNAVAILABLE">
          <tabs>
@@ -28,7 +28,7 @@
                               </FXCollections>
                            </items>
                         </ComboBox>
-                        <Button id="parHelp" graphicTextGap="4.0" layoutX="501.0" layoutY="61.0" minWidth="18.0" onAction="#showParHelp" onKeyPressed="#showParHelp" prefWidth="36.0" text="?" textAlignment="LEFT" textOverrun="ELLIPSIS">
+                        <Button id="parHelp" graphicTextGap="4.0" layoutX="498.0" layoutY="61.0" minWidth="18.0" onAction="#showParHelp" onKeyPressed="#showParHelp" prefWidth="36.0" text="?" textAlignment="LEFT" textOverrun="ELLIPSIS">
                            <font>
                               <Font name="System Bold" size="13.0" />
                            </font>
@@ -36,9 +36,9 @@
                               <Tooltip text="show help for selected Styler or Condition" />
                            </tooltip>
                         </Button>
-                        <Button layoutX="549.0" layoutY="61.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
-                        <Button layoutX="697.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add to styleClass" />
-                        <Button layoutX="833.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
+                        <Button layoutX="539.0" layoutY="61.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
+                        <Button layoutX="686.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add to styleClass" />
+                        <Button layoutX="821.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
                         <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="154.0" prefHeight="564.0" prefWidth="982.0">
                            <columns>
                               <TableColumn fx:id="pKey" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" styleClass="lightgray" text="key" />
@@ -66,6 +66,7 @@
                            </tooltip></ComboBox>
                         <Label layoutX="28.0" layoutY="11.0" text="general options" />
                         <Label layoutX="28.0" layoutY="98.0" text="special styleclasses" />
+                        <Button layoutX="971.0" layoutY="61.0" mnemonicParsing="false" text="X" styleClass="remove" onAction="#removeFromStylesheet"/>
                      </children>
                   </AnchorPane>
                </content>

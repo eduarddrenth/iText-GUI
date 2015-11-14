@@ -254,6 +254,23 @@ public class Controller implements Initializable {
       }
    }
 
+   @FXML
+   private void removeFromStylesheet(ActionEvent event) {
+      String clazz = stylerKeys.getValue();
+      if (null == clazz || (!stylingConfig.containsKey(clazz) && !conditionConfig.containsKey(clazz))) {
+         stylerKeys.requestFocus();
+         return;
+      }
+      stylersForClass.clear();
+      styleClasses.clear();
+      if (conditionConfig.containsKey(clazz)) {
+         conditionConfig.remove(clazz);
+      } else {
+         stylingConfig.remove(clazz);
+      }
+      commentsBefore.remove(clazz);
+   }
+
    private void chooseOrAdd(String styleClass) {
       if (!stylerKeys.getItems().contains(styleClass)) {
          stylerKeys.getItems().add(styleClass);
@@ -308,7 +325,7 @@ public class Controller implements Initializable {
       extraSettings.clear();
       processed.clear();
       commentsAfter.clear();
-      commentsAfter.clear();
+      commentsBefore.clear();
    }
 
    @FXML
