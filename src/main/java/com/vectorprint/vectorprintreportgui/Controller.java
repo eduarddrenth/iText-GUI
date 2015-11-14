@@ -139,7 +139,7 @@ public class Controller implements Initializable {
 
    /* State of the GUI */
    private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
-   private final ObservableList<BaseStyler> stylersForClass = FXCollections.observableArrayList(new ArrayList<BaseStyler>(3));
+   private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(50));
 
    /* parameterizables in this set can be used more then once for a styleClass */
@@ -224,15 +224,13 @@ public class Controller implements Initializable {
    @FXML
    private TableColumn<ParameterProps, String> pDeclaringClass;
    @FXML
-   private TableView<BaseStyler> stylerTable;
+   private TableView<Parameterizable> parameterizableTable;
    @FXML
-   private TableColumn<BaseStyler, BaseStyler> sUpDown;
+   private TableColumn<Parameterizable, Parameterizable> sUpDown;
    @FXML
-   private TableColumn<BaseStyler, BaseStyler> rm;
+   private TableColumn<Parameterizable, Parameterizable> rm;
    @FXML
-   private TableColumn<BaseStyler, String> sCreates;
-   @FXML
-   private TableColumn<BaseStyler, String> sHelp;
+   private TableColumn<Parameterizable, String> sHelp;
    @FXML
    private Button pre;
    @FXML
@@ -258,8 +256,11 @@ public class Controller implements Initializable {
          stylerKeys.requestFocus();
          return;
       }
-      for (Iterator<BaseStyler> it = stylersForClass.iterator(); it.hasNext();) {
-         if (clazz.equals(it.next().getStyleClass())) {
+      for (Iterator<Parameterizable> it = parameterizableForClass.iterator(); it.hasNext();) {
+         Parameterizable pz = it.next();
+         if (pz instanceof BaseStyler && clazz.equals(((BaseStyler) pz).getStyleClass())) {
+            it.remove();
+         } else if (pz instanceof StylingCondition && clazz.equals(((StylingCondition) pz).getConfigKey())) {
             it.remove();
          }
       }
@@ -281,8 +282,8 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
-      if (stylingConfig.isEmpty() || stylerKeys.getValue() == null ||
-          (!stylingConfig.containsKey(stylerKeys.getValue()) && !conditionConfig.containsKey(stylerKeys.getValue()))) {
+      if (stylingConfig.isEmpty() || stylerKeys.getValue() == null
+          || (!stylingConfig.containsKey(stylerKeys.getValue()) && !conditionConfig.containsKey(stylerKeys.getValue()))) {
          return;
       }
       try {
@@ -323,7 +324,7 @@ public class Controller implements Initializable {
    @FXML
    private void clear(ActionEvent event) {
       parameters.clear();
-      stylersForClass.clear();
+      parameterizableForClass.clear();
       styleClasses.clear();
       stylingConfig.clear();
       conditionConfig.clear();
@@ -336,11 +337,19 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStylers(Event event) {
-      stylersForClass.clear();
-      if (stylerKeysCopy.getValue() != null && stylingConfig.containsKey(stylerKeysCopy.getValue())) {
-         stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
-            stylersForClass.add(bs);
-         });
+      if (stylerKeysCopy.getValue() != null && (stylingConfig.containsKey(stylerKeysCopy.getValue())
+          || (conditionConfig.containsKey(stylerKeysCopy.getValue())))) {
+         parameterizableForClass.clear();
+         if (stylingConfig.containsKey(stylerKeysCopy.getValue())) {
+            stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
+               parameterizableForClass.add(bs);
+            });
+         } else if (conditionConfig.containsKey(stylerKeysCopy.getValue())) {
+            conditionConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
+               parameterizableForClass.add(bs);
+            });
+         }
+
       }
    }
 
@@ -523,9 +532,9 @@ public class Controller implements Initializable {
          final Parameterizable kopie = s;
          RadioButton rb = new RadioButton(s.getClass().getSimpleName());
          if (s instanceof BaseStyler) {
-            rb.setTooltip(tip(((BaseStyler)s).getHelp()));
+            rb.setTooltip(tip(((BaseStyler) s).getHelp()));
          } else {
-            rb.setTooltip(tip(((StylingCondition)s).getHelp()));            
+            rb.setTooltip(tip(((StylingCondition) s).getHelp()));
          }
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
@@ -695,6 +704,10 @@ public class Controller implements Initializable {
       parent.setX(mouseEvent.getScreenX() + dragDelta.x);
       parent.setY(mouseEvent.getScreenY() + dragDelta.y);
    }
+   
+   private static String helpFor(Parameterizable p) {
+      return p instanceof BaseStyler ? ((BaseStyler)p).getHelp() : ((StylingCondition)p).getHelp();
+   }
 
    @Override
    public void initialize(URL url, ResourceBundle rb) {
@@ -741,7 +754,7 @@ public class Controller implements Initializable {
 
          stylerKeys.setPromptText("required!");
          parameterTable.setItems(parameters);
-         stylerTable.setItems(stylersForClass);
+         parameterizableTable.setItems(parameterizableForClass);
 
          pDeclaringClass.setCellValueFactory(new PropertyValueFactory<>("declaringClass"));
          pDeclaringClass.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
@@ -869,8 +882,9 @@ public class Controller implements Initializable {
             }
          });
 
-         sHelp.setCellValueFactory((CellDataFeatures<BaseStyler, String> p) -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + p.getValue().getHelp()));
-         sHelp.setCellFactory((TableColumn<BaseStyler, String> p) -> new TableCell<BaseStyler, String>() {
+         sHelp.setCellValueFactory((CellDataFeatures<Parameterizable, String> p) -> 
+             new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + helpFor(p.getValue())));
+         sHelp.setCellFactory((TableColumn<Parameterizable, String> p) -> new TableCell<Parameterizable, String>() {
             @Override
             protected void updateItem(String t, boolean bln) {
                super.updateItem(t, bln);
@@ -880,11 +894,10 @@ public class Controller implements Initializable {
                }
             }
          });
-         sCreates.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, String> p) -> new ReadOnlyObjectWrapper<>(String.valueOf(p.getValue().creates())));
-         sUpDown.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
-         sUpDown.setCellFactory((TableColumn<BaseStyler, BaseStyler> p) -> new TableCell<BaseStyler, BaseStyler>() {
+         sUpDown.setCellValueFactory((TableColumn.CellDataFeatures<Parameterizable, Parameterizable> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
+         sUpDown.setCellFactory((TableColumn<Parameterizable, Parameterizable> p) -> new TableCell<Parameterizable, Parameterizable>() {
             @Override
-            protected void updateItem(final BaseStyler bs, boolean bln) {
+            protected void updateItem(final Parameterizable bs, boolean bln) {
                super.updateItem(bs, bln);
                setGraphic(null);
                if (bs == null || getTableRow() == null) {
@@ -894,40 +907,58 @@ public class Controller implements Initializable {
                Button b = new Button("/\\");
                b.setTooltip(tip("move styler up"));
                b.setOnAction((ActionEvent e) -> {
-                  if (t == null || stylersForClass == null) {
+                  if (t == null || parameterizableForClass == null) {
                      return;
                   }
                   if (t > 0) {
-                     BaseStyler toMove = stylersForClass.get(t);
-                     BaseStyler sp = stylersForClass.set(t - 1, toMove);
-                     stylersForClass.set(t, sp);
-                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
+                     Parameterizable toMove = parameterizableForClass.get(t);
+                     Parameterizable sp = parameterizableForClass.set(t - 1, toMove);
+                     parameterizableForClass.set(t, sp);
+                     if (toMove instanceof BaseStyler) {
+                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                        parameterizableForClass.forEach((p) -> {
+                           stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
+                        });
+                     } else {
+                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
+                        parameterizableForClass.forEach((p) -> {
+                           conditionConfig.get(stylerKeysCopy.getValue()).add((StylingCondition) p);
+                        });
+                     }
                   }
                });
                Button bd = new Button("\\/");
                bd.setLayoutX(35);
                bd.setTooltip(tip("move styler down"));
                bd.setOnAction((ActionEvent e) -> {
-                  if (t == null || stylersForClass == null) {
+                  if (t == null || parameterizableForClass == null) {
                      return;
                   }
-                  if (t < stylersForClass.size() - 1) {
-                     BaseStyler toMove = stylersForClass.get(t);
-                     BaseStyler sp = stylersForClass.set(t + 1, toMove);
-                     stylersForClass.set(t, sp);
-                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(stylersForClass);
+                  if (t < parameterizableForClass.size() - 1) {
+                     Parameterizable toMove = parameterizableForClass.get(t);
+                     Parameterizable sp = parameterizableForClass.set(t + 1, toMove);
+                     parameterizableForClass.set(t, sp);
+                     if (toMove instanceof BaseStyler) {
+                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                        parameterizableForClass.forEach((p) -> {
+                           stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
+                        });
+                     } else {
+                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
+                        parameterizableForClass.forEach((p) -> {
+                           conditionConfig.get(stylerKeysCopy.getValue()).add((StylingCondition) p);
+                        });
+                     }
                   }
                });
 
                setGraphic(new Group(b, bd));
             }
          });
-         rm.setCellValueFactory((TableColumn.CellDataFeatures<BaseStyler, BaseStyler> p) -> new ReadOnlyObjectWrapper<BaseStyler>(p.getValue()));
-         rm.setCellFactory((TableColumn<BaseStyler, BaseStyler> p) -> new TableCell<BaseStyler, BaseStyler>() {
+         rm.setCellValueFactory((TableColumn.CellDataFeatures<Parameterizable, Parameterizable> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
+         rm.setCellFactory((TableColumn<Parameterizable, Parameterizable> p) -> new TableCell<Parameterizable, Parameterizable>() {
             @Override
-            protected void updateItem(final BaseStyler bs, boolean bln) {
+            protected void updateItem(final Parameterizable bs, boolean bln) {
                super.updateItem(bs, bln);
                setGraphic(null);
                if (bs == null || getTableRow() == null) {
@@ -940,9 +971,9 @@ public class Controller implements Initializable {
                   if (t == null) {
                      return;
                   }
-                  BaseStyler bs1 = stylersForClass.get(t);
-                  System.out.println("removed styler: " + stylersForClass.remove(bs1));
-                  if (stylersForClass.isEmpty()) {
+                  Parameterizable bs1 = parameterizableForClass.get(t);
+                  System.out.println("removed: " + parameterizableForClass.remove(bs1));
+                  if (parameterizableForClass.isEmpty()) {
                      String clazz = stylerKeysCopy.getValue();
                      if (clazz != null) {
                         System.out.println("removed style config: " + stylingConfig.remove(clazz));
