@@ -210,8 +210,6 @@ public class Controller implements Initializable {
    @FXML
    private Tab helpTab;
    @FXML
-   private Tooltip stylerTooltip;
-   @FXML
    private TableView<ParameterProps> parameterTable;
    @FXML
    private TableColumn<ParameterProps, String> pKey;
@@ -990,12 +988,16 @@ public class Controller implements Initializable {
             @Override
             protected void updateItem(final String t, boolean bln) {
                super.updateItem(t, bln);
-               if (t != null && stylingConfig.containsKey(t)) {
+               if (t != null && (stylingConfig.containsKey(t)||conditionConfig.containsKey(t))) {
                   setText(t);
                   final Tooltip tip = tip("config....");
                   tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
                      try {
-                        tip.setText(toConfigString(t, stylingConfig.get(t)));
+                        if (stylingConfig.containsKey(t)) {
+                           tip.setText(toConfigString(t, stylingConfig.get(t)));
+                        } else {
+                           tip.setText(toConfigString(t, conditionConfig.get(t)));
+                        }
                      } catch (IOException ex) {
                         Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
                      }
@@ -1160,6 +1162,7 @@ public class Controller implements Initializable {
    }
 
    private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
+      clear(null);
       settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, Boolean.FALSE.toString());
       StylerFactory sf = new DefaultStylerFactory();
       StylerFactoryHelper.SETTINGS_ANNOTATION_PROCESSOR.initSettings(sf, settings);
@@ -1204,7 +1207,6 @@ public class Controller implements Initializable {
    @FXML
    private void importStyle(ActionEvent event) {
       try {
-         clear(event);
          FileChooser fc = new FileChooser();
          fc.setTitle("import stylesheet");
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
@@ -1219,7 +1221,6 @@ public class Controller implements Initializable {
    @FXML
    private void importCss(ActionEvent event) {
       try {
-         clear(event);
          FileChooser fc = new FileChooser();
          fc.setTitle("import css");
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
@@ -1266,20 +1267,25 @@ public class Controller implements Initializable {
 
    private final Set<String> processed = new HashSet<>(10);
 
+   /**
+    * 
+    * @param l 
+    */
    private void getConditions(Collection<? extends BaseStyler> l) {
       l.stream().forEach((bs) -> {
          String scKey = bs.getValue(AbstractStyler.CONDITONS, String.class);
          if (bs.getConditions() != null && !bs.getConditions().isEmpty() && !processed.contains(scKey)) {
-            processed.add(scKey);
             for (StylingCondition sc : bs.getConditions()) {
                if (!AbstractStyler.NOT_FROM_CONFIGURATION.equals(sc.getConfigKey()) && scKey.equals(sc.getConfigKey())) {
                   if (conditionConfig.get(sc.getConfigKey()) == null) {
                      conditionConfig.put(sc.getConfigKey(), new ArrayList<>(bs.getConditions().size()));
                   }
                   conditionConfig.get(sc.getConfigKey()).add(sc);
+                  styleClasses.add(scKey);
                }
             }
             getDefaults(bs.getConditions(), ((AbstractStyler) bs).getSettings());
+            processed.add(scKey);
          }
       });
    }
