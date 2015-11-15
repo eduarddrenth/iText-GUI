@@ -19,7 +19,7 @@
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0">
                      <children>
-                        <ComboBox fx:id="stylerCombo" layoutX="361.0" layoutY="61.0" onAction="#chooseStyleOrCondition" prefWidth="132.0" promptText="choose style">
+                        <ComboBox fx:id="stylerCombo" layoutX="339.0" layoutY="61.0" onAction="#chooseStyleOrCondition" prefHeight="26.0" prefWidth="152.0" promptText="styler/condition">
                            <items>
                               <FXCollections fx:factory="observableArrayList">
                                  <String fx:value="Item 1" />
@@ -48,38 +48,38 @@
                               <TableColumn fx:id="pDeclaringClass" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="605.0" styleClass="lightgray" text="which class declares (uses) the parameter" />
                            </columns>
                         </TableView>
-                        <Label layoutX="27.0" layoutY="65.0" text="styleClass" />
-                        <Label layoutX="28.0" layoutY="130.0" text="Configuration" />
-                        <TextField fx:id="configString" editable="true" layoutX="165.0" layoutY="125.0" prefHeight="26.0" prefWidth="846.0" />
-                        <Button layoutX="954.0" layoutY="9.0" mnemonicParsing="false" onAction="#clear" text="reset" >
+                        <Label layoutX="5.0" layoutY="65.0" text="styleClass / key" />
+                        <Label layoutX="6.0" layoutY="130.0" text="Configuration" />
+                        <TextField fx:id="configString" editable="true" layoutX="143.0" layoutY="125.0" prefHeight="26.0" prefWidth="865.0" />
+                        <Button layoutX="954.0" layoutY="9.0" mnemonicParsing="false" onAction="#clear" text="reset">
                            <tooltip>
                               <Tooltip text="remove everything" />
                            </tooltip>
                         </Button>
-                        <Button fx:id="pre" layoutX="166.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="prestylers" />
-                        <Button fx:id="post" layoutX="257.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="poststylers" />
-                        <Button fx:id="page" layoutX="359.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="pagestylers" />
+                        <Button fx:id="pre" layoutX="144.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="prestylers" />
+                        <Button fx:id="post" layoutX="235.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="poststylers" />
+                        <Button fx:id="page" layoutX="333.0" layoutY="94.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="pagestylers" />
                         <Label fx:id="stylerHelp" layoutX="22.0" layoutY="39.0" prefHeight="16.0" prefWidth="987.0" />
-                        <CheckBox fx:id="toc" layoutX="165.0" layoutY="11.0" mnemonicParsing="false" onAction="#toggleToc" text="table of contents" />
-                        <CheckBox fx:id="footer" layoutX="311.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleFooter" text="footer" />
-                        <CheckBox fx:id="pdf1a" layoutX="386.0" layoutY="12.0" mnemonicParsing="false" onAction="#togglePdf1a" text="pdf 1/a" />
-                        <CheckBox fx:id="debug" layoutX="463.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleDebug" text="debug" />
-                        <ComboBox fx:id="stylerKeys" editable="true" layoutX="165.0" layoutY="61.0" onAction="#showStyleOrCondition" prefWidth="191.0">
+                        <CheckBox fx:id="toc" layoutX="143.0" layoutY="11.0" mnemonicParsing="false" onAction="#toggleToc" text="table of contents" />
+                        <CheckBox fx:id="footer" layoutX="289.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleFooter" text="footer" />
+                        <CheckBox fx:id="pdf1a" layoutX="364.0" layoutY="12.0" mnemonicParsing="false" onAction="#togglePdf1a" text="pdf 1/a" />
+                        <CheckBox fx:id="debug" layoutX="441.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleDebug" text="debug" />
+                        <ComboBox fx:id="stylerKeys" editable="true" layoutX="143.0" layoutY="61.0" onAction="#showStyleOrCondition" prefWidth="191.0">
                            <tooltip>
                               <Tooltip text="add or choose style classes" />
                            </tooltip></ComboBox>
-                        <Label layoutX="28.0" layoutY="11.0" text="general options" />
-                        <Label layoutX="28.0" layoutY="98.0" text="special styleclasses" />
-                        <Button layoutX="971.0" layoutY="61.0" mnemonicParsing="false" text="X" styleClass="remove" onAction="#removeFromStylesheet">
+                        <Label layoutX="6.0" layoutY="11.0" text="general options" />
+                        <Label layoutX="6.0" layoutY="98.0" text="special styleclasses" />
+                        <Button layoutX="971.0" layoutY="61.0" mnemonicParsing="false" onAction="#removeFromStylesheet" styleClass="remove" text="X">
                            <tooltip>
-                              <Tooltip text="remove this styleclass" />
+                              <Tooltip text="remove this class/key" />
                            </tooltip>
                         </Button>
                      </children>
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab closable="false" onSelectionChanged="#showStylers" text="order stylers">
+            <Tab closable="false" onSelectionChanged="#showStylers" text="stylers/conditions">
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0">
                      <children>
@@ -90,9 +90,9 @@
                               <TableColumn fx:id="sHelp" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="839.0" text="help" />
                            </columns>
                         </TableView>
-                        <ComboBox fx:id="stylerKeysCopy" editable="false" layoutX="106.0" layoutY="16.0" onAction="#showStylers" prefWidth="191.0" />
-                        <Label layoutX="30.0" layoutY="19.0" text="styleClass" />
-                        <Label layoutX="27.0" layoutY="48.0" text="Change the order in which stylers will be applied. Stylers that create an element should be on top." />
+                        <ComboBox fx:id="stylerKeysCopy" editable="false" layoutX="152.0" layoutY="16.0" onAction="#showStylers" prefWidth="191.0" />
+                        <Label layoutX="30.0" layoutY="19.0" text="styleClass / key" />
+                        <Label layoutX="27.0" layoutY="48.0" text="Change order. Stylers that create an element should be on top." />
                      </children>
                   </AnchorPane>
                </content>
