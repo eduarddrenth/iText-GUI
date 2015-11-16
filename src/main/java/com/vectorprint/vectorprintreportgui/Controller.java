@@ -710,7 +710,7 @@ public class Controller implements Initializable {
    }
    
    private static String helpFor(Parameterizable p) {
-      return p instanceof BaseStyler ? ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
+      return p instanceof BaseStyler ? (((BaseStyler) p).creates()?"creates iText element ":"") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
    }
    
    @Override
