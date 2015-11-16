@@ -565,7 +565,7 @@ public class Controller implements Initializable {
       return sw.toString();
    }
    
-   private void removePreAndPost(String clazz, List<? extends Parameterizable> sp) {
+   private void stripPreAndPost(String clazz, List<? extends Parameterizable> sp) {
       if (!DefaultStylerFactory.PRESTYLERS.equals(clazz) && !DefaultStylerFactory.POSTSTYLERS.equals(clazz)) {
          if (stylingConfig.containsKey(DefaultStylerFactory.PRESTYLERS)) {
             // strip defaults
@@ -583,7 +583,7 @@ public class Controller implements Initializable {
    }
    
    private void toConfigString(String clazz, List<? extends Parameterizable> sp, ParsingProperties eh) throws IOException {
-      removePreAndPost(clazz, sp);
+      stripPreAndPost(clazz, sp);
       List<String> pp = new ArrayList<>(sp.size());
       for (Parameterizable p : sp) {
          StringWriter sw = new StringWriter();
@@ -1185,7 +1185,6 @@ public class Controller implements Initializable {
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
          } else if (isStyler(e.getKey(), settings)) {
-            // assume styler
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
                List<BaseStyler> l = sf.getStylers(e.getKey());
@@ -1207,9 +1206,16 @@ public class Controller implements Initializable {
          }
       }
       // now remove Pre and Post stylers from styleclasses
-      for (Map.Entry<String, List<BaseStyler>> e : stylingConfig.entrySet()) {
-         removePreAndPost(e.getKey(), e.getValue());
-      }
+      stylingConfig.entrySet().stream().forEach((e) -> {
+         stripPreAndPost(e.getKey(), e.getValue());
+      });
+      // check conditions not referenced
+      settings.entrySet().stream().forEach((e) -> {
+         if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(pKey)) {
+            Logger.getLogger(Controller.class.getName()).warning(String.format("unreferenced conditions for key: %s", e.getKey()));
+            // TODO add unreferenced conditions here?
+         }
+      });
       commentsAfter.addAll(settings.getTrailingComment());
       notify("ok", "import complete", "you can now adapt and (re)build your stylesheet");
    }
