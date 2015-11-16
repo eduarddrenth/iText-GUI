@@ -1211,7 +1211,7 @@ public class Controller implements Initializable {
       });
       // check conditions not referenced
       settings.entrySet().stream().forEach((e) -> {
-         if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(pKey)) {
+         if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(e.getKey())) {
             Logger.getLogger(Controller.class.getName()).warning(String.format("unreferenced conditions for key: %s", e.getKey()));
             // TODO add unreferenced conditions here?
          }
