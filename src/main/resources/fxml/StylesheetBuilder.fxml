@@ -191,7 +191,7 @@
                            </tooltip></TextField>
                         <Separator layoutX="29.0" layoutY="213.0" prefHeight="0.0" prefWidth="843.0" />
                         <Label layoutX="27.0" layoutY="56.0" text="classes for settings syntax (syntax for properties)" />
-                        <Label layoutX="29.0" layoutY="231.0" text="classes for styler syntax (syntax for Objects with parameters)" />
+                        <Label layoutX="29.0" layoutY="231.0" text="classes for styler and condition syntax (syntax for Objects with parameters)" />
                         <Button layoutX="812.0" layoutY="23.0" mnemonicParsing="false" onAction="#changeSyntax" text="change" />
                      </children>
                   </AnchorPane>

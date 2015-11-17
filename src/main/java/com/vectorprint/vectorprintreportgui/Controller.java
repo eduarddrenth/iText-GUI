@@ -72,7 +72,6 @@ import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
@@ -131,10 +130,10 @@ import org.xml.sax.SAXParseException;
 public class Controller implements Initializable {
 
    /* State of the stylesheet */
-   private final Map<String, List<BaseStyler>> stylingConfig = new TreeMap<>();
+   private final Map<String, List<Parameterizable>> stylingConfig = new TreeMap<>();
    private final Map<String, List<String>> commentsBefore = new HashMap<>();
    private final List<String> commentsAfter = new ArrayList<>(3);
-   private final Map<String, List<StylingCondition>> conditionConfig = new TreeMap<>();
+   private final Map<String, List<Parameterizable>> conditionConfig = new TreeMap<>();
    private final Map<String, Set<ParameterProps>> defaults = new TreeMap<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
 
@@ -346,7 +345,7 @@ public class Controller implements Initializable {
             stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
                parameterizableForClass.add(bs);
             });
-         } else if (conditionConfig.containsKey(stylerKeysCopy.getValue())) {
+         } else {
             conditionConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
                parameterizableForClass.add(bs);
             });
@@ -630,12 +629,12 @@ public class Controller implements Initializable {
          });
       });
       
-      for (Map.Entry<String, List<StylingCondition>> e : conditionConfig.entrySet()) {
+      for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
          printComment(e.getKey(), eh);
          toConfigString(e.getKey(), e.getValue(), eh);
       }
       
-      for (Map.Entry<String, List<BaseStyler>> e : stylingConfig.entrySet()) {
+      for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
          printComment(e.getKey(), eh);
          toConfigString(e.getKey(), e.getValue(), eh);
       }
@@ -953,14 +952,10 @@ public class Controller implements Initializable {
                      parameterizableForClass.set(t, sp);
                      if (toMove instanceof BaseStyler) {
                         stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                        parameterizableForClass.forEach((p) -> {
-                           stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
-                        });
+                        stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
                      } else {
                         conditionConfig.get(stylerKeysCopy.getValue()).clear();
-                        parameterizableForClass.forEach((p) -> {
-                           conditionConfig.get(stylerKeysCopy.getValue()).add((StylingCondition) p);
-                        });
+                        conditionConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
                      }
                   }
                });
@@ -985,11 +980,21 @@ public class Controller implements Initializable {
                      return;
                   }
                   Parameterizable bs1 = parameterizableForClass.get(t);
-                  System.out.println("removed: " + parameterizableForClass.remove(bs1));
+                  boolean removed = parameterizableForClass.remove(bs1);
+                  if (removed) {
+                     // remove from config
+                     if (stylingConfig.containsKey(stylerKeysCopy.getValue())) {
+                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                        stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
+                     } else {
+                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
+                        conditionConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
+                     }
+                  }
                   if (parameterizableForClass.isEmpty()) {
                      String clazz = stylerKeysCopy.getValue();
                      if (clazz != null) {
-                        System.out.println("removed style config: " + stylingConfig.remove(clazz));
+                        System.out.println("removed config: " + stylingConfig.remove(clazz));
                      }
                   }
                });
