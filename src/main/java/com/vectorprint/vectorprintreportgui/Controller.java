@@ -302,8 +302,8 @@ public class Controller implements Initializable {
          stylerCombo.requestFocus();
          return;
       }
-      bs = (stylerCombo.getValue() instanceof DocumentStyler) ? stylerCombo.getValue() : stylerCombo.getValue().clone();
-      if (bs instanceof DocumentSettings) {
+      currentParameterizable = (stylerCombo.getValue() instanceof DocumentStyler) ? stylerCombo.getValue() : stylerCombo.getValue().clone();
+      if (currentParameterizable instanceof DocumentSettings) {
          chooseOrAdd(ReportConstants.DOCUMENTSETTINGS);
       }
       parameters.clear();
@@ -318,7 +318,10 @@ public class Controller implements Initializable {
       }
       showStylerHelp(event);
    }
-   private Parameterizable bs;
+   /*
+   the currently item to be configured
+   */
+   private Parameterizable currentParameterizable;
    
    @FXML
    private void clear(ActionEvent event) {
@@ -360,11 +363,11 @@ public class Controller implements Initializable {
       }
       try {
          parameters.stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
-            Parameter p = bs.getParameters().get(pp.getKey());
+            Parameter p = currentParameterizable.getParameters().get(pp.getKey());
             p.setValue(pp.getP().getValue());
          });
          StringWriter sw = new StringWriter();
-         factory.getSerializer().serialize(bs, sw);
+         factory.getSerializer().serialize(currentParameterizable, sw);
          configString.setText(sw.toString());
       } catch (Exception ex) {
          toError(ex);
@@ -434,7 +437,7 @@ public class Controller implements Initializable {
             notify("ok", "must be first",
                 String.format("styler %s creates a report element, should be the first styler for a style class, you should probably reorder your stylers", p.getClass().getSimpleName()));
          }
-         if (!configString.getText().startsWith(bs.getClass().getSimpleName() + ".")) {
+         if (!configString.getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
             prepareAdd(p, stylingConfig.get(styleClass));
             stylingConfig.get(styleClass).add((BaseStyler) p);
             if (!"".equals(p.getValue(AbstractStyler.CONDITONS, String.class))) {
@@ -459,7 +462,7 @@ public class Controller implements Initializable {
          if (!conditionConfig.containsKey(styleClass) && !"".equals(styleClass)) {
             conditionConfig.put(styleClass, new ArrayList<>());
          }
-         if (!configString.getText().startsWith(bs.getClass().getSimpleName() + ".")) {
+         if (!configString.getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
             prepareAdd(p, conditionConfig.get(styleClass));
             conditionConfig.get(styleClass).add((StylingCondition) p);
          }
@@ -518,9 +521,16 @@ public class Controller implements Initializable {
          for (int j = 0; j < stylerCombo.getItems().size(); j++) {
             if (stylerCombo.getItems().get(j).getClass().equals(stylers.get(0).getClass())) {
                stylerCombo.getSelectionModel().select(j);
-               return;
+               break;
             }
          }
+         parameters.clear();
+         currentParameterizable = stylers.get(0);
+         stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
+         for (Parameter p : currentParameterizable.getParameters().values()) {
+            parameters.add(new ParameterProps(p));
+         }
+         return;
       }
       ToggleGroup tg = new ToggleGroup();
       VBox vb = new VBox(10d);
@@ -528,7 +538,6 @@ public class Controller implements Initializable {
       vb.setPadding(new Insets(20d));
       int i = -1;
       for (Parameterizable s : stylers) {
-         final Parameterizable kopie = s;
          RadioButton rb = new RadioButton(s.getClass().getSimpleName());
          if (s instanceof BaseStyler) {
             rb.setTooltip(tip(((BaseStyler) s).getHelp()));
@@ -538,17 +547,17 @@ public class Controller implements Initializable {
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
          rb.setOnAction((ActionEvent event) -> {
-            parameters.clear();
-            bs = kopie;
-            stylerHelp.setText((bs instanceof BaseStyler) ? ((BaseStyler) bs).getHelp() : "condition to determine when to style or not");
-            for (Parameter p : kopie.getParameters().values()) {
-               parameters.add(new ParameterProps(p));
-            }
             for (int j = 0; j < stylerCombo.getItems().size(); j++) {
-               if (stylerCombo.getItems().get(j).getClass().equals(bs.getClass())) {
+               if (stylerCombo.getItems().get(j).getClass().equals(currentParameterizable.getClass())) {
                   stylerCombo.getSelectionModel().select(j);
                   break;
                }
+            }
+            parameters.clear();
+            currentParameterizable = s;
+            stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
+            for (Parameter p : s.getParameters().values()) {
+               parameters.add(new ParameterProps(p));
             }
          });
       }
@@ -658,11 +667,11 @@ public class Controller implements Initializable {
    @FXML
    private void toConfig(ActionEvent event) {
       try {
-         if (bs == null) {
+         if (currentParameterizable == null) {
             throw new VectorPrintRuntimeException("first choose a style or condition using configure");
          }
          showConfig(event);
-         add(bs);
+         add(currentParameterizable);
       } catch (Exception ex) {
          toError(ex);
       }
@@ -866,18 +875,18 @@ public class Controller implements Initializable {
                   return;
                }
                Button b = new Button("D");
-               b.setTooltip(tip(String.format("use value as default for %s in %s", t.getKey(), bs.getClass().getSimpleName())));
+               b.setTooltip(tip(String.format("use value as default for %s in %s", t.getKey(), currentParameterizable.getClass().getSimpleName())));
                setGraphic(b);
                b.setOnAction((ActionEvent e) -> {
-                  if (!defaults.containsKey(bs.getClass().getSimpleName())) {
-                     defaults.put(bs.getClass().getSimpleName(), new TreeSet<ParameterProps>());
+                  if (!defaults.containsKey(currentParameterizable.getClass().getSimpleName())) {
+                     defaults.put(currentParameterizable.getClass().getSimpleName(), new TreeSet<ParameterProps>());
                   }
-                  if (defaults.get(bs.getClass().getSimpleName()).contains(t)) {
-                     defaults.get(bs.getClass().getSimpleName()).remove(t);
+                  if (defaults.get(currentParameterizable.getClass().getSimpleName()).contains(t)) {
+                     defaults.get(currentParameterizable.getClass().getSimpleName()).remove(t);
                   }
-                  defaults.get(bs.getClass().getSimpleName()).add(t);
+                  defaults.get(currentParameterizable.getClass().getSimpleName()).add(t);
                   configString.clear();
-                  configString.appendText(bs.getClass().getSimpleName());
+                  configString.appendText(currentParameterizable.getClass().getSimpleName());
                   configString.appendText(".");
                   configString.appendText(t.getKey());
                   configString.appendText("=");
