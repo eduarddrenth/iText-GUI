@@ -37,8 +37,12 @@
                            </tooltip>
                         </Button>
                         <Button layoutX="539.0" layoutY="61.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
-                        <Button layoutX="686.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add to styleClass" />
-                        <Button layoutX="821.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
+                        <Button layoutX="686.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add" >
+                           <tooltip>
+                              <Tooltip text="add Styler or Condition to stylesheet" />
+                           </tooltip>
+                        </Button>
+                        <Button layoutX="733.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
                         <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="154.0" prefHeight="564.0" prefWidth="982.0">
                            <columns>
                               <TableColumn fx:id="pKey" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" styleClass="lightgray" text="key" />

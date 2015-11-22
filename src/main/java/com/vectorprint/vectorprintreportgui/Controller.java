@@ -443,6 +443,7 @@ public class Controller implements Initializable {
                String cnd = p.getValue(AbstractStyler.CONDITONS, String.class);
                if (null != cnd && !conditionConfig.containsKey(cnd)) {
                   chooseOrAdd(p.getValue(AbstractStyler.CONDITONS, String.class));
+                  stylerCombo.getSelectionModel().clearSelection();
                   notify("add " + p.getValue(AbstractStyler.CONDITONS, String.class), "warning", String.format("condition %s is missing", p.getValue(AbstractStyler.CONDITONS, String.class)));
                }
             }
@@ -1184,7 +1185,7 @@ public class Controller implements Initializable {
    private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
       clear(null);
       settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, Boolean.FALSE.toString());
-      StylerFactory sf = new DefaultStylerFactory();
+      DefaultStylerFactory sf = new DefaultStylerFactory();
       StylerFactoryHelper.SETTINGS_ANNOTATION_PROCESSOR.initSettings(sf, settings);
       Document d = new Document();
       PdfWriter w = PdfWriter.getInstance(d, new ByteArrayOutputStream(0));
@@ -1227,7 +1228,14 @@ public class Controller implements Initializable {
       settings.entrySet().stream().forEach((e) -> {
          if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(e.getKey())) {
             Logger.getLogger(Controller.class.getName()).warning(String.format("unreferenced conditions for key: %s", e.getKey()));
-            // TODO add unreferenced conditions here?
+            List<StylingCondition> conditions;
+            try {
+               conditions = sf.getConditions(e.getKey());
+            } catch (VectorPrintException ex) {
+               throw new VectorPrintRuntimeException(ex);
+            }
+            conditionConfig.put(e.getKey(),new ArrayList<>(conditions.size()));
+            conditionConfig.get(e.getKey()).addAll(conditions);
          }
       });
       commentsAfter.addAll(settings.getTrailingComment());
