@@ -175,7 +175,7 @@
             <artifactId>ReportSVGSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>7.3-SNAPSHOT</version>
+            <version>8.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>*</artifactId>
@@ -192,13 +192,13 @@
             <artifactId>ReportjFreeChartSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>7.3-SNAPSHOT</version>
+            <version>8.0</version>
         </dependency>
         <dependency>
             <artifactId>ReportQrSupport</artifactId>
             <groupId>com.vectorprint</groupId>
             <type>jar</type>
-            <version>7.3-SNAPSHOT</version>
+            <version>8.0</version>
         </dependency>
     </dependencies>
 </project>

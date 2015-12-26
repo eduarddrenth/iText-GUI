@@ -15,18 +15,14 @@ import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
 import com.vectorprint.configuration.binding.BindingHelper;
-import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
+import com.vectorprint.configuration.binding.parameters.ParamBindingService;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
-import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
-import com.vectorprint.configuration.binding.parameters.ParameterizableParser;
-import com.vectorprint.configuration.binding.parameters.ParameterizableSerializer;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
-import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactoryImpl;
-import com.vectorprint.configuration.binding.settings.EnhancedMapParser;
-import com.vectorprint.configuration.binding.settings.EnhancedMapSerializer;
+import com.vectorprint.configuration.binding.settings.SettingsBindingService;
+import com.vectorprint.configuration.binding.settings.SpecificClassValidator;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameterizable;
 import com.vectorprint.report.ReportConstants;
@@ -37,7 +33,6 @@ import com.vectorprint.report.itext.mappingconfig.DatamappingHelper;
 import com.vectorprint.report.itext.style.BaseStyler;
 import com.vectorprint.report.itext.style.DefaultStylerFactory;
 import com.vectorprint.report.itext.style.DocumentStyler;
-import com.vectorprint.report.itext.style.StylerFactory;
 import com.vectorprint.report.itext.style.StylerFactoryHelper;
 import com.vectorprint.report.itext.style.StylingCondition;
 import com.vectorprint.report.itext.style.conditions.AbstractCondition;
@@ -145,10 +140,6 @@ public class Controller implements Initializable {
    /* parameterizables in this set can be used more then once for a styleClass */
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
 
-   /* syntax factories for reading and writing stylesheets */
-   private ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
-   private EnhancedMapBindingFactory embf = EnhancedMapBindingFactoryImpl.getDefaultFactory();
-   
    @FXML
    private ComboBox<Parameterizable> stylerCombo;
    @FXML
@@ -166,17 +157,9 @@ public class Controller implements Initializable {
    @FXML
    private TextArea settingsxsd;
    @FXML
-   private TextField settingsparser;
+   private TextField settingsfactory;
    @FXML
-   private TextField settingsserializer;
-   @FXML
-   private TextField settingshelper;
-   @FXML
-   private TextField paramparser;
-   @FXML
-   private TextField paramserializer;
-   @FXML
-   private TextField paramhelper;
+   private TextField paramfactory;
    @FXML
    private CheckBox toc;
    @FXML
@@ -235,7 +218,7 @@ public class Controller implements Initializable {
    private Button post;
    @FXML
    private Button page;
-   
+
    @FXML
    private void chooseStandardStyle(ActionEvent event) {
       if (pre.equals(event.getSource())) {
@@ -246,7 +229,7 @@ public class Controller implements Initializable {
          chooseOrAdd(DefaultStylerFactory.PAGESTYLERS);
       }
    }
-   
+
    @FXML
    private void removeFromStylesheet(ActionEvent event) {
       String clazz = stylerKeys.getValue();
@@ -270,14 +253,14 @@ public class Controller implements Initializable {
       }
       commentsBefore.remove(clazz);
    }
-   
+
    private void chooseOrAdd(String styleClass) {
       if (!stylerKeys.getItems().contains(styleClass)) {
          stylerKeys.getItems().add(styleClass);
       }
       stylerKeys.getSelectionModel().select(styleClass);
    }
-   
+
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
       if (stylingConfig.isEmpty() || stylerKeys.getValue() == null
@@ -294,7 +277,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void chooseStyleOrCondition(ActionEvent event) {
       if (null == stylerCombo.getValue()) {
@@ -319,9 +302,9 @@ public class Controller implements Initializable {
    }
    /*
    the currently item to be configured
-   */
+    */
    private Parameterizable currentParameterizable;
-   
+
    @FXML
    private void clear(ActionEvent event) {
       parameters.clear();
@@ -335,7 +318,7 @@ public class Controller implements Initializable {
       commentsAfter.clear();
       commentsBefore.clear();
    }
-   
+
    @FXML
    private void showStylers(Event event) {
       if (stylerKeysCopy.getValue() != null && (stylingConfig.containsKey(stylerKeysCopy.getValue())
@@ -350,10 +333,10 @@ public class Controller implements Initializable {
                parameterizableForClass.add(bs);
             });
          }
-         
+
       }
    }
-   
+
    @FXML
    private void showConfig(ActionEvent event) {
       if ("".equals(stylerKeys.getValue()) || null == stylerKeys.getValue()) {
@@ -366,13 +349,13 @@ public class Controller implements Initializable {
             p.setValue(pp.getP().getValue());
          });
          StringWriter sw = new StringWriter();
-         factory.getSerializer().serialize(currentParameterizable, sw);
+         ParamBindingService.getInstance().getFactory().getSerializer().serialize(currentParameterizable, sw);
          configString.setText(sw.toString());
       } catch (Exception ex) {
          toError(ex);
       }
    }
-   
+
    private void toError(Throwable ex) {
       StringWriter sw = new StringWriter(1024);
       ex.printStackTrace(new PrintWriter(sw));
@@ -380,7 +363,7 @@ public class Controller implements Initializable {
       error.setText(sw.toString());
       notify("ok (errors tab for details)", "error", ex.getMessage());
    }
-   
+
    private void prepareAdd(Parameterizable p, List current) {
       if (!duplicatesAllowed.contains(p.getClass())) {
          for (Iterator it = current.iterator(); it.hasNext();) {
@@ -392,9 +375,9 @@ public class Controller implements Initializable {
          }
       }
    }
-   
+
    private static class StylerComparator implements Comparator<Parameterizable> {
-      
+
       @Override
       public int compare(Parameterizable o1, Parameterizable o2) {
          if (o1 instanceof BaseStyler && o2 instanceof StylingCondition) {
@@ -407,7 +390,7 @@ public class Controller implements Initializable {
       }
    }
    private static final StylerComparator STYLER_COMPARATOR = new StylerComparator();
-   
+
    private boolean add(Parameterizable p) throws IOException {
       if ("".equals(stylerKeys.getValue())) {
          stylerKeys.requestFocus();
@@ -478,7 +461,7 @@ public class Controller implements Initializable {
    private final Button b = new Button("add condition");
    private final Label l = new Label("detail message");
    private Stage st = new Stage(StageStyle.UTILITY);
-   
+
    {
       st.initOwner(StylesheetBuilder.topWindow);
       st.initModality(Modality.NONE);
@@ -489,7 +472,7 @@ public class Controller implements Initializable {
          }
       });
    }
-   
+
    private String addNewLines(String orig, int linelength) {
       if (orig == null || orig.length() <= linelength) {
          return orig;
@@ -503,7 +486,7 @@ public class Controller implements Initializable {
       }
       return sb.toString();
    }
-   
+
    private void notify(String buttonText, String title, String details) {
       l.setText(addNewLines(details, 120));
       b.setText(buttonText);
@@ -515,7 +498,7 @@ public class Controller implements Initializable {
       st.setTitle(title);
       st.show();
    }
-   
+
    private void pickStylerToConfigure(final List<? extends Parameterizable> stylers) {
       if (stylers.size() == 1) {
          for (int j = 0; j < stylerCombo.getItems().size(); j++) {
@@ -565,15 +548,15 @@ public class Controller implements Initializable {
       st.setTitle("choose styler");
       st.show();
    }
-   
+
    private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
       ParsingProperties p = new ParsingProperties(new Settings());
       toConfigString(clazz, sp, p);
       StringWriter sw = new StringWriter(p.size() * 30);
-      embf.getSerializer().serialize(p, sw);
+      SettingsBindingService.getInstance().getFactory().getSerializer().serialize(p, sw);
       return sw.toString();
    }
-   
+
    private void stripPreAndPost(String clazz, List<? extends Parameterizable> sp) {
       if (!DefaultStylerFactory.PRESTYLERS.equals(clazz) && !DefaultStylerFactory.POSTSTYLERS.equals(clazz)) {
          if (stylingConfig.containsKey(DefaultStylerFactory.PRESTYLERS)) {
@@ -588,23 +571,23 @@ public class Controller implements Initializable {
             });
          }
       }
-      
+
    }
-   
+
    private void toConfigString(String clazz, List<? extends Parameterizable> sp, ParsingProperties eh) throws IOException {
       stripPreAndPost(clazz, sp);
       List<String> pp = new ArrayList<>(sp.size());
       for (Parameterizable p : sp) {
          StringWriter sw = new StringWriter();
-         factory.getSerializer().serialize(p, sw);
+         ParamBindingService.getInstance().getFactory().getSerializer().serialize(p, sw);
          pp.add(sw.toString());
       }
       String[] toArray = ArrayHelper.toArray(pp);
       eh.put(clazz, toArray == null ? EMPTY : toArray);
    }
-   
+
    private static final String[] EMPTY = new String[0];
-   
+
    private void printComment(String key, ParsingProperties eh) {
       if (key != null && commentsBefore.containsKey(key)) {
          commentsBefore.get(key).stream().forEach((s) -> {
@@ -616,11 +599,11 @@ public class Controller implements Initializable {
          });
       }
    }
-   
+
    private EnhancedMap buildSettings() throws IOException {
       ParsingProperties eh = new ParsingProperties(new Settings());
       stylesheet.clear();
-      
+
       defaults.entrySet().stream().forEach((def) -> {
          def.getValue().stream().map((pp) -> {
             printComment(def.getKey() + "." + pp.getKey(), eh);
@@ -629,17 +612,17 @@ public class Controller implements Initializable {
             eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
          });
       });
-      
+
       for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
          printComment(e.getKey(), eh);
          toConfigString(e.getKey(), e.getValue(), eh);
       }
-      
+
       for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
          printComment(e.getKey(), eh);
          toConfigString(e.getKey(), e.getValue(), eh);
       }
-      
+
       extraSettings.entrySet().stream().map((e) -> {
          printComment(e.getKey(), eh);
          return e;
@@ -648,22 +631,22 @@ public class Controller implements Initializable {
       });
       return eh;
    }
-   
+
    @FXML
    private void buildStylesheet(ActionEvent event) {
       try {
          EnhancedMap eh = buildSettings();
          StringWriter sw = new StringWriter(eh.size() * 30);
-         embf.getSerializer().serialize(eh, sw);
+         SettingsBindingService.getInstance().getFactory().getSerializer().serialize(eh, sw);
          stylesheet.appendText(sw.toString());
-         
+
          styleTab.getTabPane().getSelectionModel().select(styleTab);
       } catch (Exception ex) {
          toError(ex);
       }
-      
+
    }
-   
+
    @FXML
    private void toConfig(ActionEvent event) {
       try {
@@ -676,7 +659,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    private Tooltip tip(String text) {
       Tooltip t = new Tooltip(text);
       t.setMaxWidth(400);
@@ -685,13 +668,13 @@ public class Controller implements Initializable {
       t.setWrapText(true);
       return t;
    }
-   
+
    @FXML
    private void showStylerHelp(Event event) {
       stylerHelp.setText(help(stylerCombo.getValue()));
       stylerHelp.setTooltip(tip(help(stylerCombo.getValue())));
    }
-   
+
    private String help(Parameterizable p) {
       return p != null ? (p instanceof BaseStyler)
           ? ((BaseStyler) p).getHelp()
@@ -700,28 +683,28 @@ public class Controller implements Initializable {
 // records relative x and y co-ordinates.
 
    private static class Delta {
-      
+
       double x, y;
    }
-   
+
    final Delta dragDelta = new Delta();
    final Stage parent = StylesheetBuilder.topWindow;
-   
+
    public void dragStart(MouseEvent mouseEvent) {
       // record a delta distance for the drag and drop operation.
       dragDelta.x = parent.getX() - mouseEvent.getScreenX();
       dragDelta.y = parent.getY() - mouseEvent.getScreenY();
    }
-   
+
    public void dragged(MouseEvent mouseEvent) {
       parent.setX(mouseEvent.getScreenX() + dragDelta.x);
       parent.setY(mouseEvent.getScreenY() + dragDelta.y);
    }
-   
+
    private static String helpFor(Parameterizable p) {
-      return p instanceof BaseStyler ? (((BaseStyler) p).creates()?"creates iText element ":"") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
+      return p instanceof BaseStyler ? (((BaseStyler) p).creates() ? "creates iText element " : "") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
    }
-   
+
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       try {
@@ -751,24 +734,24 @@ public class Controller implements Initializable {
          });
          stylerCombo.setConverter(new StringConverter<Parameterizable>() {
             private Parameterizable p = null;
-            
+
             @Override
             public String toString(Parameterizable t) {
                this.p = t;
                return t.getClass().getSimpleName();
             }
-            
+
             @Override
             public Parameterizable fromString(String string) {
                return p;
             }
          });
          stylerCombo.setItems(FXCollections.observableArrayList(sorted));
-         
+
          stylerKeys.setPromptText("required!");
          parameterTable.setItems(parameters);
          parameterizableTable.setItems(parameterizableForClass);
-         
+
          pDeclaringClass.setCellValueFactory(new PropertyValueFactory<>("declaringClass"));
          pDeclaringClass.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
@@ -780,7 +763,7 @@ public class Controller implements Initializable {
                }
             }
          });
-         
+
          pType.setCellValueFactory(new PropertyValueFactory<>("type"));
          pType.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
@@ -795,7 +778,7 @@ public class Controller implements Initializable {
          });
          pKey.setCellValueFactory(new PropertyValueFactory<>("key"));
          pKey.setCellFactory((TableColumn<ParameterProps, String> param) -> new TableCell<ParameterProps, String>() {
-            
+
             @Override
             protected void updateItem(final String item, boolean empty) {
                setText(item);
@@ -811,7 +794,7 @@ public class Controller implements Initializable {
                   help.requestFocus();
                });
             }
-            
+
          });
          pValue.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ParameterProps, ParameterProps>, ObservableValue<ParameterProps>>() {
             @Override
@@ -821,7 +804,7 @@ public class Controller implements Initializable {
          });
          pValue.setCellFactory((TableColumn<ParameterProps, ParameterProps> param) -> {
             return new TableCell<ParameterProps, ParameterProps>() {
-               
+
                @Override
                protected void updateItem(final ParameterProps item, boolean empty) {
                   if (item == null) {
@@ -859,7 +842,7 @@ public class Controller implements Initializable {
                      setGraphic(textField);
                   }
                }
-               
+
             };
          }
          );
@@ -894,7 +877,7 @@ public class Controller implements Initializable {
                });
             }
          });
-         
+
          sHelp.setCellValueFactory((CellDataFeatures<Parameterizable, String> p)
              -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + helpFor(p.getValue())));
          sHelp.setCellFactory((TableColumn<Parameterizable, String> p) -> new TableCell<Parameterizable, String>() {
@@ -960,7 +943,7 @@ public class Controller implements Initializable {
                      }
                   }
                });
-               
+
                setGraphic(new Group(b, bd));
             }
          });
@@ -999,7 +982,7 @@ public class Controller implements Initializable {
                      }
                   }
                });
-               
+
                setGraphic(b);
             }
          });
@@ -1026,7 +1009,7 @@ public class Controller implements Initializable {
                   setTooltip(tip);
                }
             }
-            
+
          });
          stylerKeysCopy.setCellFactory(stylerKeys.getCellFactory());
          stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
@@ -1034,20 +1017,20 @@ public class Controller implements Initializable {
                styleClasses.add(newValue);
             }
          });
-         
+
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
          help.setText(bo.toString());
          bo.reset();
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
          datamappingxsd.setText(bo.toString());
-         
+
          bo.reset();
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
-         
+
          defaultSyntax();
-         
+
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
          throw new VectorPrintRuntimeException(ex);
@@ -1056,7 +1039,7 @@ public class Controller implements Initializable {
          throw new VectorPrintRuntimeException(ex);
       }
    }
-   
+
    @FXML
    private void save(ActionEvent event) {
       try {
@@ -1070,7 +1053,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void saveXML(ActionEvent event) {
       try {
@@ -1093,40 +1076,38 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void changeSyntax(ActionEvent event) {
       try {
-         embf = EnhancedMapBindingFactoryImpl.getFactory(
-             (Class<? extends EnhancedMapParser>) Class.forName(settingsparser.getText()),
-             (Class<? extends EnhancedMapSerializer>) Class.forName(settingsserializer.getText()),
-             (BindingHelper) Class.forName(settingshelper.getText()).newInstance(), false);
-         factory = ParameterizableBindingFactoryImpl.getFactory(
-             (Class<? extends ParameterizableParser>) Class.forName(paramparser.getText()),
-             (Class<? extends ParameterizableSerializer>) Class.forName(paramserializer.getText()),
-             (ParamBindingHelper) Class.forName(paramhelper.getText()).newInstance(), false);
+         if (settingsfactory.getText() == null || settingsfactory.getText().isEmpty()) {
+            SpecificClassValidator.setClazz(null);
+         } else {
+            SpecificClassValidator.setClazz((Class<? extends EnhancedMapBindingFactory>) Class.forName(settingsfactory.getText()));
+         }
+         if (paramfactory.getText() == null || paramfactory.getText().isEmpty()) {
+            com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
+
+         } else {
+            com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz((Class<? extends ParameterizableBindingFactory>) Class.forName(paramfactory.getText()));
+         }
       } catch (ClassNotFoundException ex) {
          defaultSyntax();
          toError(ex);
-      } catch (InstantiationException ex) {
-         defaultSyntax();
-         toError(ex);
-      } catch (IllegalAccessException ex) {
+      } catch (ClassCastException ex) {
          defaultSyntax();
          toError(ex);
       }
-      
+
    }
-   
+
    private void defaultSyntax() {
-      settingsparser.setText(embf.getParser(new StringReader("")).getClass().getName());
-      settingsserializer.setText(embf.getSerializer().getClass().getName());
-      settingshelper.setText(embf.getBindingHelper().getClass().getName());
-      paramparser.setText(factory.getParser(new StringReader("")).getClass().getName());
-      paramserializer.setText(factory.getSerializer().getClass().getName());
-      paramhelper.setText(factory.getBindingHelper().getClass().getName());
+      SpecificClassValidator.setClazz(null);
+      settingsfactory.setText(SettingsBindingService.getInstance().getFactory().getClass().getName());
+      com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
+      paramfactory.setText(ParamBindingService.getInstance().getFactory().getClass().getName());
    }
-   
+
    @FXML
    private void validateDataMappingXml(ActionEvent event) {
       try {
@@ -1144,7 +1125,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void validateSettingsXml(ActionEvent event) {
       try {
@@ -1162,7 +1143,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void checkUrlConfig(ActionEvent event) {
       try {
@@ -1172,7 +1153,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void checkUrlSettings(ActionEvent event) {
       try {
@@ -1181,7 +1162,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
       clear(null);
       settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, Boolean.FALSE.toString());
@@ -1191,7 +1172,7 @@ public class Controller implements Initializable {
       PdfWriter w = PdfWriter.getInstance(d, new ByteArrayOutputStream(0));
       w.setPageEvent(new EventHelper());
       sf.setDocument(d, w);
-      
+
       for (Map.Entry<String, String[]> e : settings.entrySet()) {
          String[] v = e.getValue();
          commentsBefore.put(e.getKey(), settings.getCommentBeforeKey(e.getKey()));
@@ -1234,14 +1215,14 @@ public class Controller implements Initializable {
             } catch (VectorPrintException ex) {
                throw new VectorPrintRuntimeException(ex);
             }
-            conditionConfig.put(e.getKey(),new ArrayList<>(conditions.size()));
+            conditionConfig.put(e.getKey(), new ArrayList<>(conditions.size()));
             conditionConfig.get(e.getKey()).addAll(conditions);
          }
       });
       commentsAfter.addAll(settings.getTrailingComment());
       notify("ok", "import complete", "you can now adapt and (re)build your stylesheet");
    }
-   
+
    @FXML
    private void importStyle(ActionEvent event) {
       try {
@@ -1255,7 +1236,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    @FXML
    private void importCss(ActionEvent event) {
       try {
@@ -1272,7 +1253,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    private boolean isCondition(String key, EnhancedMap settings) {
       String[] classes = settings.getStringProperties(null, key);
       if (classes == null) {
@@ -1287,7 +1268,7 @@ public class Controller implements Initializable {
       }
       return true;
    }
-   
+
    private boolean isStyler(String key, EnhancedMap settings) {
       String[] classes = settings.getStringProperties(null, key);
       if (classes == null) {
@@ -1302,7 +1283,7 @@ public class Controller implements Initializable {
       }
       return true;
    }
-   
+
    private final Set<String> processed = new HashSet<>(10);
 
    /**
@@ -1327,7 +1308,7 @@ public class Controller implements Initializable {
          }
       });
    }
-   
+
    private void getDefaults(Collection<? extends Parameterizable> l, EnhancedMap settings) {
       l.stream().forEach((pz) -> {
          pz.getParameters().values().stream().forEach((p) -> {
@@ -1341,12 +1322,12 @@ public class Controller implements Initializable {
          });
       });
    }
-   
+
    @FXML
    private void quit(ActionEvent event) {
       Platform.exit();
    }
-   
+
    private Parameterizable findDocStyler() {
       List<Parameterizable> its = stylerCombo.getItems();
       for (Parameterizable p : its) {
@@ -1356,7 +1337,7 @@ public class Controller implements Initializable {
       }
       return null;
    }
-   
+
    @FXML
    private void toggleToc(ActionEvent event) {
       Parameterizable ds = findDocStyler();
@@ -1367,19 +1348,19 @@ public class Controller implements Initializable {
          stylerCombo.getSelectionModel().select(ds);
       }
    }
-   
+
    @FXML
    private void toggleFooter(ActionEvent event) {
       extraSettings.put(ReportConstants.PRINTFOOTER, String.valueOf(footer.isSelected()));
       stylerHelp.setText(ReportConstants.PRINTFOOTER + "=" + String.valueOf(footer.isSelected()));
    }
-   
+
    @FXML
    private void toggleDebug(ActionEvent event) {
       extraSettings.put(ReportConstants.DEBUG, String.valueOf(debug.isSelected()));
       stylerHelp.setText(ReportConstants.DEBUG + "=" + String.valueOf(debug.isSelected()));
    }
-   
+
    @FXML
    private void togglePdf1a(ActionEvent event) {
       Parameterizable ds = findDocStyler();
@@ -1390,46 +1371,46 @@ public class Controller implements Initializable {
          stylerCombo.getSelectionModel().select(ds);
       }
    }
-   
+
    @FXML
    private Label search;
-   
+
    private TextArea area;
-   
+
    @FXML
    private void searchHelp(Event event) {
       area = help;
       area.requestFocus();
    }
-   
+
    @FXML
    private void searchError(Event event) {
       area = error;
       area.requestFocus();
    }
-   
+
    @FXML
    private void searchSettings(Event event) {
       area = settingsxsd;
       area.requestFocus();
    }
-   
+
    @FXML
    private void searchMapping(Event event) {
       area = datamappingxsd;
       area.requestFocus();
    }
-   
+
    private boolean scroll;
-   
+
    @FXML
    private void searchTxt(KeyEvent event) {
       KeyCode kc = event.getCode();
-      
+
       scroll = false;
       search.setTextFill(Color.BLACK);
       String s = search.getText();
-      
+
       if (kc.isLetterKey() || kc.isDigitKey() || kc.isWhitespaceKey()) {
          s += event.getText();
       } else {
@@ -1450,10 +1431,10 @@ public class Controller implements Initializable {
       if (s.length() == 0) {
          return;
       }
-      
+
       search.setTextFill(searchArea(area, s) ? Color.GREEN : Color.RED);
    }
-   
+
    private boolean searchArea(TextArea area, String s) {
       String contents = area.getText();
       int pos = area.getCaretPosition();
@@ -1468,14 +1449,14 @@ public class Controller implements Initializable {
       }
       return true;
    }
-   
+
    @FXML
    private void scroll(KeyEvent event) {
       if (scroll) {
          area.setScrollTop(area.getScrollTop() + 20);
       }
    }
-   
+
    @FXML
    private void showParHelp(Event event) {
       if (event instanceof KeyEvent) {
@@ -1492,5 +1473,5 @@ public class Controller implements Initializable {
          stylerCombo.requestFocus();
       }
    }
-   
+
 }

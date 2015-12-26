@@ -7,8 +7,7 @@ package com.vectorprint.vectorprintreportgui;
 
 import com.vectorprint.ClassHelper;
 import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
-import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
-import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactoryImpl;
+import com.vectorprint.configuration.binding.parameters.ParamBindingService;
 import com.vectorprint.configuration.parameters.Parameter;
 import java.io.Serializable;
 import java.io.StringReader;
@@ -28,8 +27,6 @@ public class ParameterProps implements Comparable<ParameterProps>{
    private StringProperty help = new SimpleStringProperty();
    private StringProperty declaringClass = new SimpleStringProperty();
    private Parameter p;
-   private final ParameterizableBindingFactory factory = ParameterizableBindingFactoryImpl.getDefaultFactory();
-   private final ParamBindingHelper helper = factory.getBindingHelper();
 
    public ParameterProps(Parameter p) {
       this.p = p;
@@ -37,6 +34,7 @@ public class ParameterProps implements Comparable<ParameterProps>{
       help.set(p.getHelp());
       type.set(ClassHelper.findParameterClass(0, p.getClass(), Parameter.class).getName());
       declaringClass.set(p.getDeclaringClass().getName());
+      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
       value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
    }
 
@@ -59,7 +57,8 @@ public class ParameterProps implements Comparable<ParameterProps>{
    }
 
    public void setValue(String value) {
-      Serializable parseAsParameterValue = factory.getParser(new StringReader("")).parseAsParameterValue(value, p);
+      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
+      Serializable parseAsParameterValue = ParamBindingService.getInstance().getFactory().getParser(new StringReader("")).parseAsParameterValue(value, p);
       helper.setValueOrDefault(p, parseAsParameterValue, false);
       this.value.set(value==null?"":value);
    }
