@@ -163,14 +163,8 @@
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <Label layoutX="26.0" layoutY="15.0" prefHeight="16.0" prefWidth="975.0" text="Here you can control the syntax used for reading and writing stylesheets." />
-                        <TextField fx:id="settingsfactory" layoutX="25.0" layoutY="83.0" prefHeight="26.0" prefWidth="852.0">
-                           <tooltip>
-                              <Tooltip text="implementation of com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory" />
-                           </tooltip></TextField>
-                        <TextField fx:id="paramfactory" layoutX="23.0" layoutY="188.0" prefHeight="26.0" prefWidth="853.0">
-                           <tooltip>
-                              <Tooltip text="implementation of com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory" />
-                           </tooltip></TextField>
+                        <ComboBox fx:id="settingsfactory" editable="false" layoutX="25.0" layoutY="83.0" prefHeight="26.0" prefWidth="852.0" />
+                        <ComboBox fx:id="paramfactory" editable="false" layoutX="23.0" layoutY="188.0" prefHeight="26.0" prefWidth="853.0" />
                         <Separator layoutX="25.0" layoutY="137.0" prefHeight="0.0" prefWidth="843.0" />
                         <Label layoutX="27.0" layoutY="56.0" text="factory class for settings syntax (syntax for properties)" />
                         <Label layoutX="25.0" layoutY="155.0" text="factory class for styler and condition syntax (syntax for Objects with parameters)" />

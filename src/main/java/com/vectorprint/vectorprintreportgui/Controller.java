@@ -157,9 +157,9 @@ public class Controller implements Initializable {
    @FXML
    private TextArea settingsxsd;
    @FXML
-   private TextField settingsfactory;
+   private ComboBox<Class<? extends EnhancedMapBindingFactory>> settingsfactory;
    @FXML
-   private TextField paramfactory;
+   private ComboBox<Class<? extends ParameterizableBindingFactory>> paramfactory;
    @FXML
    private CheckBox toc;
    @FXML
@@ -1029,6 +1029,9 @@ public class Controller implements Initializable {
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
 
+         settingsfactory.setItems(FXCollections.observableArrayList(SettingsBindingService.getInstance().getFactoriesKnown()));
+         paramfactory.setItems(FXCollections.observableArrayList(ParamBindingService.getInstance().getFactoriesKnown()));
+
          defaultSyntax();
 
       } catch (NoClassDefFoundError ex) {
@@ -1079,33 +1082,26 @@ public class Controller implements Initializable {
 
    @FXML
    private void changeSyntax(ActionEvent event) {
-      try {
-         if (settingsfactory.getText() == null || settingsfactory.getText().isEmpty()) {
-            SpecificClassValidator.setClazz(null);
-         } else {
-            SpecificClassValidator.setClazz((Class<? extends EnhancedMapBindingFactory>) Class.forName(settingsfactory.getText()));
-         }
-         if (paramfactory.getText() == null || paramfactory.getText().isEmpty()) {
-            com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
-
-         } else {
-            com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz((Class<? extends ParameterizableBindingFactory>) Class.forName(paramfactory.getText()));
-         }
-      } catch (ClassNotFoundException ex) {
-         defaultSyntax();
-         toError(ex);
-      } catch (ClassCastException ex) {
-         defaultSyntax();
-         toError(ex);
+      if (settingsfactory.getValue() != null) {
+         SpecificClassValidator.setClazz(settingsfactory.getValue());
+      } else {
+         SpecificClassValidator.setClazz(null);
+      }
+      if (paramfactory.getValue() != null) {
+         com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
+      } else {
+         com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
       }
 
    }
 
    private void defaultSyntax() {
       SpecificClassValidator.setClazz(null);
-      settingsfactory.setText(SettingsBindingService.getInstance().getFactory().getClass().getName());
+      Class<? extends EnhancedMapBindingFactory> aClass = SettingsBindingService.getInstance().getFactory().getClass();
+      settingsfactory.getSelectionModel().select(aClass);
       com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
-      paramfactory.setText(ParamBindingService.getInstance().getFactory().getClass().getName());
+      Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
+      paramfactory.getSelectionModel().select(aClass1);
    }
 
    @FXML
