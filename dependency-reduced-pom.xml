@@ -67,6 +67,12 @@
                   <resource>com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory</resource>
                 </transformer>
                 <transformer>
+                  <resource>com.vectorprint.configuration.binding.parameters.ParamFactoryValidator</resource>
+                </transformer>
+                <transformer>
+                  <resource>com.vectorprint.configuration.binding.settings.SettingsFactoryValidator</resource>
+                </transformer>
+                <transformer>
                   <manifestEntries>
                     <Main-Class>${mainClass}</Main-Class>
                     <X-Compile-Source-JDK>${maven.compile.java.version}</X-Compile-Source-JDK>

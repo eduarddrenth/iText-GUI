@@ -89,6 +89,18 @@
                            implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                            <resource>
                               com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory
+                           </resource>com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
+                        </transformer>
+                        <transformer
+                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                           <resource>
+                              com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
+                           </resource>
+                        </transformer>
+                        <transformer
+                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                           <resource>
+                              com.vectorprint.configuration.binding.settings.SettingsFactoryValidator
                            </resource>
                         </transformer>
                         <transformer
