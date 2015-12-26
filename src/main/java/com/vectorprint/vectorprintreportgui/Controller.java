@@ -1119,17 +1119,8 @@ public class Controller implements Initializable {
 
    @FXML
    private void changeSyntax(ActionEvent event) {
-      if (settingsfactory.getValue() != null) {
          SpecificClassValidator.setClazz(settingsfactory.getValue());
-      } else {
-         SpecificClassValidator.setClazz(null);
-      }
-      if (paramfactory.getValue() != null) {
          com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
-      } else {
-         com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
-      }
-
    }
 
    private void defaultSyntax() {
