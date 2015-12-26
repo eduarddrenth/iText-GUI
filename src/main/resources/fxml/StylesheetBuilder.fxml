@@ -165,7 +165,7 @@
                         <Label layoutX="26.0" layoutY="15.0" prefHeight="16.0" prefWidth="975.0" text="Here you can control the syntax used for reading and writing stylesheets." />
                         <TextField fx:id="settingsfactory" layoutX="25.0" layoutY="83.0" prefHeight="26.0" prefWidth="852.0">
                            <tooltip>
-                              <Tooltip text="implementation of com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactoryr" />
+                              <Tooltip text="implementation of com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory" />
                            </tooltip></TextField>
                         <TextField fx:id="paramfactory" layoutX="23.0" layoutY="188.0" prefHeight="26.0" prefWidth="853.0">
                            <tooltip>
