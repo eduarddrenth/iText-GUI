@@ -1412,9 +1412,10 @@ public class Controller implements Initializable {
    private boolean searchArea(TextArea area, String s) {
       String contents = area.getText();
       int pos = area.getCaretPosition() - s.length() - 1;
+      boolean noBackspace = area.getSelection().getLength() < s.length();
       if (contents.indexOf(s, pos) != -1) {
          area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
-         if (area.getCaretPosition()!=pos+s.length()+2) {
+         if (noBackspace&&area.getCaretPosition()!=pos+s.length()+2) {
             scroll = true;
          }
       } else if (contents.contains(s)) {
