@@ -16,14 +16,12 @@ import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
 import com.vectorprint.configuration.binding.BindingHelper;
 import com.vectorprint.configuration.binding.parameters.ParamBindingService;
-import com.vectorprint.configuration.binding.parameters.ParamFactoryValidator;
 import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
 import com.vectorprint.configuration.binding.settings.SettingsBindingService;
-import com.vectorprint.configuration.binding.settings.SettingsFactoryValidator;
 import com.vectorprint.configuration.binding.settings.SpecificClassValidator;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameterizable;
@@ -1080,8 +1078,8 @@ public class Controller implements Initializable {
 
    @FXML
    private void changeSyntax(ActionEvent event) {
-         SpecificClassValidator.setClazz(settingsfactory.getValue());
-         com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
+      SpecificClassValidator.setClazz(settingsfactory.getValue());
+      com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
    }
 
    @FXML
@@ -1451,49 +1449,13 @@ public class Controller implements Initializable {
    }
 
    /**
-    * @deprecated new release of Config will provide getValidFactories, making this method obsolete
     * @throws InstantiationException
-    * @throws IllegalAccessException 
+    * @throws IllegalAccessException
     */
    private void initFactories() throws InstantiationException, IllegalAccessException {
-         // TODO this functionality is going to be in new Config module
-         
-         List<Class<? extends EnhancedMapBindingFactory>> factoriesKnown = SettingsBindingService.getInstance().getFactoriesKnown();
-         List<Class<? extends SettingsFactoryValidator>> validatorsKnown = SettingsBindingService.getInstance().getValidatorsKnown();
-         for (Iterator<Class<? extends EnhancedMapBindingFactory>> iterator = factoriesKnown.iterator(); iterator.hasNext();) {
-            Class<? extends EnhancedMapBindingFactory> next = iterator.next();
-            boolean valid = true;
-            for (Class<? extends SettingsFactoryValidator> class1 : validatorsKnown) {
-               if (!class1.newInstance().isValid(next.newInstance())) {
-                  valid = false;
-                  break;
-               }
-            }
-            if (!valid) {
-               iterator.remove();
-            }
-         }
-         List<Class<? extends ParameterizableBindingFactory>> pFactoriesKnown = ParamBindingService.getInstance().getFactoriesKnown();
-         List<Class<? extends ParamFactoryValidator>> pValidatorsKnown = ParamBindingService.getInstance().getValidatorsKnown();
-         for (Iterator<Class<? extends ParameterizableBindingFactory>> iterator = pFactoriesKnown.iterator(); iterator.hasNext();) {
-            Class<? extends ParameterizableBindingFactory> next = iterator.next();
-            boolean valid = true;
-            for (Class<? extends ParamFactoryValidator> class1 : pValidatorsKnown) {
-               if (!class1.newInstance().isValid(next.newInstance())) {
-                  valid = false;
-                  break;
-               }
-            }
-            if (!valid) {
-               iterator.remove();
-            }
-         }
-         
-         // end TODO
-         
-         settingsfactory.setItems(FXCollections.observableArrayList(factoriesKnown));
-         paramfactory.setItems(FXCollections.observableArrayList(pFactoriesKnown));
-      
+      settingsfactory.setItems(FXCollections.observableArrayList(SettingsBindingService.getInstance().getValidFactories()));
+      paramfactory.setItems(FXCollections.observableArrayList(ParamBindingService.getInstance().getValidFactories()));
+
       Class<? extends EnhancedMapBindingFactory> aClass = SettingsBindingService.getInstance().getFactory().getClass();
       settingsfactory.getSelectionModel().select(aClass);
       Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
