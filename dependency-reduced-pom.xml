@@ -64,13 +64,13 @@
                   <resource>META-INF/services/com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory</resource>
                 </transformer>
                 <transformer>
-                  <resource>com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory</resource>
+                  <resource>META-INF/services/com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory</resource>
                 </transformer>
                 <transformer>
-                  <resource>com.vectorprint.configuration.binding.parameters.ParamFactoryValidator</resource>
+                  <resource>META-INF/services/com.vectorprint.configuration.binding.parameters.ParamFactoryValidator</resource>
                 </transformer>
                 <transformer>
-                  <resource>com.vectorprint.configuration.binding.settings.SettingsFactoryValidator</resource>
+                  <resource>META-INF/services/com.vectorprint.configuration.binding.settings.SettingsFactoryValidator</resource>
                 </transformer>
                 <transformer>
                   <manifestEntries>

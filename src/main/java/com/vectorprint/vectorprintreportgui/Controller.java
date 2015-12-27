@@ -710,6 +710,7 @@ public class Controller implements Initializable {
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       try {
+         initFactories();
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
          Collections.sort(sorted, STYLER_COMPARATOR);
          synchronized (duplicatesAllowed) {
@@ -1031,46 +1032,6 @@ public class Controller implements Initializable {
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
 
-         // TODO this functionality is going to be in new Config module
-         
-         List<Class<? extends EnhancedMapBindingFactory>> factoriesKnown = SettingsBindingService.getInstance().getFactoriesKnown();
-         List<Class<? extends SettingsFactoryValidator>> validatorsKnown = SettingsBindingService.getInstance().getValidatorsKnown();
-         for (Iterator<Class<? extends EnhancedMapBindingFactory>> iterator = factoriesKnown.iterator(); iterator.hasNext();) {
-            Class<? extends EnhancedMapBindingFactory> next = iterator.next();
-            boolean valid = true;
-            for (Class<? extends SettingsFactoryValidator> class1 : validatorsKnown) {
-               if (!class1.newInstance().isValid(next.newInstance())) {
-                  valid = false;
-                  break;
-               }
-            }
-            if (!valid) {
-               iterator.remove();
-            }
-         }
-         List<Class<? extends ParameterizableBindingFactory>> pFactoriesKnown = ParamBindingService.getInstance().getFactoriesKnown();
-         List<Class<? extends ParamFactoryValidator>> pValidatorsKnown = ParamBindingService.getInstance().getValidatorsKnown();
-         for (Iterator<Class<? extends ParameterizableBindingFactory>> iterator = pFactoriesKnown.iterator(); iterator.hasNext();) {
-            Class<? extends ParameterizableBindingFactory> next = iterator.next();
-            boolean valid = true;
-            for (Class<? extends ParamFactoryValidator> class1 : pValidatorsKnown) {
-               if (!class1.newInstance().isValid(next.newInstance())) {
-                  valid = false;
-                  break;
-               }
-            }
-            if (!valid) {
-               iterator.remove();
-            }
-         }
-         
-         // end TODO
-         
-         settingsfactory.setItems(FXCollections.observableArrayList(factoriesKnown));
-         paramfactory.setItems(FXCollections.observableArrayList(pFactoriesKnown));
-
-         defaultSyntax();
-
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
          throw new VectorPrintRuntimeException(ex);
@@ -1121,15 +1082,6 @@ public class Controller implements Initializable {
    private void changeSyntax(ActionEvent event) {
          SpecificClassValidator.setClazz(settingsfactory.getValue());
          com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
-   }
-
-   private void defaultSyntax() {
-      SpecificClassValidator.setClazz(null);
-      Class<? extends EnhancedMapBindingFactory> aClass = SettingsBindingService.getInstance().getFactory().getClass();
-      settingsfactory.getSelectionModel().select(aClass);
-      com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(null);
-      Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
-      paramfactory.getSelectionModel().select(aClass1);
    }
 
    @FXML
@@ -1498,4 +1450,53 @@ public class Controller implements Initializable {
       }
    }
 
+   /**
+    * @deprecated new release of Config will provide getValidFactories, making this method obsolete
+    * @throws InstantiationException
+    * @throws IllegalAccessException 
+    */
+   private void initFactories() throws InstantiationException, IllegalAccessException {
+         // TODO this functionality is going to be in new Config module
+         
+         List<Class<? extends EnhancedMapBindingFactory>> factoriesKnown = SettingsBindingService.getInstance().getFactoriesKnown();
+         List<Class<? extends SettingsFactoryValidator>> validatorsKnown = SettingsBindingService.getInstance().getValidatorsKnown();
+         for (Iterator<Class<? extends EnhancedMapBindingFactory>> iterator = factoriesKnown.iterator(); iterator.hasNext();) {
+            Class<? extends EnhancedMapBindingFactory> next = iterator.next();
+            boolean valid = true;
+            for (Class<? extends SettingsFactoryValidator> class1 : validatorsKnown) {
+               if (!class1.newInstance().isValid(next.newInstance())) {
+                  valid = false;
+                  break;
+               }
+            }
+            if (!valid) {
+               iterator.remove();
+            }
+         }
+         List<Class<? extends ParameterizableBindingFactory>> pFactoriesKnown = ParamBindingService.getInstance().getFactoriesKnown();
+         List<Class<? extends ParamFactoryValidator>> pValidatorsKnown = ParamBindingService.getInstance().getValidatorsKnown();
+         for (Iterator<Class<? extends ParameterizableBindingFactory>> iterator = pFactoriesKnown.iterator(); iterator.hasNext();) {
+            Class<? extends ParameterizableBindingFactory> next = iterator.next();
+            boolean valid = true;
+            for (Class<? extends ParamFactoryValidator> class1 : pValidatorsKnown) {
+               if (!class1.newInstance().isValid(next.newInstance())) {
+                  valid = false;
+                  break;
+               }
+            }
+            if (!valid) {
+               iterator.remove();
+            }
+         }
+         
+         // end TODO
+         
+         settingsfactory.setItems(FXCollections.observableArrayList(factoriesKnown));
+         paramfactory.setItems(FXCollections.observableArrayList(pFactoriesKnown));
+      
+      Class<? extends EnhancedMapBindingFactory> aClass = SettingsBindingService.getInstance().getFactory().getClass();
+      settingsfactory.getSelectionModel().select(aClass);
+      Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
+      paramfactory.getSelectionModel().select(aClass1);
+   }
 }
