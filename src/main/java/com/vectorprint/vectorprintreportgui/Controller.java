@@ -1411,10 +1411,12 @@ public class Controller implements Initializable {
 
    private boolean searchArea(TextArea area, String s) {
       String contents = area.getText();
-      int pos = area.getCaretPosition();
+      int pos = area.getCaretPosition() - s.length() - 1;
       if (contents.indexOf(s, pos) != -1) {
          area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
-         scroll = true;
+         if (area.getCaretPosition()!=pos+s.length()+2) {
+            scroll = true;
+         }
       } else if (contents.contains(s)) {
          // wrap
          area.selectRange(contents.indexOf(s), contents.indexOf(s) + s.length());
