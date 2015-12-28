@@ -39,7 +39,7 @@
                         <Button layoutX="539.0" layoutY="61.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
                         <Button layoutX="686.0" layoutY="61.0" mnemonicParsing="false" onAction="#toConfig" text="add">
                            <tooltip>
-                              <Tooltip text="add Styler or Condition to stylesheet" />
+                              <Tooltip text="add Styler or Condition to styleclass" />
                            </tooltip>
                         </Button>
                         <Button layoutX="733.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />

@@ -499,20 +499,25 @@ public class Controller implements Initializable {
       st.show();
    }
 
+   private void selectInCombo(Parameterizable par) {
+      for (int j = 0; j < stylerCombo.getItems().size(); j++) {
+         if (stylerCombo.getItems().get(j).getClass().equals(par.getClass())) {
+            stylerCombo.getSelectionModel().select(j);
+            break;
+         }
+      }
+      parameters.clear();
+      currentParameterizable = par;
+      stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
+      for (Parameter p : currentParameterizable.getParameters().values()) {
+         parameters.add(new ParameterProps(p));
+      }
+      showConfig(null);
+   }
+
    private void pickStylerToConfigure(final List<? extends Parameterizable> stylers) {
       if (stylers.size() == 1) {
-         for (int j = 0; j < stylerCombo.getItems().size(); j++) {
-            if (stylerCombo.getItems().get(j).getClass().equals(stylers.get(0).getClass())) {
-               stylerCombo.getSelectionModel().select(j);
-               break;
-            }
-         }
-         parameters.clear();
-         currentParameterizable = stylers.get(0);
-         stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
-         for (Parameter p : currentParameterizable.getParameters().values()) {
-            parameters.add(new ParameterProps(p));
-         }
+         selectInCombo(stylers.get(0));
          return;
       }
       ToggleGroup tg = new ToggleGroup();
@@ -530,18 +535,7 @@ public class Controller implements Initializable {
          rb.setToggleGroup(tg);
          vb.getChildren().add(rb);
          rb.setOnAction((ActionEvent event) -> {
-            for (int j = 0; j < stylerCombo.getItems().size(); j++) {
-               if (stylerCombo.getItems().get(j).getClass().equals(currentParameterizable.getClass())) {
-                  stylerCombo.getSelectionModel().select(j);
-                  break;
-               }
-            }
-            parameters.clear();
-            currentParameterizable = s;
-            stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
-            for (Parameter p : s.getParameters().values()) {
-               parameters.add(new ParameterProps(p));
-            }
+            selectInCombo(s);
          });
       }
       st.setScene(sc);
@@ -808,6 +802,7 @@ public class Controller implements Initializable {
 
                @Override
                protected void updateItem(final ParameterProps item, boolean empty) {
+                  setGraphic(null);
                   if (item == null) {
                      return;
                   }
@@ -1415,7 +1410,7 @@ public class Controller implements Initializable {
       boolean noBackspace = area.getSelection().getLength() < s.length();
       if (contents.indexOf(s, pos) != -1) {
          area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
-         if (noBackspace&&area.getCaretPosition()!=pos+s.length()+2) {
+         if (noBackspace && area.getCaretPosition() != pos + s.length() + 2) {
             scroll = true;
          }
       } else if (contents.contains(s)) {
