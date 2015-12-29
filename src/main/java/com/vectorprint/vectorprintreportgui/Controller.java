@@ -16,14 +16,14 @@ import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
 import com.vectorprint.configuration.binding.BindingHelper;
 import com.vectorprint.configuration.binding.parameters.ParamBindingService;
-import com.vectorprint.configuration.decoration.ParsingProperties;
-import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.binding.parameters.ParameterHelper;
 import com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory;
 import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
 import com.vectorprint.configuration.binding.settings.SettingsBindingService;
 import com.vectorprint.configuration.binding.settings.SpecificClassValidator;
+import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
+import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.Parameterizable;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.itext.EventHelper;
@@ -832,7 +832,8 @@ public class Controller implements Initializable {
                      });
                      setGraphic(comboBox);
                   } else if (java.awt.Color.class.equals(valueClass)) {
-                     final ColorPicker cp = new ColorPicker();
+                     java.awt.Color col = (java.awt.Color) item.getP().getValue();
+                     final ColorPicker cp = col == null ? new ColorPicker() : new ColorPicker(new Color(col.getRed()/255, col.getGreen()/255, col.getBlue()/255, col.getAlpha()/255));
                      cp.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
