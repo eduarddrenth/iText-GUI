@@ -85,6 +85,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -356,11 +357,15 @@ public class Controller implements Initializable {
       }
    }
 
-   private void toError(Throwable ex) {
+   private void writeStackTrace(Throwable ex) {
       StringWriter sw = new StringWriter(1024);
       ex.printStackTrace(new PrintWriter(sw));
       error.clear();
       error.setText(sw.toString());
+   }
+
+   private void toError(Throwable ex) {
+      writeStackTrace(ex);
       notify("ok (errors tab for details)", "error", ex.getMessage());
    }
 
@@ -826,13 +831,24 @@ public class Controller implements Initializable {
                         item.setValue(comboBox.getSelectionModel().getSelectedItem());
                      });
                      setGraphic(comboBox);
+                  } else if (java.awt.Color.class.equals(valueClass)) {
+                     final ColorPicker cp = new ColorPicker();
+                     cp.setOnAction(new EventHandler<ActionEvent>() {
+                        @Override
+                        public void handle(ActionEvent event) {
+                           item.setValue(toHex(cp.getValue()));
+                        }
+                     });
+                     setGraphic(cp);
                   } else {
                      final TextField textField = new TextField(item.getValue());
                      textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+                        textField.setStyle(null);
                         try {
                            item.setValue(newValue);
                         } catch (Exception e) {
-                           toError(e);
+                           textField.setStyle("-fx-border-color: red");
+                           writeStackTrace(e);
                         }
                      });
                      setGraphic(textField);
@@ -1458,5 +1474,12 @@ public class Controller implements Initializable {
       settingsfactory.getSelectionModel().select(aClass);
       Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
       paramfactory.getSelectionModel().select(aClass1);
+   }
+
+   public static String toHex(Color color) {
+      int red = (int) (color.getRed() * 255);
+      int green = (int) (color.getGreen() * 255);
+      int blue = (int) (color.getBlue() * 255);
+      return "#" + Integer.toHexString(red) + Integer.toHexString(green) + Integer.toHexString(blue);
    }
 }
