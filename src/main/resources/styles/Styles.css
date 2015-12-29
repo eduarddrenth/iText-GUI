@@ -3,9 +3,6 @@
 }
 .root{
 }
-.lightgray {
-   -fx-background-color: #f4f4f4
-}
 .remove {
     -fx-background-radius: 30;
     -fx-text-fill: red;

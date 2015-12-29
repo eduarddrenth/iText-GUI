@@ -45,11 +45,11 @@
                         <Button layoutX="733.0" layoutY="61.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
                         <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="154.0" prefHeight="564.0" prefWidth="982.0">
                            <columns>
-                              <TableColumn fx:id="pKey" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" styleClass="lightgray" text="key" />
-                              <TableColumn fx:id="pType" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="136.0" styleClass="lightgray" text="type" />
+                              <TableColumn fx:id="pKey" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" text="key" editable="false" />
+                              <TableColumn fx:id="pType" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="136.0" text="type"/>
                               <TableColumn fx:id="pValue" maxWidth="5000.0" minWidth="10.0" prefWidth="137.0" text="value" />
-                              <TableColumn fx:id="pDefault" maxWidth="5000.0" minWidth="10.0" prefWidth="37.0" styleClass="lightgray" text="" />
-                              <TableColumn fx:id="pDeclaringClass" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="605.0" styleClass="lightgray" text="which class declares (uses) the parameter" />
+                              <TableColumn fx:id="pDefault" maxWidth="5000.0" minWidth="10.0" prefWidth="37.0" text="" editable="false" />
+                              <TableColumn fx:id="pDeclaringClass" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="605.0" text="which class declares (uses) the parameter" />
                            </columns>
                         </TableView>
                         <Label layoutX="5.0" layoutY="65.0" text="styleClass / key" />
