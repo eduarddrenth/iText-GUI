@@ -2,7 +2,6 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package com.vectorprint.vectorprintreportgui;
 
 import com.vectorprint.ClassHelper;
@@ -19,8 +18,8 @@ import javafx.beans.property.StringProperty;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class ParameterProps implements Comparable<ParameterProps>{
-   
+public class ParameterProps implements Comparable<ParameterProps> {
+
    private StringProperty key = new SimpleStringProperty();
    private StringProperty type = new SimpleStringProperty();
    private StringProperty value = new SimpleStringProperty();
@@ -41,13 +40,11 @@ public class ParameterProps implements Comparable<ParameterProps>{
    public Parameter getP() {
       return p;
    }
-   
-   
 
    public String getKey() {
       return key.get();
    }
-   
+
    public String getType() {
       return type.get();
    }
@@ -58,9 +55,13 @@ public class ParameterProps implements Comparable<ParameterProps>{
 
    public void setValue(String value) {
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
-      Serializable parseAsParameterValue = ParamBindingService.getInstance().getFactory().getParser(new StringReader("")).parseAsParameterValue(value, p);
-      helper.setValueOrDefault(p, parseAsParameterValue, false);
-      this.value.set(value==null?"":value);
+      if (value != null && !value.isEmpty()) {
+         Serializable parseAsParameterValue = ParamBindingService.getInstance().getFactory().getParser(new StringReader("")).parseAsParameterValue(value, p);
+         helper.setValueOrDefault(p, parseAsParameterValue, false);
+      } else {
+         helper.setValueOrDefault(p, null, false);
+      }
+      this.value.set(value == null ? "" : value);
    }
 
    public String getHelp() {
