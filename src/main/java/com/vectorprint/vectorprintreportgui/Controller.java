@@ -788,8 +788,8 @@ public class Controller implements Initializable {
                setTooltip(tip(item + " (click for help)"));
                setOnMouseClicked((MouseEvent event) -> {
                   Parameterizable p = stylerCombo.getValue();
-                  searchArea(help, p.getClass().getSimpleName() + ": ");
-                  searchArea(help, "key=" + item);
+                  searchArea(help, p.getClass().getSimpleName() + ": ", false);
+                  searchArea(help, "key=" + item, false);
                   helpTab.getTabPane().getSelectionModel().select(helpTab);
                   help.requestFocus();
                });
@@ -1396,6 +1396,7 @@ public class Controller implements Initializable {
       scroll = false;
       search.setTextFill(Color.BLACK);
       String s = search.getText();
+      boolean again = false;
 
       if (kc.isLetterKey() || kc.isDigitKey() || kc.isWhitespaceKey()) {
          s += event.getText();
@@ -1407,6 +1408,7 @@ public class Controller implements Initializable {
                }
             case F3:
                // search again
+               again = true;
                break;
             default:
                // ignore
@@ -1418,12 +1420,12 @@ public class Controller implements Initializable {
          return;
       }
 
-      search.setTextFill(searchArea(area, s) ? Color.GREEN : Color.RED);
+      search.setTextFill(searchArea(area, s, again) ? Color.GREEN : Color.RED);
    }
 
-   private boolean searchArea(TextArea area, String s) {
+   private boolean searchArea(TextArea area, String s, boolean again) {
       String contents = area.getText();
-      int pos = area.getCaretPosition() - s.length() - 1;
+      int pos = again ? area.getCaretPosition() : area.getCaretPosition() - s.length() - 1;
       boolean noBackspace = area.getSelection().getLength() < s.length();
       if (contents.indexOf(s, pos) != -1) {
          area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
@@ -1455,7 +1457,7 @@ public class Controller implements Initializable {
          }
       }
       if (stylerCombo.getValue() != null) {
-         searchArea(help, stylerCombo.getValue().getClass().getSimpleName() + ": ");
+         searchArea(help, stylerCombo.getValue().getClass().getSimpleName() + ": ", false);
          helpTab.getTabPane().getSelectionModel().select(helpTab);
          help.requestFocus();
       } else {
