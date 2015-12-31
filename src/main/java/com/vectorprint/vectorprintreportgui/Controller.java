@@ -253,6 +253,9 @@ public class Controller implements Initializable {
          stylingConfig.remove(clazz);
       }
       commentsBefore.remove(clazz);
+      configString.clear();
+      parameters.clear();
+      parameterizableForClass.clear();
    }
 
    private void chooseOrAdd(String styleClass) {
