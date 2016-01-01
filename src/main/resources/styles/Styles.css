@@ -8,3 +8,8 @@
     -fx-text-fill: red;
     -fx-font-weight: bolder
 }
+.help {
+   -fx-border-color: black;
+   -fx-border-width: 1px;
+   -fx-border-style: dotted
+}
