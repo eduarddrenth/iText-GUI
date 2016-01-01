@@ -4,7 +4,7 @@
 
    <groupId>com.vectorprint</groupId>
    <artifactId>VectorPrintReportGUI</artifactId>
-   <version>1.0-SNAPSHOT</version>
+   <version>1.0</version>
    <packaging>jar</packaging>
 
    <name>VectorPrintReportGUI</name>
@@ -79,32 +79,27 @@
                         </excludes>
                      </artifactSet>
                      <transformers>
-                        <transformer
-                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                            <resource>
                               META-INF/services/com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory
                            </resource>
                         </transformer>
-                        <transformer
-                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                            <resource>
                               META-INF/services/com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory
                            </resource>com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
                         </transformer>
-                        <transformer
-                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                            <resource>
                               META-INF/services/com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
                            </resource>
                         </transformer>
-                        <transformer
-                           implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                            <resource>
                               META-INF/services/com.vectorprint.configuration.binding.settings.SettingsFactoryValidator
                            </resource>
                         </transformer>
-                        <transformer
-                           implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                            <manifestEntries>
                               <Main-Class>${mainClass}</Main-Class>
                               <X-Compile-Source-JDK>${maven.compile.java.version}</X-Compile-Source-JDK>
