@@ -38,7 +38,7 @@
    <scm>
       <url>https://github.com/eduarddrenth/iText-GUI</url>
       <connection>scm:git:git://github.com/eduarddrenth/iText-GUI.git</connection>
-      <developerConnection>scm:git:git//github.com/eduarddrenth/iText-GUI.git</developerConnection>
+      <developerConnection>scm:git:git://github.com/eduarddrenth/iText-GUI.git</developerConnection>
       <tag>VectorPrintReportGUI-1.0</tag>
    </scm>
    <issueManagement>
