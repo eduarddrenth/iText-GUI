@@ -4,7 +4,7 @@
   <groupId>com.vectorprint</groupId>
   <artifactId>VectorPrintReportGUI</artifactId>
   <name>VectorPrintReportGUI</name>
-  <version>1.1</version>
+  <version>1.2-SNAPSHOT</version>
   <description>GUI that supports stylesheet features of Configurable Reports. Basic features are create, modify and save.
       The GUI also supports syntax change of stylesheets, validation of xml for settings and validation of xml for datamapping.</description>
   <url>https://github.com/eduarddrenth/iText-GUI</url>
@@ -36,7 +36,7 @@
   <scm>
     <connection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</connection>
     <developerConnection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</developerConnection>
-    <tag>VectorPrintReportGUI-1.1</tag>
+    <tag>VectorPrintReportGUI-1.0</tag>
     <url>https://github.com/eduarddrenth/iText-GUI</url>
   </scm>
   <organization>
@@ -81,6 +81,16 @@
                   </manifestEntries>
                 </transformer>
               </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
             </configuration>
           </execution>
         </executions>
@@ -183,6 +193,13 @@
       </build>
     </profile>
   </profiles>
+  <repositories>
+    <repository>
+      <id>IDRSolutions</id>
+      <name>IDRSolutions Maven Repository</name>
+      <url>https://github.com/IDRSolutions/maven_OpenViewerFX_repository/raw/master/</url>
+    </repository>
+  </repositories>
   <distributionManagement>
     <repository>
       <id>ossrh</id>

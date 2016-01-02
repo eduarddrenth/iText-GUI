@@ -105,6 +105,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -116,6 +117,7 @@ import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import javax.xml.bind.UnmarshalException;
+import org.jpedal.PdfDecoderFX;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -132,6 +134,7 @@ public class Controller implements Initializable {
    private final Map<String, List<Parameterizable>> conditionConfig = new TreeMap<>();
    private final Map<String, Set<ParameterProps>> defaults = new TreeMap<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
+   private final PdfDecoderFX pdf = new PdfDecoderFX();
 
    /* State of the GUI */
    private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
@@ -173,6 +176,8 @@ public class Controller implements Initializable {
    private CheckBox debug;
    @FXML
    private TextArea stylesheet;
+   @FXML
+   private AnchorPane pdfpane;
    @FXML
    private TextArea help;
    @FXML
@@ -711,6 +716,8 @@ public class Controller implements Initializable {
    public void initialize(URL url, ResourceBundle rb) {
       try {
          initFactories();
+         
+         // make all stylers and conditions available in the dropdown
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
          Collections.sort(sorted, STYLER_COMPARATOR);
          synchronized (duplicatesAllowed) {
@@ -1038,12 +1045,15 @@ public class Controller implements Initializable {
          Help.printHelp(new PrintStream(bo));
          help.setText(bo.toString());
          bo.reset();
+         
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
          datamappingxsd.setText(bo.toString());
-
          bo.reset();
+         
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
+
+         pdfpane.getChildren().add(pdf);
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
