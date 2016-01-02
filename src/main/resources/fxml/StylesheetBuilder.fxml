@@ -112,7 +112,7 @@
             </Tab>
             <Tab text="pdf">
               <content>
-                <AnchorPane fx:id="pdfpane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+                <ScrollPane pannable="true" fx:id="pdfpane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
               </content>
             </Tab>
             <Tab onSelectionChanged="#searchMapping" text="xsd data mapping">
@@ -236,6 +236,7 @@
                         <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
+                  <MenuItem onAction="#showPdf" text="open pdf"/>
                </items>
             </Menu>
          </menus>

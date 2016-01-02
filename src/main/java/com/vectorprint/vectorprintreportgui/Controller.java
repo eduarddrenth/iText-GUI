@@ -91,6 +91,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -177,7 +178,7 @@ public class Controller implements Initializable {
    @FXML
    private TextArea stylesheet;
    @FXML
-   private AnchorPane pdfpane;
+   private ScrollPane pdfpane;
    @FXML
    private TextArea help;
    @FXML
@@ -1053,7 +1054,12 @@ public class Controller implements Initializable {
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
 
-         pdfpane.getChildren().add(pdf);
+         AnchorPane.setTopAnchor(pdf, 0d);
+         AnchorPane.setBottomAnchor(pdf, 0d);
+         AnchorPane.setLeftAnchor(pdf, 0d);
+         AnchorPane.setRightAnchor(pdf, 0d);
+
+         pdfpane.setContent(pdf);
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
@@ -1247,6 +1253,23 @@ public class Controller implements Initializable {
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
             CssTransformer.transform(new FileInputStream(f), bo, cssvalidate.isSelected());
             importStyle(new ParsingProperties(new Settings(), new StringReader(bo.toString())));
+         }
+      } catch (Exception ex) {
+         toError(ex);
+      }
+   }
+
+   @FXML
+   private void showPdf(ActionEvent event) {
+      try {
+         FileChooser fc = new FileChooser();
+         fc.setTitle("open pdf");
+         fc.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("pdf", "pdf", "PDF", "Pdf"));
+         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
+         if (f != null && f.canRead()) {
+            pdf.openPdfFile(f.getPath());
+            pdf.decodePage(1);
+            pdf.waitForDecodingToFinish();
          }
       } catch (Exception ex) {
          toError(ex);
