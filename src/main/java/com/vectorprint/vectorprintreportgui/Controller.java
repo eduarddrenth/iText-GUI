@@ -74,6 +74,7 @@ import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -91,7 +92,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -106,7 +106,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -117,8 +116,10 @@ import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
+import javax.swing.JPanel;
 import javax.xml.bind.UnmarshalException;
-import org.jpedal.PdfDecoderFX;
+import org.icepdf.ri.common.SwingController;
+import org.icepdf.ri.common.SwingViewBuilder;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -135,7 +136,6 @@ public class Controller implements Initializable {
    private final Map<String, List<Parameterizable>> conditionConfig = new TreeMap<>();
    private final Map<String, Set<ParameterProps>> defaults = new TreeMap<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
-   private final PdfDecoderFX pdf = new PdfDecoderFX();
 
    /* State of the GUI */
    private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
@@ -178,7 +178,8 @@ public class Controller implements Initializable {
    @FXML
    private TextArea stylesheet;
    @FXML
-   private ScrollPane pdfpane;
+   private SwingNode pdfpane;
+   private SwingController controller;
    @FXML
    private TextArea help;
    @FXML
@@ -717,7 +718,7 @@ public class Controller implements Initializable {
    public void initialize(URL url, ResourceBundle rb) {
       try {
          initFactories();
-         
+
          // make all stylers and conditions available in the dropdown
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
          Collections.sort(sorted, STYLER_COMPARATOR);
@@ -844,7 +845,7 @@ public class Controller implements Initializable {
                      setGraphic(comboBox);
                   } else if (java.awt.Color.class.equals(valueClass)) {
                      java.awt.Color col = (java.awt.Color) item.getP().getValue();
-                     final ColorPicker cp = col == null ? new ColorPicker() : new ColorPicker(new Color(col.getRed()/255, col.getGreen()/255, col.getBlue()/255, col.getAlpha()/255));
+                     final ColorPicker cp = col == null ? new ColorPicker() : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
                      cp.setOnAction(new EventHandler<ActionEvent>() {
                         @Override
                         public void handle(ActionEvent event) {
@@ -1046,20 +1047,25 @@ public class Controller implements Initializable {
          Help.printHelp(new PrintStream(bo));
          help.setText(bo.toString());
          bo.reset();
-         
+
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
          datamappingxsd.setText(bo.toString());
          bo.reset();
-         
+
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
 
-         AnchorPane.setTopAnchor(pdf, 0d);
-         AnchorPane.setBottomAnchor(pdf, 0d);
-         AnchorPane.setLeftAnchor(pdf, 0d);
-         AnchorPane.setRightAnchor(pdf, 0d);
+         // build a controller
+         controller = new SwingController();
 
-         pdfpane.setContent(pdf);
+         // Build a SwingViewFactory configured with the controller
+         SwingViewBuilder factory = new SwingViewBuilder(controller);
+
+         // Use the factory to build a JPanel that is pre-configured
+         //with a complete, active Viewer UI.
+         JPanel viewerComponentPanel = factory.buildViewerPanel();
+
+         pdfpane.setContent(viewerComponentPanel);
 
       } catch (NoClassDefFoundError ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
@@ -1264,12 +1270,10 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("open pdf");
-         fc.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("pdf", "pdf", "PDF", "Pdf"));
+         fc.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("*.pdf", "*.pdf", "*.PDF", "*.Pdf"));
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            pdf.openPdfFile(f.getPath());
-            pdf.decodePage(1);
-            pdf.waitForDecodingToFinish();
+            controller.openDocument(f.getPath());
          }
       } catch (Exception ex) {
          toError(ex);

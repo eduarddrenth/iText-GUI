@@ -195,9 +195,9 @@
   </profiles>
   <repositories>
     <repository>
-      <id>IDRSolutions</id>
-      <name>IDRSolutions Maven Repository</name>
-      <url>https://github.com/IDRSolutions/maven_OpenViewerFX_repository/raw/master/</url>
+      <id>icepdf</id>
+      <name>icepdf Maven Repository</name>
+      <url>http://anonsvn.icefaces.org/repo/maven2/releases</url>
     </repository>
   </repositories>
   <distributionManagement>

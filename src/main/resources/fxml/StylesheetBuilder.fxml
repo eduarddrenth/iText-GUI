@@ -11,7 +11,7 @@
 <?import javafx.scene.text.*?>
 <?scenebuilder-background-color 0x40404000?>
 
-<AnchorPane id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="864" prefWidth="1152" snapToPixel="false" style="" visible="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="864" prefWidth="1152" snapToPixel="false" style="" visible="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
    <children>
       <TabPane layoutX="0.0" layoutY="0.0" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#dragged" onMousePressed="#dragStart" prefHeight="776.99977792969" prefWidth="1037.9998779296875" rotateGraphic="false" style="-fx-border-width: 5; -fx-border-color: #aaaaaa" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <tabs>
@@ -112,7 +112,9 @@
             </Tab>
             <Tab text="pdf">
               <content>
-                <ScrollPane pannable="true" fx:id="pdfpane" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0"/>
+                <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+                   <javafx.embed.swing.SwingNode AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" fx:id="pdfpane" />
+                </AnchorPane>
               </content>
             </Tab>
             <Tab onSelectionChanged="#searchMapping" text="xsd data mapping">

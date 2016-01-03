@@ -62,9 +62,9 @@
    </organization>
    <repositories>
       <repository>
-         <id>IDRSolutions</id>
-         <name>IDRSolutions Maven Repository</name>
-         <url>https://github.com/IDRSolutions/maven_OpenViewerFX_repository/raw/master/</url>
+         <id>icepdf</id>
+         <name>icepdf Maven Repository</name>
+         <url>http://anonsvn.icefaces.org/repo/maven2/releases</url>
       </repository>
    </repositories>
  
@@ -236,10 +236,14 @@
          <version>8.1</version>
       </dependency>
       <dependency>
-         <groupId>org.jpedal</groupId>
-         <artifactId>OpenViewerFX</artifactId>
-         <version>6.7.25</version>
-         <scope>compile</scope>
+         <groupId>org.icepdf</groupId>
+         <artifactId>icepdf-core</artifactId>
+         <version>5.0.7</version>
+      </dependency>
+      <dependency>
+         <groupId>org.icepdf</groupId>
+         <artifactId>icepdf-viewer</artifactId>
+         <version>5.0.7</version>
       </dependency>
    </dependencies>
    <profiles>

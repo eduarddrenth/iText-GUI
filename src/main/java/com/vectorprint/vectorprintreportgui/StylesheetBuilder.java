@@ -26,8 +26,13 @@ public class StylesheetBuilder extends Application {
    @Override
    public void start(final Stage stage) throws Exception {
       topWindow = stage;
-      Parent root = FXMLLoader.load(getClass().getResource("/fxml/StylesheetBuilder.fxml"));
-
+      Parent root = null;
+      try {
+         root = FXMLLoader.load(getClass().getResource("/fxml/StylesheetBuilder.fxml"));
+      } catch (Exception ex) {
+         ex.printStackTrace();
+         throw ex;
+      }
       Scene scene = new Scene(root);
       scene.getStylesheets().add("/styles/Styles.css");
       stage.setScene(scene);
