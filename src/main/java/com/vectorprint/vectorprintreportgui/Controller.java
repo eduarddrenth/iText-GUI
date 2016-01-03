@@ -1064,7 +1064,11 @@ public class Controller implements Initializable {
          // Use the factory to build a JPanel that is pre-configured
          //with a complete, active Viewer UI.
          JPanel viewerComponentPanel = factory.buildViewerPanel();
-
+         
+         controller.getDocumentViewController().setAnnotationCallback(
+             new org.icepdf.ri.common.MyAnnotationCallback(
+                 controller.getDocumentViewController()));
+         
          pdfpane.setContent(viewerComponentPanel);
 
       } catch (NoClassDefFoundError ex) {
