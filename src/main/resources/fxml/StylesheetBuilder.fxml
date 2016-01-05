@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.embed.swing.*?>
 <?import javafx.scene.*?>
 <?import javafx.scene.web.*?>
 <?import javafx.scene.effect.*?>
@@ -11,7 +12,7 @@
 <?import javafx.scene.text.*?>
 <?scenebuilder-background-color 0x40404000?>
 
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="864" prefWidth="1152" snapToPixel="false" style="" visible="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/8.0.40" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
+<AnchorPane id="AnchorPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="864" prefWidth="1152" snapToPixel="false" style="" visible="true" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.vectorprint.vectorprintreportgui.Controller">
    <children>
       <TabPane layoutX="0.0" layoutY="0.0" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#dragged" onMousePressed="#dragStart" prefHeight="776.99977792969" prefWidth="1037.9998779296875" rotateGraphic="false" style="-fx-border-width: 5; -fx-border-color: #aaaaaa" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <tabs>
@@ -113,7 +114,7 @@
             <Tab text="pdf">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-                   <javafx.embed.swing.SwingNode AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" fx:id="pdfpane" />
+                   <javafx.embed.swing.SwingNode fx:id="pdfpane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
                 </AnchorPane>
               </content>
             </Tab>
@@ -208,7 +209,7 @@
             </Tab>
          </tabs>
       </TabPane>
-      <Label fx:id="search" layoutX="671.0" layoutY="14.0" prefHeight="16.0" prefWidth="188.0" AnchorPane.leftAnchor="671.0" AnchorPane.rightAnchor="178.99990000000253" />
+      <Label fx:id="search" layoutX="671.0" layoutY="14.0" prefHeight="16.0" prefWidth="188.0" AnchorPane.leftAnchor="700.0" AnchorPane.rightAnchor="178.99990000000253" />
       <MenuBar blendMode="SRC_ATOP" layoutX="974.0" layoutY="5.0" useSystemMenuBar="false" AnchorPane.rightAnchor="4.999900000002526">
          <menus>
             <Menu text="File">
@@ -238,7 +239,7 @@
                         <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem onAction="#showPdf" text="open pdf"/>
+                  <MenuItem onAction="#showPdf" text="open pdf" />
                </items>
             </Menu>
          </menus>
