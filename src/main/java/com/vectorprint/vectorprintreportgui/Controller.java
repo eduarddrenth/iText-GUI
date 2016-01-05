@@ -1274,7 +1274,8 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("open pdf");
-         fc.setSelectedExtensionFilter(new FileChooser.ExtensionFilter("*.pdf", "*.PDF", "*.Pdf"));
+         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Pdf files (*.pdf)","*.pdf", "*.PDF", "*.Pdf");
+         fc.getExtensionFilters().add(extensionFilter);
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
             controller.openDocument(f.getPath());
