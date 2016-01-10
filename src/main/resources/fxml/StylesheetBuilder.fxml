@@ -16,11 +16,11 @@
    <children>
       <TabPane layoutX="0.0" layoutY="0.0" minHeight="-Infinity" minWidth="-Infinity" onMouseDragged="#dragged" onMousePressed="#dragStart" prefHeight="776.99977792969" prefWidth="1037.9998779296875" rotateGraphic="false" style="-fx-border-width: 5; -fx-border-color: #aaaaaa" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <tabs>
-            <Tab fx:id="build" closable="false" text="create">
+            <Tab closable="false" text="create">
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
                      <children>
-                        <ComboBox fx:id="stylerCombo" layoutX="389.0" layoutY="92.0" onAction="#chooseStyleOrCondition" prefHeight="26.0" prefWidth="152.0" promptText="styler/condition">
+                        <ComboBox fx:id="parameterizableCombo" layoutX="389.0" layoutY="92.0" onAction="#chooseStyleOrCondition" prefHeight="26.0" prefWidth="152.0" promptText="styler/condition">
                            <items>
                               <FXCollections fx:factory="observableArrayList">
                                  <String fx:value="Item 1" />
@@ -111,7 +111,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab text="pdf">
+            <Tab fx:id="pdftab" text="pdf">
               <content>
                 <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
                    <javafx.embed.swing.SwingNode fx:id="pdfpane" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
@@ -194,7 +194,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab fx:id="errorTab" closable="false" onSelectionChanged="#searchError" text="errors">
+            <Tab closable="false" onSelectionChanged="#searchError" text="errors">
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>

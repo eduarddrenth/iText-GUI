@@ -15,6 +15,7 @@
     <system>hudson</system>
     <url>http://www.vectorprint.nl</url>
   </ciManagement>
+  <inceptionYear>2015</inceptionYear>
   <developers>
     <developer>
       <name>Eduard Drenth</name>
@@ -136,6 +137,17 @@
             </configuration>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>license-maven-plugin</artifactId>
+        <version>1.8</version>
+        <configuration>
+          <licenseName>agpl_v3</licenseName>
+          <includes>
+            <include>**/*java</include>
+          </includes>
+        </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>

@@ -1,8 +1,25 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.vectorprint.vectorprintreportgui;
+
+/*
+ * #%L
+ * VectorPrintReportGUI
+ * %%
+ * Copyright (C) 2015 - 2016 VectorPrint
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -47,6 +64,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
@@ -102,7 +120,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -146,7 +163,7 @@ public class Controller implements Initializable {
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
 
    @FXML
-   private ComboBox<Parameterizable> stylerCombo;
+   private ComboBox<Parameterizable> parameterizableCombo;
    @FXML
    private ComboBox<String> stylerKeys;
    @FXML
@@ -178,26 +195,18 @@ public class Controller implements Initializable {
    @FXML
    private TextArea stylesheet;
    @FXML
+   private Tab pdftab;
+   @FXML
    private SwingNode pdfpane;
    private SwingController controller;
    @FXML
    private TextArea help;
-   @FXML
-   private Button parHelp;
    @FXML
    private TextArea error;
    @FXML
    private Label stylerHelp;
    @FXML
    private Tab styleTab;
-   @FXML
-   private Tab build;
-   @FXML
-   private Tab errorTab;
-   @FXML
-   private Tab viewTab;
-   @FXML
-   private ImageView image;
    @FXML
    private Tab helpTab;
    @FXML
@@ -291,17 +300,17 @@ public class Controller implements Initializable {
 
    @FXML
    private void chooseStyleOrCondition(ActionEvent event) {
-      if (null == stylerCombo.getValue()) {
-         stylerCombo.requestFocus();
+      if (null == parameterizableCombo.getValue()) {
+         parameterizableCombo.requestFocus();
          return;
       }
-      currentParameterizable = (stylerCombo.getValue() instanceof DocumentStyler) ? stylerCombo.getValue() : stylerCombo.getValue().clone();
+      currentParameterizable = (parameterizableCombo.getValue() instanceof DocumentStyler) ? parameterizableCombo.getValue() : parameterizableCombo.getValue().clone();
       if (currentParameterizable instanceof DocumentSettings) {
          chooseOrAdd(ReportConstants.DOCUMENTSETTINGS);
       }
       parameters.clear();
       try {
-         Parameterizable _st = stylerCombo.getValue();
+         Parameterizable _st = parameterizableCombo.getValue();
          stylerHelp.setText((_st instanceof BaseStyler) ? ((BaseStyler) _st).getHelp() : "condition to determine when to style or not");
          _st.getParameters().values().stream().forEach((p) -> {
             parameters.add(new ParameterProps(p));
@@ -391,7 +400,7 @@ public class Controller implements Initializable {
       }
    }
 
-   private static class StylerComparator implements Comparator<Parameterizable> {
+   private static class ParameterizableComparator implements Comparator<Parameterizable> {
 
       @Override
       public int compare(Parameterizable o1, Parameterizable o2) {
@@ -404,7 +413,7 @@ public class Controller implements Initializable {
          }
       }
    }
-   private static final StylerComparator STYLER_COMPARATOR = new StylerComparator();
+   private static final ParameterizableComparator PARAMETERIZABLE_COMPARATOR = new ParameterizableComparator();
 
    private boolean add(Parameterizable p) throws IOException {
       if ("".equals(stylerKeys.getValue())) {
@@ -441,7 +450,7 @@ public class Controller implements Initializable {
                String cnd = p.getValue(AbstractStyler.CONDITONS, String.class);
                if (null != cnd && !conditionConfig.containsKey(cnd)) {
                   chooseOrAdd(p.getValue(AbstractStyler.CONDITONS, String.class));
-                  stylerCombo.getSelectionModel().clearSelection();
+                  parameterizableCombo.getSelectionModel().clearSelection();
                   notify("add " + p.getValue(AbstractStyler.CONDITONS, String.class), "warning", String.format("condition %s is missing", p.getValue(AbstractStyler.CONDITONS, String.class)));
                }
             }
@@ -475,7 +484,7 @@ public class Controller implements Initializable {
    }
    private final Button b = new Button("add condition");
    private final Label l = new Label("detail message");
-   private Stage st = new Stage(StageStyle.UTILITY);
+   private final Stage st = new Stage(StageStyle.UTILITY);
 
    {
       st.initOwner(StylesheetBuilder.topWindow);
@@ -515,9 +524,9 @@ public class Controller implements Initializable {
    }
 
    private void selectInCombo(Parameterizable par) {
-      for (int j = 0; j < stylerCombo.getItems().size(); j++) {
-         if (stylerCombo.getItems().get(j).getClass().equals(par.getClass())) {
-            stylerCombo.getSelectionModel().select(j);
+      for (int j = 0; j < parameterizableCombo.getItems().size(); j++) {
+         if (parameterizableCombo.getItems().get(j).getClass().equals(par.getClass())) {
+            parameterizableCombo.getSelectionModel().select(j);
             break;
          }
       }
@@ -680,8 +689,8 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStylerHelp(Event event) {
-      stylerHelp.setText(help(stylerCombo.getValue()));
-      stylerHelp.setTooltip(tip(help(stylerCombo.getValue())));
+      stylerHelp.setText(help(parameterizableCombo.getValue()));
+      stylerHelp.setTooltip(tip(help(parameterizableCombo.getValue())));
    }
 
    private String help(Parameterizable p) {
@@ -696,8 +705,8 @@ public class Controller implements Initializable {
       double x, y;
    }
 
-   final Delta dragDelta = new Delta();
-   final Stage parent = StylesheetBuilder.topWindow;
+   private final Delta dragDelta = new Delta();
+   private final Stage parent = StylesheetBuilder.topWindow;
 
    public void dragStart(MouseEvent mouseEvent) {
       // record a delta distance for the drag and drop operation.
@@ -721,7 +730,7 @@ public class Controller implements Initializable {
 
          // make all stylers and conditions available in the dropdown
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
-         Collections.sort(sorted, STYLER_COMPARATOR);
+         Collections.sort(sorted, PARAMETERIZABLE_COMPARATOR);
          synchronized (duplicatesAllowed) {
             if (duplicatesAllowed.isEmpty()) {
                duplicatesAllowed.add(Padding.class);
@@ -734,7 +743,7 @@ public class Controller implements Initializable {
                }
             }
          }
-         stylerCombo.setCellFactory((ListView<Parameterizable> p) -> {
+         parameterizableCombo.setCellFactory((ListView<Parameterizable> p) -> {
             return new ListCell<Parameterizable>() {
                @Override
                protected void updateItem(Parameterizable t, boolean bln) {
@@ -744,7 +753,7 @@ public class Controller implements Initializable {
                }
             };
          });
-         stylerCombo.setConverter(new StringConverter<Parameterizable>() {
+         parameterizableCombo.setConverter(new StringConverter<Parameterizable>() {
             private Parameterizable p = null;
 
             @Override
@@ -758,7 +767,7 @@ public class Controller implements Initializable {
                return p;
             }
          });
-         stylerCombo.setItems(FXCollections.observableArrayList(sorted));
+         parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
 
          stylerKeys.setPromptText("required!");
          parameterTable.setItems(parameters);
@@ -799,7 +808,7 @@ public class Controller implements Initializable {
                }
                setTooltip(tip(item + " (click for help)"));
                setOnMouseClicked((MouseEvent event) -> {
-                  Parameterizable p = stylerCombo.getValue();
+                  Parameterizable p = parameterizableCombo.getValue();
                   searchArea(help, p.getClass().getSimpleName() + ": ", false);
                   searchArea(help, "key=" + item, false);
                   helpTab.getTabPane().getSelectionModel().select(helpTab);
@@ -1278,11 +1287,16 @@ public class Controller implements Initializable {
          fc.getExtensionFilters().add(extensionFilter);
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            controller.openDocument(f.getPath());
+            openPdf(new FileInputStream(f), f.getPath());
          }
       } catch (Exception ex) {
          toError(ex);
       }
+   }
+   
+   void openPdf(InputStream in, String description) {
+         controller.openDocument(in, description,null);
+         pdftab.getTabPane().getSelectionModel().select(pdftab);
    }
 
    private boolean isCondition(String key, EnhancedMap settings) {
@@ -1360,7 +1374,7 @@ public class Controller implements Initializable {
    }
 
    private Parameterizable findDocStyler() {
-      List<Parameterizable> its = stylerCombo.getItems();
+      List<Parameterizable> its = parameterizableCombo.getItems();
       for (Parameterizable p : its) {
          if (p instanceof DocumentStyler) {
             return p;
@@ -1373,10 +1387,10 @@ public class Controller implements Initializable {
    private void toggleToc(ActionEvent event) {
       Parameterizable ds = findDocStyler();
       ds.setValue(DocumentSettings.TOC, toc.isSelected());
-      if (ds.equals(stylerCombo.getValue())) {
+      if (ds.equals(parameterizableCombo.getValue())) {
          chooseStyleOrCondition(event);
       } else {
-         stylerCombo.getSelectionModel().select(ds);
+         parameterizableCombo.getSelectionModel().select(ds);
       }
    }
 
@@ -1396,10 +1410,10 @@ public class Controller implements Initializable {
    private void togglePdf1a(ActionEvent event) {
       Parameterizable ds = findDocStyler();
       ds.setValue(DocumentSettings.PDFA, pdf1a.isSelected());
-      if (ds.equals(stylerCombo.getValue())) {
+      if (ds.equals(parameterizableCombo.getValue())) {
          chooseStyleOrCondition(event);
       } else {
-         stylerCombo.getSelectionModel().select(ds);
+         parameterizableCombo.getSelectionModel().select(ds);
       }
    }
 
@@ -1501,12 +1515,12 @@ public class Controller implements Initializable {
             return;
          }
       }
-      if (stylerCombo.getValue() != null) {
-         searchArea(help, stylerCombo.getValue().getClass().getSimpleName() + ": ", false);
+      if (parameterizableCombo.getValue() != null) {
+         searchArea(help, parameterizableCombo.getValue().getClass().getSimpleName() + ": ", false);
          helpTab.getTabPane().getSelectionModel().select(helpTab);
          help.requestFocus();
       } else {
-         stylerCombo.requestFocus();
+         parameterizableCombo.requestFocus();
       }
    }
 
