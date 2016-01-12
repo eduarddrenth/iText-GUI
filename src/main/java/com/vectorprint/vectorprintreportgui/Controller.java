@@ -906,6 +906,8 @@ public class Controller implements Initializable {
                   configString.appendText(currentParameterizable.getClass().getSimpleName());
                   configString.appendText(".");
                   configString.appendText(t.getKey());
+                  configString.appendText(".");
+                  configString.appendText(ParameterHelper.SUFFIX.set_default.name());
                   configString.appendText("=");
                   configString.appendText(t.getValue());
                });
