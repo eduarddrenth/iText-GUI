@@ -1129,6 +1129,15 @@ public class Controller implements Initializable {
    }
 
    @FXML
+   private void testStylesheet(ActionEvent event) {
+      try {
+         StylesheetTester stylesheetTester = new StylesheetTester(this);
+         stylesheetTester.testStyleSheet(stylesheet.getText());
+      } catch (Exception ex) {
+         toError(ex);
+      }
+   }
+   @FXML
    private void changeSyntax(ActionEvent event) {
       SpecificClassValidator.setClazz(settingsfactory.getValue());
       com.vectorprint.configuration.binding.parameters.SpecificClassValidator.setClazz(paramfactory.getValue());
