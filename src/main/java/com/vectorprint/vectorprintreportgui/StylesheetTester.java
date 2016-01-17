@@ -1,21 +1,21 @@
 package com.vectorprint.vectorprintreportgui;
 
+import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.configuration.Settings;
+import com.vectorprint.configuration.annotation.Setting;
 import com.vectorprint.configuration.decoration.CachingProperties;
 import com.vectorprint.report.ReportConstants;
-import com.vectorprint.report.data.ReportDataHolder;
 import com.vectorprint.report.data.ReportDataHolderImpl;
 import com.vectorprint.report.itext.BaseReportGenerator;
 import com.vectorprint.report.itext.DefaultElementProducer;
 import com.vectorprint.report.itext.EventHelper;
-import com.vectorprint.report.itext.jaxb.Datamappingstype;
 import com.vectorprint.report.running.ReportRunner;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.Deque;
 
 /*
  * #%L
@@ -69,24 +69,24 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl>{
       }).start();
       
       CachingProperties cachingProperties = new CachingProperties(new Settings());
-      cachingProperties.put(ReportConstants.DATACLASS, StylesheetDataCollector.class.getName());
       cachingProperties.put(ReportConstants.REPORTCLASS, getClass().getName());
       cachingProperties.put("stylesheet", stylesheet);
       new ReportRunner(cachingProperties).buildReport(null, out);
 
    }
+   
+   @Setting(keys = "stylesheet")
+   private String stylesheet;
 
    @Override
-   protected void processDataObject(ReportDataHolder.IdData dw, Deque containers, Datamappingstype dmt) throws VectorPrintException, DocumentException {
+   protected void createReportBody(Document document, ReportDataHolderImpl data, PdfWriter writer) throws DocumentException, VectorPrintException {
       try {
-         createAndAddElement(dw.getData(), Paragraph.class, null);
+         createAndAddElement(stylesheet, Paragraph.class, null);
       } catch (InstantiationException ex) {
          throw new VectorPrintException(ex);
       } catch (IllegalAccessException ex) {
          throw new VectorPrintException(ex);
       }
-   }
-   
-   
+   }   
 
 }
