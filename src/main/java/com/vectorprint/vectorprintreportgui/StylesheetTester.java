@@ -14,9 +14,8 @@ import com.vectorprint.report.itext.BaseReportGenerator;
 import com.vectorprint.report.itext.DefaultElementProducer;
 import com.vectorprint.report.itext.EventHelper;
 import com.vectorprint.report.running.ReportRunner;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import javafx.application.Platform;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 /*
  * #%L
@@ -59,21 +58,12 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
 
    public void testStyleSheet(String stylesheet) throws Exception {
 
-      PipedInputStream in = new PipedInputStream();
-      PipedOutputStream out = new PipedOutputStream(in);
-
-      Platform.runLater(new Runnable() {
-         @Override
-         public void run() {
-            controller.openPdf(in, "test for stylesheet");
-         }
-      });
-
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
       CachingProperties cachingProperties = new CachingProperties(new Settings());
       cachingProperties.put(ReportConstants.REPORTCLASS, getClass().getName());
       cachingProperties.put("stylesheet", stylesheet);
       new ReportRunner(cachingProperties).buildReport(null, out);
-
+      controller.openPdf(new ByteArrayInputStream(out.toByteArray()), "test stylesheet in pdf");
    }
 
    @Setting(keys = "stylesheet")
