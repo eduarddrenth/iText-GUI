@@ -16,6 +16,7 @@ import com.vectorprint.report.itext.EventHelper;
 import com.vectorprint.report.running.ReportRunner;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
+import javafx.application.Platform;
 
 /*
  * #%L
@@ -42,7 +43,7 @@ import java.io.PipedOutputStream;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl>{
+public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> {
 
    private final Controller controller;
 
@@ -61,20 +62,20 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl>{
       PipedInputStream in = new PipedInputStream();
       PipedOutputStream out = new PipedOutputStream(in);
 
-      new Thread(new Runnable() {
+      Platform.runLater(new Runnable() {
          @Override
          public void run() {
             controller.openPdf(in, "test for stylesheet");
          }
-      }).start();
-      
+      });
+
       CachingProperties cachingProperties = new CachingProperties(new Settings());
       cachingProperties.put(ReportConstants.REPORTCLASS, getClass().getName());
       cachingProperties.put("stylesheet", stylesheet);
       new ReportRunner(cachingProperties).buildReport(null, out);
 
    }
-   
+
    @Setting(keys = "stylesheet")
    private String stylesheet;
 
@@ -87,6 +88,6 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl>{
       } catch (IllegalAccessException ex) {
          throw new VectorPrintException(ex);
       }
-   }   
+   }
 
 }
