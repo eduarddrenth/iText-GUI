@@ -1209,7 +1209,6 @@ public class Controller implements Initializable {
       sf.setDocument(d, w);
 
       for (Map.Entry<String, String[]> e : settings.entrySet()) {
-         String[] v = e.getValue();
          commentsBefore.put(e.getKey(), settings.getCommentBeforeKey(e.getKey()));
          if (ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
@@ -1310,8 +1309,15 @@ public class Controller implements Initializable {
          pdftab.getTabPane().getSelectionModel().select(pdftab);
    }
 
-   private boolean isCondition(String key, EnhancedMap settings) {
-      String[] classes = settings.getStringProperties(null, key);
+   static boolean isCondition(String key, EnhancedMap settings) {
+      String[] classes = null;
+      try {
+         classes = settings.getStringProperties(null, key);
+      } catch (VectorPrintRuntimeException e) {
+         if (!e.getMessage().contains("this does not match requested class")) {
+            throw e;
+         }
+      }
       if (classes == null) {
          return false;
       }
@@ -1325,8 +1331,15 @@ public class Controller implements Initializable {
       return true;
    }
 
-   private boolean isStyler(String key, EnhancedMap settings) {
-      String[] classes = settings.getStringProperties(null, key);
+   static boolean isStyler(String key, EnhancedMap settings) {
+      String[] classes = null;
+      try {
+         classes = settings.getStringProperties(null, key);
+      } catch (VectorPrintRuntimeException e) {
+         if (!e.getMessage().contains("this does not match requested class")) {
+            throw e;
+         }
+      }
       if (classes == null) {
          return false;
       }

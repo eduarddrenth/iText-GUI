@@ -2,20 +2,28 @@ package com.vectorprint.vectorprintreportgui;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.vectorprint.VectorPrintException;
+import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.Settings;
-import com.vectorprint.configuration.annotation.Setting;
 import com.vectorprint.configuration.decoration.CachingProperties;
+import com.vectorprint.configuration.decoration.ParsingProperties;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.data.ReportDataHolderImpl;
 import com.vectorprint.report.itext.BaseReportGenerator;
 import com.vectorprint.report.itext.DefaultElementProducer;
 import com.vectorprint.report.itext.EventHelper;
+import com.vectorprint.report.itext.style.BaseStyler;
+import com.vectorprint.report.itext.style.DefaultStylerFactory;
 import com.vectorprint.report.running.ReportRunner;
+import static com.vectorprint.vectorprintreportgui.Controller.isStyler;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.StringReader;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /*
  * #%L
@@ -58,25 +66,32 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
 
    public void testStyleSheet(String stylesheet) throws Exception {
 
+      EnhancedMap settings = new CachingProperties(new ParsingProperties(new Settings(), new StringReader(stylesheet)));
+      settings.put(ReportConstants.REPORTCLASS, getClass().getName());
+      settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, "false");
       ByteArrayOutputStream out = new ByteArrayOutputStream();
-      CachingProperties cachingProperties = new CachingProperties(new Settings());
-      cachingProperties.put(ReportConstants.REPORTCLASS, getClass().getName());
-      cachingProperties.put("stylesheet", stylesheet);
-      new ReportRunner(cachingProperties).buildReport(null, out);
+      new ReportRunner(settings).buildReport(null, out);
       controller.openPdf(new ByteArrayInputStream(out.toByteArray()), "test stylesheet in pdf");
    }
 
-   @Setting(keys = "stylesheet")
-   private String stylesheet;
-
    @Override
    protected void createReportBody(Document document, ReportDataHolderImpl data, PdfWriter writer) throws DocumentException, VectorPrintException {
-      try {
-         createAndAddElement(stylesheet, Paragraph.class, null);
-      } catch (InstantiationException ex) {
-         throw new VectorPrintException(ex);
-      } catch (IllegalAccessException ex) {
-         throw new VectorPrintException(ex);
+      for (Map.Entry<String, String[]> e : getSettings().entrySet()) {
+         String[] v = e.getValue();
+         if (isStyler(e.getKey(), getSettings())) {
+            List<BaseStyler> stylers = getStylers(e.getKey());
+            if (!stylers.get(0).creates()) {
+               try {
+                  // assume styling text
+                  createAndAddElement(Arrays.toString(v), Phrase.class, e.getKey());
+                  newLine(5);
+               } catch (InstantiationException ex) {
+                  throw new VectorPrintException(ex);
+               } catch (IllegalAccessException ex) {
+                  throw new VectorPrintException(ex);
+               }
+            }
+         }
       }
    }
 
