@@ -2,7 +2,7 @@ package com.vectorprint.vectorprintreportgui;
 
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Phrase;
+import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.configuration.EnhancedMap;
@@ -86,7 +86,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
             if (!stylers.get(0).creates()) {
                try {
                   // assume styling text
-                  createAndAddElement(Arrays.toString(v), Phrase.class, e.getKey());
+                  createAndAddElement(Arrays.toString(v), Paragraph.class, e.getKey());
                   newLine(5);
                } catch (InstantiationException ex) {
                   throw new VectorPrintException(ex);

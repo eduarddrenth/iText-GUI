@@ -627,7 +627,7 @@ public class Controller implements Initializable {
             printComment(def.getKey() + "." + pp.getKey(), eh);
             return pp;
          }).forEach((pp) -> {
-            eh.put(def.getKey() + "." + pp.getKey(), pp.getValue());
+            eh.put(def.getKey() + "." + pp.getKey()+ParameterHelper.SUFFIX.set_default.name(), pp.getValue());
          });
       });
 
