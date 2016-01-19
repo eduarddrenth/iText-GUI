@@ -20,7 +20,6 @@ package com.vectorprint.vectorprintreportgui;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -627,7 +626,7 @@ public class Controller implements Initializable {
             printComment(def.getKey() + "." + pp.getKey(), eh);
             return pp;
          }).forEach((pp) -> {
-            eh.put(def.getKey() + "." + pp.getKey()+ParameterHelper.SUFFIX.set_default.name(), pp.getValue());
+            eh.put(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), pp.getValue());
          });
       });
 
@@ -885,31 +884,34 @@ public class Controller implements Initializable {
          });
          pDefault.setCellFactory((TableColumn<ParameterProps, ParameterProps> p) -> new TableCell<ParameterProps, ParameterProps>() {
             @Override
-            protected void updateItem(final ParameterProps t, boolean bln) {
-               super.updateItem(t, bln);
+            protected void updateItem(final ParameterProps pp, boolean bln) {
+               super.updateItem(pp, bln);
                setGraphic(null);
-               if (t == null) {
+               if (pp == null) {
                   return;
                }
-               Button b = new Button("D");
-               b.setTooltip(tip(String.format("use value as default for %s in %s", t.getKey(), currentParameterizable.getClass().getSimpleName())));
-               setGraphic(b);
-               b.setOnAction((ActionEvent e) -> {
-                  if (!defaults.containsKey(currentParameterizable.getClass().getSimpleName())) {
-                     defaults.put(currentParameterizable.getClass().getSimpleName(), new TreeSet<ParameterProps>());
+               CheckBox checkbox = new CheckBox();
+               if (!defaults.containsKey(currentParameterizable.getClass().getSimpleName())) {
+                  defaults.put(currentParameterizable.getClass().getSimpleName(), new TreeSet<ParameterProps>());
+               }
+               checkbox.setSelected(defaults.get(currentParameterizable.getClass().getSimpleName()).contains(pp));
+               checkbox.setTooltip(tip(String.format("use value as default for %s in %s", pp.getKey(), currentParameterizable.getClass().getSimpleName())));
+               setGraphic(checkbox);
+               checkbox.setOnAction((ActionEvent e) -> {
+                  defaults.get(currentParameterizable.getClass().getSimpleName()).remove(pp);
+                  if (checkbox.isSelected()) {
+                     defaults.get(currentParameterizable.getClass().getSimpleName()).add(pp);
+                     configString.clear();
+                     configString.appendText(currentParameterizable.getClass().getSimpleName());
+                     configString.appendText(".");
+                     configString.appendText(pp.getKey());
+                     configString.appendText(".");
+                     configString.appendText(ParameterHelper.SUFFIX.set_default.name());
+                     configString.appendText("=");
+                     configString.appendText(pp.getValue());
+                  } else {
+                     configString.clear();
                   }
-                  if (defaults.get(currentParameterizable.getClass().getSimpleName()).contains(t)) {
-                     defaults.get(currentParameterizable.getClass().getSimpleName()).remove(t);
-                  }
-                  defaults.get(currentParameterizable.getClass().getSimpleName()).add(t);
-                  configString.clear();
-                  configString.appendText(currentParameterizable.getClass().getSimpleName());
-                  configString.appendText(".");
-                  configString.appendText(t.getKey());
-                  configString.appendText(".");
-                  configString.appendText(ParameterHelper.SUFFIX.set_default.name());
-                  configString.appendText("=");
-                  configString.appendText(t.getValue());
                });
             }
          });
@@ -1075,11 +1077,11 @@ public class Controller implements Initializable {
          // Use the factory to build a JPanel that is pre-configured
          //with a complete, active Viewer UI.
          JPanel viewerComponentPanel = factory.buildViewerPanel();
-         
+
          controller.getDocumentViewController().setAnnotationCallback(
              new org.icepdf.ri.common.MyAnnotationCallback(
                  controller.getDocumentViewController()));
-         
+
          pdfpane.setContent(viewerComponentPanel);
 
       } catch (NoClassDefFoundError ex) {
@@ -1137,6 +1139,7 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
+
    @FXML
    private void changeSyntax(ActionEvent event) {
       SpecificClassValidator.setClazz(settingsfactory.getValue());
@@ -1293,7 +1296,7 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("open pdf");
-         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Pdf files (*.pdf)","*.pdf", "*.PDF", "*.Pdf");
+         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Pdf files (*.pdf)", "*.pdf", "*.PDF", "*.Pdf");
          fc.getExtensionFilters().add(extensionFilter);
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
@@ -1303,10 +1306,10 @@ public class Controller implements Initializable {
          toError(ex);
       }
    }
-   
+
    void openPdf(InputStream in, String description) {
-         controller.openDocument(in, description,null);
-         pdftab.getTabPane().getSelectionModel().select(pdftab);
+      controller.openDocument(in, description, null);
+      pdftab.getTabPane().getSelectionModel().select(pdftab);
    }
 
    static boolean isCondition(String key, EnhancedMap settings) {
@@ -1386,7 +1389,7 @@ public class Controller implements Initializable {
                   defaults.put(pz.getClass().getSimpleName(), new TreeSet<>());
                }
                defaults.get(pz.getClass().getSimpleName()).add(new ParameterProps(p));
-               processed.add(pz.getClass().getSimpleName() + "." + p.getKey() + ParameterHelper.SUFFIX.set_default);
+               processed.add(pz.getClass().getSimpleName() + "." + p.getKey() + '.' + ParameterHelper.SUFFIX.set_default);
             }
          });
       });
