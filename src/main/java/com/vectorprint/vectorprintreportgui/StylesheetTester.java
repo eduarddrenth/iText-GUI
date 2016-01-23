@@ -236,7 +236,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
       for (BaseStyler styler : stylers) {
          sb.append(styler.getClass().getSimpleName()).append(", ");
       }
-      return sb.length() > 0 ? sb.substring(0, sb.length() - 1).toString() : "";
+      return sb.length() > 0 ? sb.substring(0, sb.length() - 2).toString() : "";
    }
 
 }
