@@ -9,6 +9,7 @@ import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Section;
 import com.itextpdf.text.TextElementArray;
+import com.itextpdf.text.pdf.ColumnText;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -95,9 +96,9 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
       document.add(new Paragraph("In this pdf you can see the effect of the stylesheet you built. If you want to see debugging info in this pdf, just put"
           + "\"debug=true\" in the stylesheet."));
       newLine(3);
-      
+
       for (Map.Entry<String, String[]> e : getSettings().entrySet()) {
-         if (DefaultStylerFactory.PRESTYLERS.equals(e.getKey()) || DefaultStylerFactory.POSTSTYLERS.equals(e.getKey())|| ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
+         if (DefaultStylerFactory.PRESTYLERS.equals(e.getKey()) || DefaultStylerFactory.POSTSTYLERS.equals(e.getKey()) || ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             continue;
          }
          String[] v = e.getValue();
@@ -106,13 +107,24 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
             BaseStyler first = stylers.get(0);
             try {
                if (!first.creates()) {
-                  document.add(new Paragraph(String.format("Effect of %s on %s:", Arrays.toString(v),first.getSupportedClasses())));
+                  document.add(new Paragraph(String.format("Trying to show the effect of %s on %s:", Arrays.toString(v), first.getSupportedClasses())));
                   newLine(1);
-                  
+
                   for (Class<? extends Element> clazz : first.getSupportedClasses()) {
                      if (!Modifier.isAbstract(clazz.getModifiers())) {
                         if (Rectangle.class.equals(clazz)) {
-                           document.add(getStyleHelper().style(new Rectangle(ItextHelper.mmToPts(30), ItextHelper.mmToPts(30)), null, stylers));
+                           Rectangle rectangle = new Rectangle(ItextHelper.mmToPts(30), ItextHelper.mmToPts(30));
+                           List<BaseStyler> filter = filter(stylers, rectangle, null);
+                           if (!filter.isEmpty()) {
+                              document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), Rectangle.class.getSimpleName())));
+                              newLine(1);
+
+                              document.add(getStyleHelper().style(rectangle, null, stylers));
+
+                              document.add(new Paragraph(String.format("End effect of %s on %s:", print(filter), Rectangle.class.getSimpleName())));
+                              newLine(1);
+
+                           }
                         } else if (first instanceof ImageAlign) {
                            BufferedImage read = ImageIO.read(getClass().getResourceAsStream("/testingrecources/pointer.png"));
                            Image img = com.itextpdf.text.Image.getInstance(read, null);
@@ -120,33 +132,85 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                            PdfPCell cell = new PdfPCell();
                            cell.addElement(img);
                            pt.addCell(getStyleHelper().style(cell, img, stylers));
+
+                           List<BaseStyler> filter = filter(stylers, PdfPCell.class, img);
+
+                           document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), PdfPCell.class.getSimpleName())));
+                           newLine(1);
+
                            document.add(pt);
+
+                           document.add(new Paragraph(String.format("End effect of %s on %s:", print(filter), PdfPCell.class.getSimpleName())));
+                           newLine(1);
                         } else if (Section.class.isAssignableFrom(clazz)) {
-                           document.add(getIndex("style example of " + clazz.getSimpleName() + ": " + Arrays.toString(v), 1, stylers));
+                           List<BaseStyler> filter = filter(stylers, Section.class, "example styling of " + clazz.getSimpleName());
+
+                           if (!filter.isEmpty()) {
+                              document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), Section.class.getSimpleName())));
+                              newLine(1);
+
+                              document.add(getIndex("example styling of " + clazz.getSimpleName(), 1, stylers));
+
+                              document.add(new Paragraph(String.format("End effect of %s on %s:", print(filter), Section.class.getSimpleName())));
+                              newLine(1);
+                           }
                         } else {
-                           Element createAndAddElement = createAndAddElement("style example of " + clazz.getSimpleName() + ": " + Arrays.toString(v), stylers, clazz);
+                           Element created = createElement("example styling of " + clazz.getSimpleName(), clazz, stylers);
+                           List<BaseStyler> filter = filter(stylers, created, "example styling of " + clazz.getSimpleName());
+                           if (!filter.isEmpty()) {
+                              document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), created.getClass().getSimpleName())));
+                              newLine(1);
+
+                              document.add(created);
+
+                              document.add(new Paragraph(String.format("End effect of %s on %s:", print(filter), created.getClass().getSimpleName())));
+                              newLine(1);
+                           }
                         }
-                        newLine(5);
                      } else if (clazz.equals(TextElementArray.class)) {
-                        createAndAddElement("style example of " + Paragraph.class.getSimpleName() + ": " + Arrays.toString(v), stylers, Paragraph.class);
-                        newLine(5);
+                        Element created = createElement("example styling of " + Paragraph.class.getSimpleName(), Paragraph.class, stylers);
+                        List<BaseStyler> filter = filter(stylers, created, "example styling of " + Paragraph.class.getSimpleName());
+                        if (!filter.isEmpty()) {
+                           document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), created.getClass().getSimpleName())));
+                           newLine(1);
+
+                           document.add(created);
+
+                           document.add(new Paragraph(String.format("End effect of %s on %s:", print(filter), created.getClass().getSimpleName())));
+                           newLine(1);
+                        }
                      }
                   }
                } else if (first instanceof Table) {
+                  document.add(new Paragraph(String.format("Trying to show the effect of %s on %s:", Arrays.toString(v), first.getSupportedClasses())));
+                  newLine(1);
                   PdfPTable table = createElement(null, PdfPTable.class, stylers);
+                  List<BaseStyler> filter = filter(stylers, table, "example styling of " + PdfPTable.class.getSimpleName());
                   Table t = (Table) first;
                   int cells = t.getColumns() * 25;
                   for (int i = 0; i < cells; i++) {
                      table.addCell("cell" + i);
                   }
+                  document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), PdfPTable.class.getSimpleName())));
+                  newLine(1);
                   document.add(table);
+                  document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), PdfPTable.class.getSimpleName())));
+                  newLine(1);
                } else if (first instanceof SimpleColumns) {
+                  document.add(new Paragraph(String.format("Trying to show the effect of %s on %s:", Arrays.toString(v), ColumnText.class)));
+                  newLine(1);
                   SimpleColumns cols = createColumns(stylers);
+                  ColumnText ct = new ColumnText(writer.getDirectContent());
+                  List<BaseStyler> filter = filter(stylers, ct, "example styling of " + ColumnText.class.getSimpleName());
                   int texts = cols.getNumColumns() * 100;
                   for (int i = 0; i < texts; i++) {
                      cols.addContent(new Chunk("text" + i), null);
                   }
+                  document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), ColumnText.class.getSimpleName())));
+                  newLine(1);
                   cols.write();
+                  document.add(new Paragraph(String.format("Showing effect of %s on %s:", print(filter), ColumnText.class.getSimpleName())));
+                  newLine(1);
                }
             } catch (IOException ex) {
                throw new VectorPrintException(ex);
@@ -158,13 +222,21 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
          }
       }
    }
-   
+
    private static List<BaseStyler> filter(List<BaseStyler> stylers, Object element, Object data) {
       List<BaseStyler> l = new ArrayList<>(stylers.size());
-      stylers.stream().filter((bs) -> (bs.canStyle(element)&&bs.shouldStyle(data, element))).forEach((bs) -> {
+      stylers.stream().filter((bs) -> (bs.canStyle(element) && bs.shouldStyle(data, element))).forEach((bs) -> {
          l.add(bs);
       });
       return l;
+   }
+
+   private static String print(List<BaseStyler> stylers) {
+      StringBuilder sb = new StringBuilder(stylers.size() * 20);
+      for (BaseStyler styler : stylers) {
+         sb.append(styler.getClass().getSimpleName()).append(", ");
+      }
+      return sb.length() > 0 ? sb.substring(0, sb.length() - 1).toString() : "";
    }
 
 }
