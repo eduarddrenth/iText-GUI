@@ -25,6 +25,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.steadystate.css.parser.SACParser;
 import com.vectorprint.ArrayHelper;
+import com.vectorprint.ClassHelper;
 import com.vectorprint.IOHelper;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
@@ -68,8 +69,10 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -722,6 +725,42 @@ public class Controller implements Initializable {
       return p instanceof BaseStyler ? (((BaseStyler) p).creates() ? "creates iText element " : "") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
    }
 
+   @FXML
+   private void addFromClassPath() {
+      try {
+         FileChooser fc = new FileChooser();
+         fc.setTitle("add jar");
+         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Jar files (*.jar)", "*.jar", "*.JAR", "*.Jar");
+         fc.getExtensionFilters().add(extensionFilter);
+         List<File> l = fc.showOpenMultipleDialog(StylesheetBuilder.topWindow);
+         if (l != null) {
+            URL[] u = new URL[l.size()];
+            int i = -1;
+            for (File f : l) {
+               u[++i] = f.toURI().toURL();
+            }
+            URLClassLoader urlClassLoader = new URLClassLoader(u, Thread.currentThread().getContextClassLoader());
+            Thread.currentThread().setContextClassLoader(urlClassLoader);
+            List<Parameterizable> sorted = new ArrayList<>();
+            for (Class<?> c : ClassHelper.fromPackage(AbstractStyler.class.getPackage(), urlClassLoader)) {
+               if (AbstractStyler.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                  sorted.add((Parameterizable) c.newInstance());
+               }
+            }
+            for (Class<?> c : ClassHelper.fromPackage(AbstractCondition.class.getPackage(), urlClassLoader)) {
+               if (AbstractCondition.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
+                  sorted.add((Parameterizable) c.newInstance());
+               }
+            }
+            Collections.sort(sorted, PARAMETERIZABLE_COMPARATOR);
+            parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
+
+         }
+      } catch (Exception exception) {
+         toError(exception);
+      }
+   }
+
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       try {
@@ -1279,6 +1318,8 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("import css");
+         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Css files (*.css)", "*.css", "*.CSS", "*.Css");
+         fc.getExtensionFilters().add(extensionFilter);
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());

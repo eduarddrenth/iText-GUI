@@ -248,6 +248,12 @@
          <version>8.6</version>
       </dependency>
       <dependency>
+         <artifactId>VectorPrintCommon</artifactId>
+         <groupId>com.vectorprint</groupId>
+         <type>jar</type>
+         <version>3.4-SNAPSHOT</version>
+      </dependency>
+      <dependency>
          <groupId>org.icepdf</groupId>
          <artifactId>icepdf-core</artifactId>
          <version>5.0.7</version>

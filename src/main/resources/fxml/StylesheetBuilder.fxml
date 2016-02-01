@@ -230,6 +230,7 @@
                         <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
+                  <MenuItem onAction="#addFromClassPath" text="Add jar with stylers and/or conditions"/>
                   <MenuItem onAction="#clear" text="Reset">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="r" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
