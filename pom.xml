@@ -251,7 +251,7 @@
          <artifactId>VectorPrintCommon</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>3.4-SNAPSHOT</version>
+         <version>3.5</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>
