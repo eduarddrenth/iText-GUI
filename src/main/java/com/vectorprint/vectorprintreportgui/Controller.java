@@ -727,6 +727,7 @@ public class Controller implements Initializable {
 
    @FXML
    private void addFromClassPath() {
+      ClassLoader orig = Thread.currentThread().getContextClassLoader();
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("add jar");
@@ -739,7 +740,7 @@ public class Controller implements Initializable {
             for (File f : l) {
                u[++i] = f.toURI().toURL();
             }
-            URLClassLoader urlClassLoader = new URLClassLoader(u, Thread.currentThread().getContextClassLoader());
+            URLClassLoader urlClassLoader = new URLClassLoader(u, orig);
             Thread.currentThread().setContextClassLoader(urlClassLoader);
             List<Parameterizable> sorted = new ArrayList<>();
             for (Class<?> c : ClassHelper.fromPackage(AbstractStyler.class.getPackage(), urlClassLoader)) {
@@ -756,7 +757,11 @@ public class Controller implements Initializable {
             parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
 
          }
+      } catch (NoClassDefFoundError error) {
+         Thread.currentThread().setContextClassLoader(orig);
+         toError(error);
       } catch (Exception exception) {
+         Thread.currentThread().setContextClassLoader(orig);
          toError(exception);
       }
    }
