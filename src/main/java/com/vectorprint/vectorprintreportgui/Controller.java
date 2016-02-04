@@ -621,10 +621,10 @@ public class Controller implements Initializable {
    }
 
    private EnhancedMap buildSettings() throws IOException {
-      ParsingProperties eh = new ParsingProperties(new Settings());
+      ParsingProperties eh = new ParsingProperties(new SortedProperties(new Settings()));
       stylesheet.clear();
 
-      defaults.entrySet().stream().sorted().forEach((def) -> {
+      defaults.entrySet().stream().forEach((def) -> {
          def.getValue().stream().map((pp) -> {
             printComment(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), eh);
             return pp;
@@ -633,25 +633,17 @@ public class Controller implements Initializable {
          });
       });
 
-      conditionConfig.entrySet().stream().sorted().forEach((e) -> {
+      for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
          printComment(e.getKey(), eh);
-         try {
-            toConfigString(e.getKey(), e.getValue(), eh);
-         } catch (IOException ex) {
-            throw new VectorPrintRuntimeException(ex);
-         }
-      });
+         toConfigString(e.getKey(), e.getValue(), eh);
+      }
 
-      conditionConfig.entrySet().stream().sorted().forEach((e) -> {
+      for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
          printComment(e.getKey(), eh);
-         try {
-            toConfigString(e.getKey(), e.getValue(), eh);
-         } catch (IOException ex) {
-            throw new VectorPrintRuntimeException(ex);
-         }
-      });
+         toConfigString(e.getKey(), e.getValue(), eh);
+      }
 
-      extraSettings.entrySet().stream().sorted().map((e) -> {
+      extraSettings.entrySet().stream().map((e) -> {
          printComment(e.getKey(), eh);
          return e;
       }).forEach((e) -> {
@@ -1321,7 +1313,7 @@ public class Controller implements Initializable {
          fc.setTitle("import stylesheet");
          File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
          if (f != null && f.canRead()) {
-            importStyle(new ParsingProperties(new Settings(), f.getPath()));
+            importStyle(new ParsingProperties(new SortedProperties(new Settings()), f.getPath()));
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1340,7 +1332,7 @@ public class Controller implements Initializable {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
             CssTransformer.transform(new FileInputStream(f), bo, cssvalidate.isSelected());
-            importStyle(new ParsingProperties(new Settings(), new StringReader(bo.toString())));
+            importStyle(new ParsingProperties(new SortedProperties(new Settings()), new StringReader(bo.toString())));
          }
       } catch (Exception ex) {
          toError(ex);
