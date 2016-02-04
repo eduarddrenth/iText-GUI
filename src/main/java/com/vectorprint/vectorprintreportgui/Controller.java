@@ -157,9 +157,9 @@ public class Controller implements Initializable {
    private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
-   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new TreeSet<String>());
+   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
-   private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new TreeSet<ParameterProps>());
+   private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(25));
 
    /* parameterizables in this set can be used more then once for a styleClass */
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
@@ -317,6 +317,7 @@ public class Controller implements Initializable {
          _st.getParameters().values().stream().forEach((p) -> {
             parameters.add(new ParameterProps(p));
          });
+         FXCollections.sort(parameters);
       } catch (Exception ex) {
          toError(ex);
       }
@@ -1097,6 +1098,7 @@ public class Controller implements Initializable {
          stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             if (newValue != null && !"".equals(newValue) && !styleClasses.contains(newValue)) {
                styleClasses.add(newValue);
+               FXCollections.sort(styleClasses);
             }
          });
 
@@ -1281,6 +1283,7 @@ public class Controller implements Initializable {
                extraSettings.put(e.getKey(), e.getValue()[0]);
             }
          }
+         FXCollections.sort(styleClasses);
       }
       for (Iterator it = extraSettings.entrySet().iterator(); it.hasNext();) {
          Map.Entry<String, String> e = (Map.Entry<String, String>) it.next();
@@ -1421,6 +1424,7 @@ public class Controller implements Initializable {
                   }
                   conditionConfig.get(sc.getConfigKey()).add(sc);
                   styleClasses.add(scKey);
+                  FXCollections.sort(styleClasses);
                }
             }
             getDefaults(bs.getConditions(), ((AbstractStyler) bs).getSettings());
