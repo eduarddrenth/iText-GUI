@@ -157,9 +157,9 @@ public class Controller implements Initializable {
    private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
-   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
+   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new TreeSet<String>());
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
-   private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(50));
+   private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new TreeSet<ParameterProps>());
 
    /* parameterizables in this set can be used more then once for a styleClass */
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
@@ -624,7 +624,7 @@ public class Controller implements Initializable {
       ParsingProperties eh = new ParsingProperties(new Settings());
       stylesheet.clear();
 
-      defaults.entrySet().stream().forEach((def) -> {
+      defaults.entrySet().stream().sorted().forEach((def) -> {
          def.getValue().stream().map((pp) -> {
             printComment(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), eh);
             return pp;
@@ -633,17 +633,25 @@ public class Controller implements Initializable {
          });
       });
 
-      for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
+      conditionConfig.entrySet().stream().sorted().forEach((e) -> {
          printComment(e.getKey(), eh);
-         toConfigString(e.getKey(), e.getValue(), eh);
-      }
+         try {
+            toConfigString(e.getKey(), e.getValue(), eh);
+         } catch (IOException ex) {
+            throw new VectorPrintRuntimeException(ex);
+         }
+      });
 
-      for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
+      conditionConfig.entrySet().stream().sorted().forEach((e) -> {
          printComment(e.getKey(), eh);
-         toConfigString(e.getKey(), e.getValue(), eh);
-      }
+         try {
+            toConfigString(e.getKey(), e.getValue(), eh);
+         } catch (IOException ex) {
+            throw new VectorPrintRuntimeException(ex);
+         }
+      });
 
-      extraSettings.entrySet().stream().map((e) -> {
+      extraSettings.entrySet().stream().sorted().map((e) -> {
          printComment(e.getKey(), eh);
          return e;
       }).forEach((e) -> {
