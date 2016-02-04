@@ -4,7 +4,7 @@
 
    <groupId>com.vectorprint</groupId>
    <artifactId>VectorPrintReportGUI</artifactId>
-   <version>1.6</version>
+   <version>1.6-SNAPSHOT</version>
    <packaging>jar</packaging>
    <inceptionYear>2015</inceptionYear>
 
@@ -40,7 +40,7 @@
       <url>https://github.com/eduarddrenth/iText-GUI</url>
       <connection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</connection>
       <developerConnection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</developerConnection>
-      <tag>VectorPrintReportGUI-1.6</tag>
+      <tag>VectorPrintReportGUI-1.0</tag>
    </scm>
    <issueManagement>
       <url>https://github.com/eduarddrenth/iText-GUI/issues</url>
