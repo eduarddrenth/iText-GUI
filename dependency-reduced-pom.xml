@@ -4,7 +4,7 @@
   <groupId>com.vectorprint</groupId>
   <artifactId>VectorPrintReportGUI</artifactId>
   <name>VectorPrintReportGUI</name>
-  <version>1.2-SNAPSHOT</version>
+  <version>1.6-SNAPSHOT</version>
   <description>GUI that supports stylesheet features of Configurable Reports. Basic features are create, modify and save.
       The GUI also supports syntax change of stylesheets, validation of xml for settings and validation of xml for datamapping.</description>
   <url>https://github.com/eduarddrenth/iText-GUI</url>

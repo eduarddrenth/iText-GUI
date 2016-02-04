@@ -1247,6 +1247,8 @@ public class Controller implements Initializable {
 
    private void importStyle(ParsingProperties settings) throws DocumentException, VectorPrintException {
       clear(null);
+      Boolean preAndPost = settings.getBooleanProperty(true, DefaultStylerFactory.PREANDPOSTSTYLE);
+      // set to false when importing to prevent all pre and post stylers to be added to regulerar style classes
       settings.put(DefaultStylerFactory.PREANDPOSTSTYLE, Boolean.FALSE.toString());
       DefaultStylerFactory sf = new DefaultStylerFactory();
       StylerFactoryHelper.SETTINGS_ANNOTATION_PROCESSOR.initSettings(sf, settings);
@@ -1273,7 +1275,11 @@ public class Controller implements Initializable {
             }
             styleClasses.add(e.getKey());
          } else if (!isCondition(e.getKey(), settings)) {
-            extraSettings.put(e.getKey(), e.getValue()[0]);
+            if (DefaultStylerFactory.PREANDPOSTSTYLE.equals(e.getKey())) {
+               extraSettings.put(e.getKey(), preAndPost.toString());
+            } else {
+               extraSettings.put(e.getKey(), e.getValue()[0]);
+            }
          }
       }
       for (Iterator it = extraSettings.entrySet().iterator(); it.hasNext();) {
@@ -1282,10 +1288,6 @@ public class Controller implements Initializable {
             it.remove();
          }
       }
-      // now remove Pre and Post stylers from styleclasses
-      stylingConfig.entrySet().stream().forEach((e) -> {
-         stripPreAndPost(e.getKey(), e.getValue());
-      });
       // check conditions not referenced
       settings.entrySet().stream().forEach((e) -> {
          if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(e.getKey())) {
