@@ -626,7 +626,7 @@ public class Controller implements Initializable {
 
       defaults.entrySet().stream().forEach((def) -> {
          def.getValue().stream().map((pp) -> {
-            printComment(def.getKey() + "." + pp.getKey(), eh);
+            printComment(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), eh);
             return pp;
          }).forEach((pp) -> {
             eh.put(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), pp.getValue());
