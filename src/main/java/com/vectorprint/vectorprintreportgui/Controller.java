@@ -289,6 +289,7 @@ public class Controller implements Initializable {
           || (!stylingConfig.containsKey(stylerKeys.getValue()) && !conditionConfig.containsKey(stylerKeys.getValue()))) {
          return;
       }
+      st.hide();
       try {
          if (stylingConfig.containsKey(stylerKeys.getValue())) {
             pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
