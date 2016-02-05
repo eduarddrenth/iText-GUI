@@ -195,6 +195,8 @@ public class Controller implements Initializable {
    @FXML
    private CheckBox debug;
    @FXML
+   private CheckBox prepost;
+   @FXML
    private TextArea stylesheet;
    @FXML
    private Tab pdftab;
@@ -1279,8 +1281,18 @@ public class Controller implements Initializable {
             styleClasses.add(e.getKey());
          } else if (!isCondition(e.getKey(), settings)) {
             if (DefaultStylerFactory.PREANDPOSTSTYLE.equals(e.getKey())) {
+               prepost.setSelected(preAndPost);
                extraSettings.put(e.getKey(), preAndPost.toString());
             } else {
+               if (ReportConstants.DEBUG.equals(e.getKey())) {
+                  debug.setSelected(Boolean.valueOf(e.getValue()[0]));
+               } else if (DocumentSettings.TOC.equals(e.getKey())) {
+                  toc.setSelected(Boolean.valueOf(e.getValue()[0]));
+               } else if (DocumentSettings.PDFA.equals(e.getKey())) {
+                  pdf1a.setSelected(Boolean.valueOf(e.getValue()[0]));
+               } else if (ReportConstants.PRINTFOOTER.equals(e.getKey())) {
+                  footer.setSelected(Boolean.valueOf(e.getValue()[0]));
+               }
                extraSettings.put(e.getKey(), e.getValue()[0]);
             }
          }
@@ -1484,6 +1496,11 @@ public class Controller implements Initializable {
    private void toggleDebug(ActionEvent event) {
       extraSettings.put(ReportConstants.DEBUG, String.valueOf(debug.isSelected()));
       stylerHelp.setText(ReportConstants.DEBUG + "=" + String.valueOf(debug.isSelected()));
+   }
+   @FXML
+   private void togglePrePost(ActionEvent event) {
+      extraSettings.put(DefaultStylerFactory.PREANDPOSTSTYLE, String.valueOf(prepost.isSelected()));
+      stylerHelp.setText(DefaultStylerFactory.PREANDPOSTSTYLE + "=" + String.valueOf(prepost.isSelected()));
    }
 
    @FXML

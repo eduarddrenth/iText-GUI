@@ -80,6 +80,7 @@
                               <Tooltip text="remove this class/key" />
                            </tooltip>
                         </Button>
+                        <CheckBox fx:id="prepost" layoutX="522.0" layoutY="12.0" mnemonicParsing="false" onAction="#togglePrePost" text="pre and post style" />
                      </children>
                   </AnchorPane>
                </content>
@@ -230,7 +231,7 @@
                         <KeyCodeCombination alt="UP" code="C" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
-                  <MenuItem onAction="#addFromClassPath" text="Add jar with stylers and/or conditions (don't forget depenencies)"/>
+                  <MenuItem onAction="#addFromClassPath" text="Add jar with stylers and/or conditions (don't forget depenencies)" />
                   <MenuItem onAction="#clear" text="Reset">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="r" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
