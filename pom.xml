@@ -222,13 +222,7 @@
          <artifactId>ReportSVGSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.7</version>
-         <exclusions>
-            <exclusion>
-               <artifactId>*</artifactId>
-               <groupId>batik</groupId>
-            </exclusion>
-         </exclusions>
+         <version>8.8-SNAPSHOT</version>
       </dependency>
       <dependency>
          <groupId>cssparser</groupId>
@@ -239,19 +233,13 @@
          <artifactId>ReportjFreeChartSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.7</version>
+         <version>8.8-SNAPSHOT</version>
       </dependency>
       <dependency>
          <artifactId>ReportQrSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.7</version>
-      </dependency>
-      <dependency>
-         <artifactId>VectorPrintCommon</artifactId>
-         <groupId>com.vectorprint</groupId>
-         <type>jar</type>
-         <version>3.5</version>
+         <version>8.8-SNAPSHOT</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>
@@ -262,6 +250,12 @@
          <groupId>org.icepdf</groupId>
          <artifactId>icepdf-viewer</artifactId>
          <version>5.0.7</version>
+         <exclusions>
+            <exclusion>
+               <artifactId>*</artifactId>
+               <groupId>batik</groupId>
+            </exclusion>
+         </exclusions>
       </dependency>
    </dependencies>
    <profiles>

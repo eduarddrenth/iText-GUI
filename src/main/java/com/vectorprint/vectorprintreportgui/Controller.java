@@ -39,6 +39,7 @@ import com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory;
 import com.vectorprint.configuration.binding.settings.SettingsBindingService;
 import com.vectorprint.configuration.binding.settings.SpecificClassValidator;
 import com.vectorprint.configuration.decoration.ParsingProperties;
+import com.vectorprint.configuration.decoration.SortedProperties;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.Parameterizable;
@@ -83,6 +84,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
@@ -148,12 +150,65 @@ import org.xml.sax.SAXParseException;
  */
 public class Controller implements Initializable {
 
+   private static class DefaultValue implements Comparable<DefaultValue> {
+
+      private final String clazz, key;
+      private final String value;
+      private final ParameterHelper.SUFFIX suffix;
+
+      public DefaultValue(String clazz, String key, String value, ParameterHelper.SUFFIX suffix) {
+         this.clazz = clazz;
+         this.key = key;
+         this.value = value;
+         this.suffix = suffix;
+      }
+
+      @Override
+      public int compareTo(DefaultValue o) {
+         return (clazz + key).compareTo(o.clazz + o.key);
+      }
+
+      @Override
+      public int hashCode() {
+         int hash = 7;
+         hash = 37 * hash + Objects.hashCode(this.clazz);
+         hash = 37 * hash + Objects.hashCode(this.key);
+         hash = 37 * hash + Objects.hashCode(this.suffix);
+         return hash;
+      }
+
+      @Override
+      public boolean equals(Object obj) {
+         if (this == obj) {
+            return true;
+         }
+         if (obj == null) {
+            return false;
+         }
+         if (getClass() != obj.getClass()) {
+            return false;
+         }
+         final DefaultValue other = (DefaultValue) obj;
+         if (!Objects.equals(this.clazz, other.clazz)) {
+            return false;
+         }
+         if (!Objects.equals(this.key, other.key)) {
+            return false;
+         }
+         if (this.suffix != other.suffix) {
+            return false;
+         }
+         return true;
+      }
+
+   }
+
    /* State of the stylesheet */
    private final Map<String, List<Parameterizable>> stylingConfig = new TreeMap<>();
    private final Map<String, List<String>> commentsBefore = new HashMap<>();
    private final List<String> commentsAfter = new ArrayList<>(3);
    private final Map<String, List<Parameterizable>> conditionConfig = new TreeMap<>();
-   private final Map<String, Set<ParameterProps>> defaults = new TreeMap<>();
+   private final Set<DefaultValue> defaults = new TreeSet<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
@@ -628,13 +683,9 @@ public class Controller implements Initializable {
       ParsingProperties eh = new ParsingProperties(new SortedProperties(new Settings()));
       stylesheet.clear();
 
-      defaults.entrySet().stream().forEach((def) -> {
-         def.getValue().stream().map((pp) -> {
-            printComment(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), eh);
-            return pp;
-         }).forEach((pp) -> {
-            eh.put(def.getKey() + "." + pp.getKey() + '.' + ParameterHelper.SUFFIX.set_default.name(), pp.getValue());
-         });
+      defaults.stream().forEach((def) -> {
+         printComment(def.clazz + "." + def.key + '.' + def.suffix.name(), eh);
+         eh.put(def.clazz + "." + def.key + '.' + def.suffix.name(), def.value);
       });
 
       for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
@@ -939,16 +990,14 @@ public class Controller implements Initializable {
                   return;
                }
                CheckBox checkbox = new CheckBox();
-               if (!defaults.containsKey(currentParameterizable.getClass().getSimpleName())) {
-                  defaults.put(currentParameterizable.getClass().getSimpleName(), new TreeSet<ParameterProps>());
-               }
-               checkbox.setSelected(defaults.get(currentParameterizable.getClass().getSimpleName()).contains(pp));
+               DefaultValue defaultValue = new DefaultValue(currentParameterizable.getClass().getSimpleName(), pp.getKey(), pp.getValue(), ParameterHelper.SUFFIX.set_default);
+               checkbox.setSelected(defaults.contains(defaultValue));
                checkbox.setTooltip(tip(String.format("use value as default for %s in %s", pp.getKey(), currentParameterizable.getClass().getSimpleName())));
                setGraphic(checkbox);
                checkbox.setOnAction((ActionEvent e) -> {
-                  defaults.get(currentParameterizable.getClass().getSimpleName()).remove(pp);
+                  defaults.remove(defaultValue);
                   if (checkbox.isSelected()) {
-                     defaults.get(currentParameterizable.getClass().getSimpleName()).add(pp);
+                     defaults.add(defaultValue);
                      configString.clear();
                      configString.appendText(currentParameterizable.getClass().getSimpleName());
                      configString.appendText(".");
@@ -1449,11 +1498,11 @@ public class Controller implements Initializable {
    private void getDefaults(Collection<? extends Parameterizable> l, EnhancedMap settings) {
       l.stream().forEach((pz) -> {
          pz.getParameters().values().stream().forEach((p) -> {
-            if (ParameterHelper.findKey(p.getKey(), pz.getClass(), settings, ParameterHelper.SUFFIX.set_default) != null) {
-               if (!defaults.containsKey(pz.getClass().getSimpleName())) {
-                  defaults.put(pz.getClass().getSimpleName(), new TreeSet<>());
-               }
-               defaults.get(pz.getClass().getSimpleName()).add(new ParameterProps(p));
+            String key = ParameterHelper.findKey(p.getKey(), pz.getClass(), settings, ParameterHelper.SUFFIX.set_default);
+            if (key != null) {
+               DefaultValue defaultValue = new DefaultValue(pz.getClass().getSimpleName(), p.getKey(), settings.get(key)[0], ParameterHelper.SUFFIX.set_default);
+               defaults.remove(defaultValue);
+               defaults.add(defaultValue);
                processed.add(pz.getClass().getSimpleName() + "." + p.getKey() + '.' + ParameterHelper.SUFFIX.set_default);
             }
          });
@@ -1497,6 +1546,7 @@ public class Controller implements Initializable {
       extraSettings.put(ReportConstants.DEBUG, String.valueOf(debug.isSelected()));
       stylerHelp.setText(ReportConstants.DEBUG + "=" + String.valueOf(debug.isSelected()));
    }
+
    @FXML
    private void togglePrePost(ActionEvent event) {
       extraSettings.put(DefaultStylerFactory.PREANDPOSTSTYLE, String.valueOf(prepost.isSelected()));
