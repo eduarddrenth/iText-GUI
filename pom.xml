@@ -56,7 +56,7 @@
          </roles>
       </developer>
    </developers>
-    
+
    <organization>
       <name>VectorPrint</name>
       <url>http://www.vectorprint.nl</url>
@@ -68,7 +68,7 @@
          <url>http://anonsvn.icefaces.org/repo/maven2/releases</url>
       </repository>
    </repositories>
- 
+
    <build>
       <plugins>
          <plugin>
@@ -114,7 +114,7 @@
                               <X-Compile-Source-JDK>${maven.compile.java.version}</X-Compile-Source-JDK>
                               <X-Compile-Target-JDK>${maven.compile.java.version}</X-Compile-Target-JDK>
                            </manifestEntries>
-                        </transformer>                     
+                        </transformer>
                      </transformers>
                      <filters>
                         <filter>
@@ -125,11 +125,11 @@
                               <exclude>META-INF/*.RSA</exclude>
                            </excludes>
                         </filter>
-                     </filters>                  
+                     </filters>
                   </configuration>
                </execution>
             </executions>
-         </plugin>         
+         </plugin>
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
@@ -137,7 +137,7 @@
             <executions>
                <execution>
                   <id>deploy</id>
-                        
+
                   <phase>package</phase>
                   <goals>
                      <goal>exec</goal>
@@ -164,14 +164,14 @@
                <execution>
                   <id>default-cli</id>
                   <goals>
-                     <goal>exec</goal>                            
+                     <goal>exec</goal>
                   </goals>
                   <configuration>
                      <executable>${java.home}/bin/java</executable>
                      <commandlineArgs>${runfx.args}</commandlineArgs>
                   </configuration>
                </execution>
-            </executions>  
+            </executions>
          </plugin>
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
@@ -212,7 +212,7 @@
             <version>2.5.3</version>
             <configuration>
                <releaseProfiles>release</releaseProfiles>
-               <goals>deploy</goals>         
+               <goals>deploy</goals>
             </configuration>
          </plugin>
       </plugins>
@@ -222,7 +222,7 @@
          <artifactId>ReportSVGSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.8-SNAPSHOT</version>
+         <version>8.8</version>
       </dependency>
       <dependency>
          <groupId>cssparser</groupId>
@@ -233,13 +233,13 @@
          <artifactId>ReportjFreeChartSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.8-SNAPSHOT</version>
+         <version>8.8</version>
       </dependency>
       <dependency>
          <artifactId>ReportQrSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.8-SNAPSHOT</version>
+         <version>8.8</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>

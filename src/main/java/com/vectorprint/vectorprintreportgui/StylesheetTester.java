@@ -9,6 +9,7 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.FontFactory;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.Section;
 import com.itextpdf.text.TextElementArray;
@@ -58,12 +59,12 @@ import javax.imageio.ImageIO;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -151,6 +152,9 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                            PdfPTable pt = new PdfPTable(1);
                            PdfPCell cell = new PdfPCell();
                            cell.addElement(img);
+                           cell.setBorder(Rectangle.BOX);
+                           cell.setBorderColor(BaseColor.BLACK);
+                           cell.setBorderWidth(5);
                            pt.addCell(getStyleHelper().style(cell, img, stylers));
 
                            List<BaseStyler> filter = filter(stylers, PdfPCell.class, img);
@@ -194,6 +198,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                      }
                   }
                } else if (first instanceof Table) {
+                  document.newPage();
                   printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), first.getSupportedClasses()));
                   PdfPTable table = createElement(null, PdfPTable.class, stylers);
                   List<BaseStyler> filter = filter(stylers, table, EXAMPLE_STYLING_OF_ + PdfPTable.class.getSimpleName());
@@ -206,20 +211,20 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                   document.add(table);
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                } else if (first instanceof SimpleColumns) {
+                  document.newPage();
                   printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), ColumnText.class));
                   SimpleColumns cols = createColumns(stylers);
-                  ColumnText ct = new ColumnText(writer.getDirectContent());
-                  List<BaseStyler> filter = filter(stylers, ct, EXAMPLE_STYLING_OF_ + ColumnText.class.getSimpleName());
                   int texts = cols.getNumColumns() * 100;
                   for (int i = 0; i < texts; i++) {
-                     cols.addContent(new Chunk("text" + i), null);
+                     cols.addContent("text" + i, e.getKey());
                   }
-                  printExplanation(String.format(SHOWING_EFFECT_OF_S_ON_S_, print(filter), ColumnText.class.getSimpleName()));
+                  printExplanation(String.format(SHOWING_EFFECT_OF_S_ON_S_, print(stylers), ColumnText.class.getSimpleName() + " and " + Phrase.class.getSimpleName()));
                   cols.write();
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                } else if (first instanceof Barcode) {
+                  document.newPage();
                   Barcode bc = (Barcode) first;
-                  if (bc.getData()==null) {
+                  if (bc.getData() == null) {
                      bc.setData("0123456789012");
                   }
                   printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), Image.class));
@@ -229,9 +234,10 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                   document.add(barcode);
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                } else if (first instanceof SVG) {
+                  document.newPage();
                   SVG bc = (SVG) first;
-                  if (bc.getData()==null) {
-                     bc.setData("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" version=\"1.1\"><defs><filter id=\"test\" filterUnits=\"objectBoundingBox\" x=\"0\" y=\"0\" width=\"1.5\" height=\"4\"><feOffset result=\"Off1\" dx=\"15\" dy=\"20\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.8\" /><feComposite in2=\"Off1\" operator=\"in\" result=\"C1\" /><feOffset in=\"SourceGraphic\" result=\"Off2\" dx=\"30\" dy=\"40\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.4\" /><feComposite in2=\"Off2\" operator=\"in\" result=\"C2\" /><feMerge><feMergeNode in=\"C2\" /><feMergeNode in=\"C1\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter></defs><text x=\"30\" y=\"100\" style=\"font:36px verdana bold;fill:blue;filter:url(#test)\">This is some text!</text></svg>");
+                  if (bc.getData() == null) {
+                     bc.setData("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" version=\"1.1\"><defs><filter id=\"test\" filterUnits=\"objectBoundingBox\" x=\"0\" y=\"0\" width=\"1.5\" height=\"4\"><feOffset result=\"Off1\" dx=\"15\" dy=\"20\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.8\" /><feComposite in2=\"Off1\" operator=\"in\" result=\"C1\" /><feOffset in=\"SourceGraphic\" result=\"Off2\" dx=\"30\" dy=\"40\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.4\" /><feComposite in2=\"Off2\" operator=\"in\" result=\"C2\" /><feMerge><feMergeNode in=\"C2\" /><feMergeNode in=\"C1\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter></defs><text x=\"30\" y=\"100\" style=\"font:36px verdana bold;fill:blue;filter:url(#test)\">Test text for SVG!</text></svg>");
                   }
                   printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), Image.class));
                   Image svg = createElement(null, Image.class, stylers);
@@ -240,7 +246,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                   document.add(svg);
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                }
-               
+
             } catch (IOException ex) {
                throw new VectorPrintException(ex);
             } catch (InstantiationException ex) {
