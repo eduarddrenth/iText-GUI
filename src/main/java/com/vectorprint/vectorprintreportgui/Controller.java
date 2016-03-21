@@ -1661,11 +1661,11 @@ public class Controller implements Initializable {
          if (stylesheet.equals(area) && !area.isEditable()) {
             // stop searching
             area.setEditable(true);
-            area.setStyle(null);
+            area.getStyleClass().remove("grayed");
          } else {
             // start searching
             area = stylesheet;
-            area.setStyle("grayed");
+            area.getStyleClass().add("grayed");
             area.setEditable(false);
          }
       } else if (stylesheet.equals(area) && !area.isEditable()) {
