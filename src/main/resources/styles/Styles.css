@@ -14,5 +14,5 @@
    -fx-border-style: dotted
 }
 .grayed {
-   -fx-background-color: lightgray
+   -fx-background-color: #eeeeee
 }

@@ -92,6 +92,7 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -934,9 +935,10 @@ public class Controller implements Initializable {
                   if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
                      final CheckBox checkBox = new CheckBox();
                      checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
-                     checkBox.setOnAction((ActionEvent event) -> {
-                        item.setValue(String.valueOf(checkBox.isSelected()));
-                     });
+                     checkBox.selectedProperty().addListener(item);
+                     if (item.getKey().equals(DocumentSettings.PDFA)) {
+                        // TODO: how to let the checkbox listen to a change of a value
+                     }
                      setGraphic(checkBox);
                   } else if (valueClass.isEnum()) {
                      final ComboBox<String> comboBox = new ComboBox();
@@ -1317,6 +1319,10 @@ public class Controller implements Initializable {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
+            // TODO here we have to connect the parameter pdf1a to the field pdf1a
+            // so that updates are published both ways
+            BooleanProperty pdfa = pdf1a.selectedProperty();
+            pdfa.addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.PDFA, Boolean.class)));
          } else if (isStyler(e.getKey(), settings)) {
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
@@ -1554,17 +1560,6 @@ public class Controller implements Initializable {
    }
 
    @FXML
-   private void togglePdf1a(ActionEvent event) {
-      Parameterizable ds = findDocStyler();
-      ds.setValue(DocumentSettings.PDFA, pdf1a.isSelected());
-      if (ds.equals(parameterizableCombo.getValue())) {
-         chooseStyleOrCondition(event);
-      } else {
-         parameterizableCombo.getSelectionModel().select(ds);
-      }
-   }
-
-   @FXML
    private Label search;
 
    private TextArea area;
@@ -1662,6 +1657,7 @@ public class Controller implements Initializable {
             // stop searching
             area.setEditable(true);
             area.getStyleClass().remove("grayed");
+            search.setText("");
          } else {
             // start searching
             area = stylesheet;

@@ -10,17 +10,16 @@ package com.vectorprint.vectorprintreportgui;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import com.vectorprint.ClassHelper;
 import com.vectorprint.configuration.binding.parameters.ParamBindingHelper;
 import com.vectorprint.configuration.binding.parameters.ParamBindingService;
@@ -28,14 +27,18 @@ import com.vectorprint.configuration.parameters.Parameter;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Objects;
+import java.util.Observable;
+import java.util.Observer;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 /**
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class ParameterProps implements Comparable<ParameterProps> {
+public class ParameterProps implements Comparable<ParameterProps>, Observer, ChangeListener {
 
    private StringProperty key = new SimpleStringProperty();
    private StringProperty type = new SimpleStringProperty();
@@ -52,6 +55,7 @@ public class ParameterProps implements Comparable<ParameterProps> {
       declaringClass.set(p.getDeclaringClass().getName());
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
       value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
+      p.addObserver(this);
    }
 
    public Parameter getP() {
@@ -114,6 +118,21 @@ public class ParameterProps implements Comparable<ParameterProps> {
    @Override
    public int compareTo(ParameterProps o) {
       return getKey().compareTo(o.getKey());
+   }
+
+   @Override
+   public void update(Observable o, Object arg) {
+      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
+      value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
+   }
+
+   @Override
+   public void changed(ObservableValue observable, Object oldValue, Object newValue) {
+      // a screen component has changed, update the parameter value
+      if (newValue instanceof Boolean) {
+         setValue(newValue.toString());
+         System.err.println("now: " + newValue);
+      }
    }
 
 }

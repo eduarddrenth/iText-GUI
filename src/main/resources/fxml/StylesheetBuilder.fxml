@@ -78,7 +78,7 @@
                         <Label fx:id="stylerHelp" layoutX="7.0" layoutY="39.0" prefHeight="45.0" prefWidth="1008.0" styleClass="help" wrapText="true" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
                         <CheckBox fx:id="toc" layoutX="143.0" layoutY="11.0" mnemonicParsing="false" onAction="#toggleToc" text="table of contents" />
                         <CheckBox fx:id="footer" layoutX="289.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleFooter" text="footer" />
-                        <CheckBox fx:id="pdf1a" layoutX="364.0" layoutY="12.0" mnemonicParsing="false" onAction="#togglePdf1a" text="pdf 1/a" />
+                        <CheckBox fx:id="pdf1a" layoutX="364.0" layoutY="12.0" mnemonicParsing="false" text="pdf 1/a" />
                         <CheckBox fx:id="debug" layoutX="441.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleDebug" text="debug" />
                         <ComboBox fx:id="stylerKeys" editable="true" layoutX="143.0" layoutY="92.0" onAction="#showStyleOrCondition" prefWidth="191.0">
                            <tooltip>
