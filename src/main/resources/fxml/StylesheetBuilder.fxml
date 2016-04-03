@@ -31,7 +31,7 @@
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="732.0" prefWidth="1017.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
                      <children>
-                        <ComboBox fx:id="parameterizableCombo" layoutX="389.0" layoutY="92.0" onAction="#chooseStyleOrCondition" prefHeight="26.0" prefWidth="152.0" promptText="styler/condition">
+                        <ComboBox fx:id="parameterizableCombo" layoutX="389.0" layoutY="92.0" onInputMethodTextChanged="#chooseStyleOrCondition" prefHeight="26.0" prefWidth="152.0" promptText="styler/condition">
                            <items>
                               <FXCollections fx:factory="observableArrayList">
                                  <String fx:value="Item 1" />
@@ -76,7 +76,7 @@
                         <Button fx:id="post" layoutX="235.0" layoutY="125.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="poststylers" />
                         <Button fx:id="page" layoutX="333.0" layoutY="125.0" mnemonicParsing="false" onAction="#chooseStandardStyle" text="pagestylers" />
                         <Label fx:id="stylerHelp" layoutX="7.0" layoutY="39.0" prefHeight="45.0" prefWidth="1008.0" styleClass="help" wrapText="true" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" />
-                        <CheckBox fx:id="toc" layoutX="143.0" layoutY="11.0" mnemonicParsing="false" onAction="#toggleToc" text="table of contents" />
+                        <CheckBox fx:id="toc" layoutX="143.0" layoutY="11.0" mnemonicParsing="false" text="table of contents" />
                         <CheckBox fx:id="footer" layoutX="289.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleFooter" text="footer" />
                         <CheckBox fx:id="pdf1a" layoutX="364.0" layoutY="12.0" mnemonicParsing="false" text="pdf 1/a" />
                         <CheckBox fx:id="debug" layoutX="441.0" layoutY="12.0" mnemonicParsing="false" onAction="#toggleDebug" text="debug" />

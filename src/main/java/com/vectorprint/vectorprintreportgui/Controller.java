@@ -92,7 +92,6 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -125,6 +124,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -360,12 +360,17 @@ public class Controller implements Initializable {
    }
 
    @FXML
-   private void chooseStyleOrCondition(ActionEvent event) {
+   private void chooseStyleOrCondition(InputMethodEvent event) {
       if (null == parameterizableCombo.getValue()) {
          parameterizableCombo.requestFocus();
          return;
       }
-      currentParameterizable = (parameterizableCombo.getValue() instanceof DocumentStyler) ? parameterizableCombo.getValue() : parameterizableCombo.getValue().clone();
+
+      try {
+         currentParameterizable = (parameterizableCombo.getValue() instanceof DocumentStyler) ? parameterizableCombo.getValue() : parameterizableCombo.getValue().clone();
+      } catch (NullPointerException e) {
+         e.printStackTrace();
+      }
       if (currentParameterizable instanceof DocumentSettings) {
          chooseOrAdd(ReportConstants.DOCUMENTSETTINGS);
       }
@@ -935,10 +940,18 @@ public class Controller implements Initializable {
                   if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
                      final CheckBox checkBox = new CheckBox();
                      checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
-                     checkBox.selectedProperty().addListener(item);
                      if (item.getKey().equals(DocumentSettings.PDFA)) {
-                        // TODO: how to let the checkbox listen to a change of a value
+                        checkBox.selectedProperty().bind(pdf1a.selectedProperty());
+                        checkBox.selectedProperty().addListener(item);
+                        // binding is cool, but a node with a bound value cannot be set
+                        checkBox.setDisable(true);
+                     } else if (item.getKey().equals(DocumentSettings.TOC)) {
+                        checkBox.selectedProperty().bind(toc.selectedProperty());
+                        checkBox.selectedProperty().addListener(item);
+                        // binding is cool, but a node with a bound value cannot be set
+                        checkBox.setDisable(true);
                      }
+
                      setGraphic(checkBox);
                   } else if (valueClass.isEnum()) {
                      final ComboBox<String> comboBox = new ComboBox();
@@ -948,19 +961,12 @@ public class Controller implements Initializable {
                      }
                      comboBox.setItems(ol);
                      comboBox.getSelectionModel().select(item.getValue());
-                     comboBox.setOnAction((ActionEvent event) -> {
-                        item.setValue(comboBox.getSelectionModel().getSelectedItem());
-                     });
+                     comboBox.valueProperty().addListener(item);
                      setGraphic(comboBox);
                   } else if (java.awt.Color.class.equals(valueClass)) {
                      java.awt.Color col = (java.awt.Color) item.getP().getValue();
                      final ColorPicker cp = col == null ? new ColorPicker() : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
-                     cp.setOnAction(new EventHandler<ActionEvent>() {
-                        @Override
-                        public void handle(ActionEvent event) {
-                           item.setValue(toHex(cp.getValue()));
-                        }
-                     });
+                     cp.valueProperty().addListener(item);
                      setGraphic(cp);
                   } else {
                      final TextField textField = new TextField(item.getValue());
@@ -1319,10 +1325,6 @@ public class Controller implements Initializable {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
-            // TODO here we have to connect the parameter pdf1a to the field pdf1a
-            // so that updates are published both ways
-            BooleanProperty pdfa = pdf1a.selectedProperty();
-            pdfa.addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.PDFA, Boolean.class)));
          } else if (isStyler(e.getKey(), settings)) {
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
@@ -1528,17 +1530,6 @@ public class Controller implements Initializable {
          }
       }
       return null;
-   }
-
-   @FXML
-   private void toggleToc(ActionEvent event) {
-      Parameterizable ds = findDocStyler();
-      ds.setValue(DocumentSettings.TOC, toc.isSelected());
-      if (ds.equals(parameterizableCombo.getValue())) {
-         chooseStyleOrCondition(event);
-      } else {
-         parameterizableCombo.getSelectionModel().select(ds);
-      }
    }
 
    @FXML

@@ -27,18 +27,17 @@ import com.vectorprint.configuration.parameters.Parameter;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Objects;
-import java.util.Observable;
-import java.util.Observer;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.paint.Color;
 
 /**
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class ParameterProps implements Comparable<ParameterProps>, Observer, ChangeListener {
+public class ParameterProps implements Comparable<ParameterProps>, ChangeListener {
 
    private StringProperty key = new SimpleStringProperty();
    private StringProperty type = new SimpleStringProperty();
@@ -55,7 +54,6 @@ public class ParameterProps implements Comparable<ParameterProps>, Observer, Cha
       declaringClass.set(p.getDeclaringClass().getName());
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
       value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
-      p.addObserver(this);
    }
 
    public Parameter getP() {
@@ -121,17 +119,15 @@ public class ParameterProps implements Comparable<ParameterProps>, Observer, Cha
    }
 
    @Override
-   public void update(Observable o, Object arg) {
-      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
-      value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
-   }
-
-   @Override
    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
       // a screen component has changed, update the parameter value
-      if (newValue instanceof Boolean) {
-         setValue(newValue.toString());
-         System.err.println("now: " + newValue);
+      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
+      if (newValue instanceof Color) {
+         Color c = (Color) newValue;
+         java.awt.Color awtColor = new java.awt.Color((int) (c.getRed() * 255), (int) (c.getGreen() * 255), (int) (c.getBlue() * 255));
+         setValue(helper.serializeValue(awtColor));
+      } else {
+         setValue(helper.serializeValue(newValue));
       }
    }
 
