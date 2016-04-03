@@ -43,6 +43,7 @@ import com.vectorprint.configuration.decoration.SortedProperties;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.Parameterizable;
+import com.vectorprint.configuration.parameters.annotation.ParamAnnotationProcessor;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.itext.EventHelper;
 import com.vectorprint.report.itext.Help;
@@ -124,7 +125,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.InputMethodEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -360,7 +360,7 @@ public class Controller implements Initializable {
    }
 
    @FXML
-   private void chooseStyleOrCondition(InputMethodEvent event) {
+   private void chooseStyleOrCondition(ActionEvent event) {
       if (null == parameterizableCombo.getValue()) {
          parameterizableCombo.requestFocus();
          return;
@@ -834,6 +834,9 @@ public class Controller implements Initializable {
 
          // make all stylers and conditions available in the dropdown
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
+         for (Parameterizable parameterizable : sorted) {
+            ParamAnnotationProcessor.PAP.initParameters(parameterizable);
+         }
          Collections.sort(sorted, PARAMETERIZABLE_COMPARATOR);
          synchronized (duplicatesAllowed) {
             if (duplicatesAllowed.isEmpty()) {
@@ -941,15 +944,9 @@ public class Controller implements Initializable {
                      final CheckBox checkBox = new CheckBox();
                      checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
                      if (item.getKey().equals(DocumentSettings.PDFA)) {
-                        checkBox.selectedProperty().bind(pdf1a.selectedProperty());
-                        checkBox.selectedProperty().addListener(item);
-                        // binding is cool, but a node with a bound value cannot be set
-                        checkBox.setDisable(true);
+                        bindToCheckbox(checkBox, item, pdf1a);
                      } else if (item.getKey().equals(DocumentSettings.TOC)) {
-                        checkBox.selectedProperty().bind(toc.selectedProperty());
-                        checkBox.selectedProperty().addListener(item);
-                        // binding is cool, but a node with a bound value cannot be set
-                        checkBox.setDisable(true);
+                        bindToCheckbox(checkBox, item, toc);
                      }
 
                      setGraphic(checkBox);
@@ -981,6 +978,13 @@ public class Controller implements Initializable {
                      });
                      setGraphic(textField);
                   }
+               }
+
+               private void bindToCheckbox(final CheckBox child, final ParameterProps item, CheckBox master) {
+                  child.selectedProperty().bind(master.selectedProperty());
+                  child.selectedProperty().addListener(item);
+                  // binding is cool, but a node with a bound value cannot be set
+                  child.setDisable(true);
                }
 
             };
@@ -1325,6 +1329,8 @@ public class Controller implements Initializable {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
+            pdf1a.selectedProperty().addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.PDFA, Boolean.class)));
+            toc.selectedProperty().addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.TOC, Boolean.class)));
          } else if (isStyler(e.getKey(), settings)) {
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
@@ -1343,10 +1349,6 @@ public class Controller implements Initializable {
             } else {
                if (ReportConstants.DEBUG.equals(e.getKey())) {
                   debug.setSelected(Boolean.valueOf(e.getValue()[0]));
-               } else if (DocumentSettings.TOC.equals(e.getKey())) {
-                  toc.setSelected(Boolean.valueOf(e.getValue()[0]));
-               } else if (DocumentSettings.PDFA.equals(e.getKey())) {
-                  pdf1a.setSelected(Boolean.valueOf(e.getValue()[0]));
                } else if (ReportConstants.PRINTFOOTER.equals(e.getKey())) {
                   footer.setSelected(Boolean.valueOf(e.getValue()[0]));
                }
