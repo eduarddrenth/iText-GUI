@@ -119,7 +119,11 @@
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
                      <children>
-                        <TextArea fx:id="stylesheet" layoutX="1.0" layoutY="56.0" onKeyPressed="#toggleSearch" prefHeight="760.0" prefWidth="1132.0" wrapText="true" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="56.0" />
+                        <TextArea fx:id="stylesheet" layoutX="1.0" layoutY="56.0" onKeyPressed="#toggleSearch" prefHeight="760.0" prefWidth="1132.0" wrapText="true" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="56.0" >
+                           <tooltip>
+                              <Tooltip text="type Ctrl-f to search" />
+                           </tooltip>
+                        </TextArea>
                         <Button layoutX="14.0" layoutY="14.0" mnemonicParsing="false" onAction="#testStylesheet" text="test stylesheet" />
                      </children>
                   </AnchorPane>

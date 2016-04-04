@@ -1657,6 +1657,11 @@ public class Controller implements Initializable {
             area.getStyleClass().add("grayed");
             area.setEditable(false);
          }
+      } else if (KeyCode.ESCAPE == event.getCode()) {
+         // stop searching
+         area.setEditable(true);
+         area.getStyleClass().remove("grayed");
+         search.setText("");
       } else if (stylesheet.equals(area) && !area.isEditable()) {
          searchTxt(event);
       }
