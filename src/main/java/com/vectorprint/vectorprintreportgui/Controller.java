@@ -981,10 +981,8 @@ public class Controller implements Initializable {
                }
 
                private void bindToCheckbox(final CheckBox child, final ParameterProps item, CheckBox master) {
-                  child.selectedProperty().bind(master.selectedProperty());
+                  child.selectedProperty().bindBidirectional(master.selectedProperty());
                   child.selectedProperty().addListener(item);
-                  // binding is cool, but a node with a bound value cannot be set
-                  child.setDisable(true);
                }
 
             };
@@ -1329,8 +1327,8 @@ public class Controller implements Initializable {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             styleClasses.add(e.getKey());
-            pdf1a.selectedProperty().addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.PDFA, Boolean.class)));
-            toc.selectedProperty().addListener(new ParameterProps(sf.getDocumentStyler().getParameter(DocumentSettings.TOC, Boolean.class)));
+            pdf1a.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.PDFA, Boolean.class));
+            toc.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.TOC, Boolean.class));
          } else if (isStyler(e.getKey(), settings)) {
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
