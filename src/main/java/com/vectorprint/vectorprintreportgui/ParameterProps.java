@@ -122,12 +122,21 @@ public class ParameterProps implements Comparable<ParameterProps>, ChangeListene
    public void changed(ObservableValue observable, Object oldValue, Object newValue) {
       // a screen component has changed, update the parameter value
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
-      if (newValue instanceof Color) {
-         Color c = (Color) newValue;
-         java.awt.Color awtColor = new java.awt.Color((int) (c.getRed() * 255), (int) (c.getGreen() * 255), (int) (c.getBlue() * 255));
-         setValue(helper.serializeValue(awtColor));
+      Object val = newValue;
+      if (val instanceof Color) {
+         Color c = (Color) val;
+         val = new java.awt.Color((int) (c.getRed() * 255), (int) (c.getGreen() * 255), (int) (c.getBlue() * 255));
+      }
+      if (p.getValueClass().isInstance(val)) {
+         helper.setValueOrDefault(p, (Serializable) val, false);
+         this.value.set(helper.serializeValue(val));
       } else {
-         setValue(helper.serializeValue(newValue));
+         /* here we rely on serialization / parsing to try and get a correct value for the parameter
+            - using current syntax
+            - serialze
+            - parse (in setValue method)
+          */
+         setValue(helper.serializeValue(val));
       }
    }
 
