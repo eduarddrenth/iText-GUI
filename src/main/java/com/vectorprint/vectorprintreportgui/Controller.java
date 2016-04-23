@@ -942,13 +942,12 @@ public class Controller implements Initializable {
                   Class valueClass = item.getP().getValueClass();
                   if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
                      final CheckBox checkBox = new CheckBox();
-                     checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
                      if (item.getKey().equals(DocumentSettings.PDFA)) {
                         bindToCheckbox(checkBox, item, pdf1a);
                      } else if (item.getKey().equals(DocumentSettings.TOC)) {
                         bindToCheckbox(checkBox, item, toc);
                      }
-
+                     checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
                      setGraphic(checkBox);
                   } else if (valueClass.isEnum()) {
                      final ComboBox<String> comboBox = new ComboBox();
