@@ -16,6 +16,7 @@
    </properties>
 
    <url>https://github.com/eduarddrenth/iText-GUI</url>
+
    <description>GUI that supports stylesheet features of Configurable Reports. Basic features are create, modify and save.
       The GUI also supports syntax change of stylesheets, validation of xml for settings, validation of xml for datamapping and testing a stylesheet in a pdf.
    </description>
@@ -40,7 +41,6 @@
       <url>https://github.com/eduarddrenth/iText-GUI</url>
       <connection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</connection>
       <developerConnection>scm:git:https://github.com/eduarddrenth/iText-GUI.git</developerConnection>
-      <tag>VectorPrintReportGUI-1.0</tag>
    </scm>
    <issueManagement>
       <url>https://github.com/eduarddrenth/iText-GUI/issues</url>
@@ -219,10 +219,16 @@
    </build>
    <dependencies>
       <dependency>
+         <artifactId>ConfigurableReports</artifactId>
+         <groupId>com.vectorprint</groupId>
+         <type>jar</type>
+         <version>9.1</version>
+      </dependency>
+      <dependency>
          <artifactId>ReportSVGSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.10</version>
+         <version>9.0</version>
       </dependency>
       <dependency>
          <groupId>cssparser</groupId>
@@ -233,13 +239,7 @@
          <artifactId>ReportjFreeChartSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>8.10</version>
-      </dependency>
-      <dependency>
-         <artifactId>ReportQrSupport</artifactId>
-         <groupId>com.vectorprint</groupId>
-         <type>jar</type>
-         <version>8.10</version>
+         <version>9.0</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>

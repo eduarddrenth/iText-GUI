@@ -133,7 +133,7 @@ public class ParameterProps implements Comparable<ParameterProps>, ChangeListene
       } else {
          /* here we rely on serialization / parsing to try and get a correct value for the parameter
             - using current syntax
-            - serialze
+            - serialize
             - parse (in setValue method)
           */
          setValue(helper.serializeValue(val));
