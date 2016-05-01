@@ -220,7 +220,7 @@
          <artifactId>ReportSVGSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>9.0</version>
+         <version>9.1</version>
       </dependency>
       <dependency>
          <groupId>cssparser</groupId>
@@ -231,7 +231,7 @@
          <artifactId>ReportjFreeChartSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>9.0</version>
+         <version>9.2</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>
