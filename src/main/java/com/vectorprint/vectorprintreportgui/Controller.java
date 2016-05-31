@@ -205,15 +205,14 @@ public class Controller implements Initializable {
    }
 
    /* State of the stylesheet */
-   private final Map<String, List<Parameterizable>> stylingConfig = new TreeMap<>();
+   private final Map<String, List<Parameterizable>> stylingConfig = FXCollections.observableMap(new TreeMap<>());
    private final Map<String, List<String>> commentsBefore = new HashMap<>();
    private final List<String> commentsAfter = new ArrayList<>(3);
-   private final Map<String, List<Parameterizable>> conditionConfig = new TreeMap<>();
    private final Set<DefaultValue> defaults = new TreeSet<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
-   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(new ArrayList<String>(25));
+   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(stylingConfig.keySet());
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(25));
 
@@ -310,7 +309,7 @@ public class Controller implements Initializable {
    @FXML
    private void removeFromStylesheet(ActionEvent event) {
       String clazz = stylerKeys.getValue();
-      if (null == clazz || (!stylingConfig.containsKey(clazz) && !conditionConfig.containsKey(clazz))) {
+      if (null == clazz || !stylingConfig.containsKey(clazz)) {
          stylerKeys.requestFocus();
          return;
       }
@@ -322,12 +321,7 @@ public class Controller implements Initializable {
             it.remove();
          }
       }
-      styleClasses.remove(clazz);
-      if (conditionConfig.containsKey(clazz)) {
-         conditionConfig.remove(clazz);
-      } else {
-         stylingConfig.remove(clazz);
-      }
+      stylingConfig.remove(clazz);
       commentsBefore.remove(clazz);
       configString.clear();
       parameters.clear();
@@ -344,16 +338,12 @@ public class Controller implements Initializable {
    @FXML
    private void showStyleOrCondition(ActionEvent event) {
       if (stylingConfig.isEmpty() || stylerKeys.getValue() == null
-          || (!stylingConfig.containsKey(stylerKeys.getValue()) && !conditionConfig.containsKey(stylerKeys.getValue()))) {
+          || !stylingConfig.containsKey(stylerKeys.getValue())) {
          return;
       }
       st.hide();
       try {
-         if (stylingConfig.containsKey(stylerKeys.getValue())) {
-            pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
-         } else {
-            pickStylerToConfigure(conditionConfig.get(stylerKeys.getValue()));
-         }
+         pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
       } catch (Exception ex) {
          toError(ex);
       }
@@ -398,7 +388,6 @@ public class Controller implements Initializable {
       parameterizableForClass.clear();
       styleClasses.clear();
       stylingConfig.clear();
-      conditionConfig.clear();
       defaults.clear();
       extraSettings.clear();
       processed.clear();
@@ -408,18 +397,11 @@ public class Controller implements Initializable {
 
    @FXML
    private void showStylers(Event event) {
-      if (stylerKeysCopy.getValue() != null && (stylingConfig.containsKey(stylerKeysCopy.getValue())
-          || (conditionConfig.containsKey(stylerKeysCopy.getValue())))) {
+      if (stylerKeysCopy.getValue() != null && stylingConfig.containsKey(stylerKeysCopy.getValue())) {
          parameterizableForClass.clear();
-         if (stylingConfig.containsKey(stylerKeysCopy.getValue())) {
-            stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
-               parameterizableForClass.add(bs);
-            });
-         } else {
-            conditionConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
-               parameterizableForClass.add(bs);
-            });
-         }
+         stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
+            parameterizableForClass.add(bs);
+         });
 
       }
    }
@@ -489,11 +471,6 @@ public class Controller implements Initializable {
       }
       String styleClass = stylerKeys.getValue();
       if (p instanceof BaseStyler) {
-         if (conditionConfig.containsKey(styleClass)) {
-            notify("ok",
-                String.format("style class %s in use for conditions, choose another", styleClass), conditionConfig.get(styleClass).toString());
-            return false;
-         }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
             notify("ok",
                 styleClass, String.format("style class %s reserved for document settings, choose another", ReportConstants.DOCUMENTSETTINGS));
@@ -515,7 +492,7 @@ public class Controller implements Initializable {
             stylingConfig.get(styleClass).add((BaseStyler) p);
             if (!"".equals(p.getValue(AbstractStyler.CONDITONS, String.class))) {
                String cnd = p.getValue(AbstractStyler.CONDITONS, String.class);
-               if (null != cnd && !conditionConfig.containsKey(cnd)) {
+               if (null != cnd && !stylingConfig.containsKey(cnd)) {
                   chooseOrAdd(p.getValue(AbstractStyler.CONDITONS, String.class));
                   parameterizableCombo.getSelectionModel().clearSelection();
                   notify("add " + p.getValue(AbstractStyler.CONDITONS, String.class), "warning", String.format("condition %s is missing", p.getValue(AbstractStyler.CONDITONS, String.class)));
@@ -533,12 +510,12 @@ public class Controller implements Initializable {
                 "", String.format("style class %s reserved for document settings, choose another", styleClass));
             return false;
          }
-         if (!conditionConfig.containsKey(styleClass) && !"".equals(styleClass)) {
-            conditionConfig.put(styleClass, new ArrayList<>());
+         if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
+            stylingConfig.put(styleClass, new ArrayList<>());
          }
          if (!configString.getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
-            prepareAdd(p, conditionConfig.get(styleClass));
-            conditionConfig.get(styleClass).add((StylingCondition) p);
+            prepareAdd(p, stylingConfig.get(styleClass));
+            stylingConfig.get(styleClass).add((StylingCondition) p);
          }
          // place dummy condition in all stylers so a condition parameter can be added
          stylingConfig.entrySet().stream().forEach((stylers) -> {
@@ -694,14 +671,18 @@ public class Controller implements Initializable {
          eh.put(def.clazz + "." + def.key + '.' + def.suffix.name(), def.value);
       });
 
-      for (Map.Entry<String, List<Parameterizable>> e : conditionConfig.entrySet()) {
-         printComment(e.getKey(), eh);
-         toConfigString(e.getKey(), e.getValue(), eh);
+      for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
+         if (e instanceof StylingCondition) {
+            printComment(e.getKey(), eh);
+            toConfigString(e.getKey(), e.getValue(), eh);
+         }
       }
 
       for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
-         printComment(e.getKey(), eh);
-         toConfigString(e.getKey(), e.getValue(), eh);
+         if (e instanceof BaseStyler) {
+            printComment(e.getKey(), eh);
+            toConfigString(e.getKey(), e.getValue(), eh);
+         }
       }
 
       extraSettings.entrySet().stream().map((e) -> {
@@ -1054,17 +1035,10 @@ public class Controller implements Initializable {
                      Parameterizable toMove = parameterizableForClass.get(t);
                      Parameterizable sp = parameterizableForClass.set(t - 1, toMove);
                      parameterizableForClass.set(t, sp);
-                     if (toMove instanceof BaseStyler) {
-                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                        parameterizableForClass.forEach((p) -> {
-                           stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
-                        });
-                     } else {
-                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
-                        parameterizableForClass.forEach((p) -> {
-                           conditionConfig.get(stylerKeysCopy.getValue()).add((StylingCondition) p);
-                        });
-                     }
+                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                     parameterizableForClass.forEach((p) -> {
+                        stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
+                     });
                   }
                });
                Button bd = new Button("\\/");
@@ -1078,13 +1052,8 @@ public class Controller implements Initializable {
                      Parameterizable toMove = parameterizableForClass.get(t);
                      Parameterizable sp = parameterizableForClass.set(t + 1, toMove);
                      parameterizableForClass.set(t, sp);
-                     if (toMove instanceof BaseStyler) {
-                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                        stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                     } else {
-                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
-                        conditionConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                     }
+                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
                   }
                });
 
@@ -1111,13 +1080,8 @@ public class Controller implements Initializable {
                   boolean removed = parameterizableForClass.remove(bs1);
                   if (removed) {
                      // remove from config
-                     if (stylingConfig.containsKey(stylerKeysCopy.getValue())) {
-                        stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                        stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                     } else {
-                        conditionConfig.get(stylerKeysCopy.getValue()).clear();
-                        conditionConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                     }
+                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
+                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
                   }
                   if (parameterizableForClass.isEmpty()) {
                      String clazz = stylerKeysCopy.getValue();
@@ -1131,21 +1095,17 @@ public class Controller implements Initializable {
             }
          });
          stylerKeys.setItems(styleClasses);
-         stylerKeysCopy.setItems(styleClasses);
+         stylerKeysCopy.valueProperty().bindBidirectional(stylerKeys.valueProperty());
          stylerKeys.setCellFactory((ListView<String> p) -> new ListCell<String>() {
             @Override
             protected void updateItem(final String t, boolean bln) {
                super.updateItem(t, bln);
-               if (t != null && (stylingConfig.containsKey(t) || conditionConfig.containsKey(t))) {
+               if (t != null && stylingConfig.containsKey(t)) {
                   setText(t);
                   final Tooltip tip = tip("config....");
                   tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
                      try {
-                        if (stylingConfig.containsKey(t)) {
-                           tip.setText(toConfigString(t, stylingConfig.get(t)));
-                        } else {
-                           tip.setText(toConfigString(t, conditionConfig.get(t)));
-                        }
+                        tip.setText(toConfigString(t, stylingConfig.get(t)));
                      } catch (IOException ex) {
                         Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
                      }
@@ -1362,7 +1322,7 @@ public class Controller implements Initializable {
       }
       // check conditions not referenced
       settings.entrySet().stream().forEach((e) -> {
-         if (isCondition(e.getKey(), settings) && !conditionConfig.containsKey(e.getKey())) {
+         if (isCondition(e.getKey(), settings)) {
             Logger.getLogger(Controller.class.getName()).warning(String.format("unreferenced conditions for key: %s", e.getKey()));
             List<StylingCondition> conditions;
             try {
@@ -1370,8 +1330,8 @@ public class Controller implements Initializable {
             } catch (VectorPrintException ex) {
                throw new VectorPrintRuntimeException(ex);
             }
-            conditionConfig.put(e.getKey(), new ArrayList<>(conditions.size()));
-            conditionConfig.get(e.getKey()).addAll(conditions);
+            stylingConfig.put(e.getKey(), new ArrayList<>(conditions.size()));
+            stylingConfig.get(e.getKey()).addAll(conditions);
          }
       });
       commentsAfter.addAll(settings.getTrailingComment());
@@ -1488,10 +1448,10 @@ public class Controller implements Initializable {
          if (bs.getConditions() != null && !bs.getConditions().isEmpty() && !processed.contains(scKey)) {
             for (StylingCondition sc : bs.getConditions()) {
                if (!AbstractStyler.NOT_FROM_CONFIGURATION.equals(sc.getConfigKey()) && scKey.equals(sc.getConfigKey())) {
-                  if (conditionConfig.get(sc.getConfigKey()) == null) {
-                     conditionConfig.put(sc.getConfigKey(), new ArrayList<>(bs.getConditions().size()));
+                  if (stylingConfig.get(sc.getConfigKey()) == null) {
+                     stylingConfig.put(sc.getConfigKey(), new ArrayList<>(bs.getConditions().size()));
                   }
-                  conditionConfig.get(sc.getConfigKey()).add(sc);
+                  stylingConfig.get(sc.getConfigKey()).add(sc);
                   styleClasses.add(scKey);
                   FXCollections.sort(styleClasses);
                }
