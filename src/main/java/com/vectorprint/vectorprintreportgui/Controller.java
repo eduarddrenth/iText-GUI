@@ -386,7 +386,6 @@ public class Controller implements Initializable {
    private void clear(ActionEvent event) {
       parameters.clear();
       parameterizableForClass.clear();
-      styleClasses.clear();
       stylingConfig.clear();
       defaults.clear();
       extraSettings.clear();
@@ -1100,28 +1099,24 @@ public class Controller implements Initializable {
             @Override
             protected void updateItem(final String t, boolean bln) {
                super.updateItem(t, bln);
-               if (t != null && stylingConfig.containsKey(t)) {
+               if (t != null) {
                   setText(t);
                   final Tooltip tip = tip("config....");
-                  tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
-                     try {
-                        tip.setText(toConfigString(t, stylingConfig.get(t)));
-                     } catch (IOException ex) {
-                        Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
-                     }
-                  });
+                  if (stylingConfig.containsKey(t)) {
+                     tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
+                        try {
+                           tip.setText(toConfigString(t, stylingConfig.get(t)));
+                        } catch (IOException ex) {
+                           Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                     });
+                  }
                   setTooltip(tip);
                }
             }
 
          });
          stylerKeysCopy.setCellFactory(stylerKeys.getCellFactory());
-         stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-            if (newValue != null && !"".equals(newValue) && !styleClasses.contains(newValue)) {
-               styleClasses.add(newValue);
-               FXCollections.sort(styleClasses);
-            }
-         });
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
@@ -1285,7 +1280,6 @@ public class Controller implements Initializable {
          if (ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             stylingConfig.put(e.getKey(), new ArrayList<>(1));
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
-            styleClasses.add(e.getKey());
             pdf1a.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.PDFA, Boolean.class));
             toc.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.TOC, Boolean.class));
          } else if (isStyler(e.getKey(), settings)) {
@@ -1298,7 +1292,6 @@ public class Controller implements Initializable {
             } catch (VectorPrintException ex) {
                toError(ex);
             }
-            styleClasses.add(e.getKey());
          } else if (!isCondition(e.getKey(), settings)) {
             if (DefaultStylerFactory.PREANDPOSTSTYLE.equals(e.getKey())) {
                prepost.setSelected(preAndPost);
@@ -1312,7 +1305,6 @@ public class Controller implements Initializable {
                extraSettings.put(e.getKey(), e.getValue()[0]);
             }
          }
-         FXCollections.sort(styleClasses);
       }
       for (Iterator it = extraSettings.entrySet().iterator(); it.hasNext();) {
          Map.Entry<String, String> e = (Map.Entry<String, String>) it.next();
@@ -1452,8 +1444,6 @@ public class Controller implements Initializable {
                      stylingConfig.put(sc.getConfigKey(), new ArrayList<>(bs.getConditions().size()));
                   }
                   stylingConfig.get(sc.getConfigKey()).add(sc);
-                  styleClasses.add(scKey);
-                  FXCollections.sort(styleClasses);
                }
             }
             getDefaults(bs.getConditions(), ((AbstractStyler) bs).getSettings());
