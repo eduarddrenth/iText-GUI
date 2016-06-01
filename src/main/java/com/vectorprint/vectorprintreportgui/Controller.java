@@ -219,9 +219,11 @@ public class Controller implements Initializable {
       stylingConfig.addListener(new MapChangeListener<String, List<Parameterizable>>() {
          @Override
          public void onChanged(MapChangeListener.Change<? extends String, ? extends List<Parameterizable>> change) {
-            if (change.wasAdded() && !styleClasses.contains(change.getKey())) {
-               styleClasses.add(change.getKey());
-               Collections.sort(styleClasses);
+            if (change.wasAdded()) {
+               if (!styleClasses.contains(change.getKey())) {
+                  styleClasses.add(change.getKey());
+                  Collections.sort(styleClasses);
+               }
             } else if (change.wasRemoved()) {
                styleClasses.remove(change.getKey());
             }
