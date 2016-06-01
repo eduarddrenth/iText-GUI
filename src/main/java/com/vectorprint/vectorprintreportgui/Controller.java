@@ -205,14 +205,18 @@ public class Controller implements Initializable {
    }
 
    /* State of the stylesheet */
-   private final Map<String, List<Parameterizable>> stylingConfig = FXCollections.observableMap(new TreeMap<>());
+   private final Map<String, List<Parameterizable>> stylingConfig = new TreeMap<>();
    private final Map<String, List<String>> commentsBefore = new HashMap<>();
    private final List<String> commentsAfter = new ArrayList<>(3);
    private final Set<DefaultValue> defaults = new TreeSet<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
 
    /* State of the GUI */
-   private final ObservableList<String> styleClasses = FXCollections.observableArrayList(stylingConfig.keySet());
+ /* TODO styleClasses should just point to the keys of the map
+      - pass add/remove operations => change listener
+      - show in the gui => binding
+    */
+   private final ObservableList<String> styleClasses = FXCollections.observableArrayList();
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(25));
 
@@ -388,6 +392,7 @@ public class Controller implements Initializable {
       parameterizableForClass.clear();
       stylingConfig.clear();
       defaults.clear();
+      styleClasses.clear();
       extraSettings.clear();
       processed.clear();
       commentsAfter.clear();
@@ -523,6 +528,7 @@ public class Controller implements Initializable {
             });
          });
       }
+      System.out.println(stylingConfig);
       return true;
    }
    private final Button b = new Button("add condition");
@@ -1094,7 +1100,7 @@ public class Controller implements Initializable {
             }
          });
          stylerKeys.setItems(styleClasses);
-         stylerKeysCopy.valueProperty().bindBidirectional(stylerKeys.valueProperty());
+         stylerKeysCopy.setItems(styleClasses);
          stylerKeys.setCellFactory((ListView<String> p) -> new ListCell<String>() {
             @Override
             protected void updateItem(final String t, boolean bln) {
@@ -1117,6 +1123,12 @@ public class Controller implements Initializable {
 
          });
          stylerKeysCopy.setCellFactory(stylerKeys.getCellFactory());
+         stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
+            if (newValue != null && !"".equals(newValue) && !stylingConfig.containsKey(newValue)) {
+               stylingConfig.put(newValue, new ArrayList<>());
+               styleClasses.add(newValue);
+            }
+         });
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
