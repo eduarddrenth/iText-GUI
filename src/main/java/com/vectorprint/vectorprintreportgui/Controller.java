@@ -96,7 +96,9 @@ import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
@@ -205,18 +207,28 @@ public class Controller implements Initializable {
    }
 
    /* State of the stylesheet */
-   private final Map<String, List<Parameterizable>> stylingConfig = new TreeMap<>();
+   private final ObservableMap<String, List<Parameterizable>> stylingConfig = FXCollections.observableMap(new TreeMap<>());
    private final Map<String, List<String>> commentsBefore = new HashMap<>();
    private final List<String> commentsAfter = new ArrayList<>(3);
    private final Set<DefaultValue> defaults = new TreeSet<>();
    private final Map<String, String> extraSettings = new TreeMap<>();
 
-   /* State of the GUI */
- /* TODO styleClasses should just point to the keys of the map
-      - pass add/remove operations => change listener
-      - show in the gui => binding
-    */
    private final ObservableList<String> styleClasses = FXCollections.observableArrayList();
+
+   {
+      stylingConfig.addListener(new MapChangeListener<String, List<Parameterizable>>() {
+         @Override
+         public void onChanged(MapChangeListener.Change<? extends String, ? extends List<Parameterizable>> change) {
+            if (change.wasAdded() && !styleClasses.contains(change.getKey())) {
+               styleClasses.add(change.getKey());
+               Collections.sort(styleClasses);
+            } else if (change.wasRemoved()) {
+               styleClasses.remove(change.getKey());
+            }
+         }
+
+      });
+   }
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
    private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(25));
 
@@ -326,6 +338,7 @@ public class Controller implements Initializable {
          }
       }
       stylingConfig.remove(clazz);
+      styleClasses.remove(clazz);
       commentsBefore.remove(clazz);
       configString.clear();
       parameters.clear();
@@ -392,7 +405,6 @@ public class Controller implements Initializable {
       parameterizableForClass.clear();
       stylingConfig.clear();
       defaults.clear();
-      styleClasses.clear();
       extraSettings.clear();
       processed.clear();
       commentsAfter.clear();
@@ -528,7 +540,6 @@ public class Controller implements Initializable {
             });
          });
       }
-      System.out.println(stylingConfig);
       return true;
    }
    private final Button b = new Button("add condition");
@@ -677,17 +688,8 @@ public class Controller implements Initializable {
       });
 
       for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
-         if (e instanceof StylingCondition) {
-            printComment(e.getKey(), eh);
-            toConfigString(e.getKey(), e.getValue(), eh);
-         }
-      }
-
-      for (Map.Entry<String, List<Parameterizable>> e : stylingConfig.entrySet()) {
-         if (e instanceof BaseStyler) {
-            printComment(e.getKey(), eh);
-            toConfigString(e.getKey(), e.getValue(), eh);
-         }
+         printComment(e.getKey(), eh);
+         toConfigString(e.getKey(), e.getValue(), eh);
       }
 
       extraSettings.entrySet().stream().map((e) -> {
@@ -1126,7 +1128,6 @@ public class Controller implements Initializable {
          stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             if (newValue != null && !"".equals(newValue) && !stylingConfig.containsKey(newValue)) {
                stylingConfig.put(newValue, new ArrayList<>());
-               styleClasses.add(newValue);
             }
          });
 
