@@ -846,7 +846,7 @@ public class Controller implements Initializable {
                protected void updateItem(Parameterizable t, boolean bln) {
                   super.updateItem(t, bln);
                   setText(t == null ? "" : t.getClass().getSimpleName());
-                  setTooltip(t != null ? tip(t.getClass().getName() + ": " + help(t)) : null);
+                  setTooltip(t != null ? tip(help(t)) : null);
                }
             };
          });
