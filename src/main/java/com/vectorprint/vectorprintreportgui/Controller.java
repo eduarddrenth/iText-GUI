@@ -85,7 +85,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
@@ -153,58 +152,6 @@ import org.xml.sax.SAXParseException;
  */
 public class Controller implements Initializable {
 
-   private static class DefaultValue implements Comparable<DefaultValue> {
-
-      private final String clazz, key;
-      private final String value;
-      private final ParameterHelper.SUFFIX suffix;
-
-      public DefaultValue(String clazz, String key, String value, ParameterHelper.SUFFIX suffix) {
-         this.clazz = clazz;
-         this.key = key;
-         this.value = value;
-         this.suffix = suffix;
-      }
-
-      @Override
-      public int compareTo(DefaultValue o) {
-         return (clazz + key).compareTo(o.clazz + o.key);
-      }
-
-      @Override
-      public int hashCode() {
-         int hash = 7;
-         hash = 37 * hash + Objects.hashCode(this.clazz);
-         hash = 37 * hash + Objects.hashCode(this.key);
-         hash = 37 * hash + Objects.hashCode(this.suffix);
-         return hash;
-      }
-
-      @Override
-      public boolean equals(Object obj) {
-         if (this == obj) {
-            return true;
-         }
-         if (obj == null) {
-            return false;
-         }
-         if (getClass() != obj.getClass()) {
-            return false;
-         }
-         final DefaultValue other = (DefaultValue) obj;
-         if (!Objects.equals(this.clazz, other.clazz)) {
-            return false;
-         }
-         if (!Objects.equals(this.key, other.key)) {
-            return false;
-         }
-         if (this.suffix != other.suffix) {
-            return false;
-         }
-         return true;
-      }
-
-   }
 
    /* State of the stylesheet */
    private final ObservableMap<String, List<Parameterizable>> stylingConfig = FXCollections.observableMap(new TreeMap<>());
@@ -684,7 +631,7 @@ public class Controller implements Initializable {
       ParsingProperties eh = new ParsingProperties(new SortedProperties(new Settings()));
       stylesheet.clear();
 
-      defaults.stream().forEach((def) -> {
+      defaults.stream().forEach((DefaultValue def) -> {
          printComment(def.clazz + "." + def.key + '.' + def.suffix.name(), eh);
          eh.put(def.clazz + "." + def.key + '.' + def.suffix.name(), def.value);
       });
