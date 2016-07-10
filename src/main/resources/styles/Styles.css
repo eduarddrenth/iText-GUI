@@ -6,13 +6,13 @@
 .remove {
    -fx-background-radius: 30;
    -fx-text-fill: red;
-   -fx-font-weight: bolder
+   -fx-font-weight: bolder;
 }
 .help {
    -fx-border-color: black;
    -fx-border-width: 1px;
-   -fx-border-style: dotted
+   -fx-border-style: dotted;
 }
-.grayed {
-   -fx-background-color: #eeeeee
+.grayed .content {
+   -fx-background-color: #eeeeee;
 }
