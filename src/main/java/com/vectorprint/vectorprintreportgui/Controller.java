@@ -43,11 +43,9 @@ import com.vectorprint.configuration.decoration.SortedProperties;
 import com.vectorprint.configuration.jaxb.SettingsXMLHelper;
 import com.vectorprint.configuration.parameters.Parameter;
 import com.vectorprint.configuration.parameters.Parameterizable;
-import com.vectorprint.configuration.parameters.annotation.ParamAnnotationProcessor;
 import com.vectorprint.report.ReportConstants;
 import com.vectorprint.report.itext.EventHelper;
 import com.vectorprint.report.itext.Help;
-import com.vectorprint.report.itext.jaxb.Datamappingstype;
 import com.vectorprint.report.itext.mappingconfig.DatamappingHelper;
 import com.vectorprint.report.itext.style.BaseStyler;
 import com.vectorprint.report.itext.style.DefaultStylerFactory;
@@ -62,6 +60,8 @@ import com.vectorprint.report.itext.style.stylers.DocumentSettings;
 import com.vectorprint.report.itext.style.stylers.NewLine;
 import com.vectorprint.report.itext.style.stylers.NewPage;
 import com.vectorprint.report.itext.style.stylers.Padding;
+import com.vectorprint.vectorprintreportgui.xml.SaxParser;
+import com.vectorprint.vectorprintreportgui.xml.XmlContentHandler;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -85,6 +85,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
@@ -101,21 +102,20 @@ import javafx.collections.ObservableMap;
 import javafx.embed.swing.SwingNode;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
@@ -123,28 +123,22 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
-import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
 import javax.swing.JPanel;
-import javax.xml.bind.UnmarshalException;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  *
@@ -195,7 +189,7 @@ public class Controller implements Initializable {
    @FXML
    private TextField xmlconfig;
    @FXML
-   private TextArea datamappingxsd;
+   private TextFlow datamappingxsd;
    @FXML
    private TextField xmlsettings;
    @FXML
@@ -307,7 +301,6 @@ public class Controller implements Initializable {
           || !stylingConfig.containsKey(stylerKeys.getValue())) {
          return;
       }
-      st.hide();
       try {
          pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
       } catch (Exception ex) {
@@ -491,45 +484,14 @@ public class Controller implements Initializable {
       }
       return true;
    }
-   private final Button b = new Button("add condition");
-   private final Label l = new Label("detail message");
-   private final Stage st = new Stage(StageStyle.UTILITY);
-
-   {
-      st.initOwner(StylesheetBuilder.topWindow);
-      st.initModality(Modality.NONE);
-      b.setOnAction(new EventHandler<ActionEvent>() {
-         @Override
-         public void handle(ActionEvent t) {
-            st.hide();
-         }
-      });
-   }
-
-   private String addNewLines(String orig, int linelength) {
-      if (orig == null || orig.length() <= linelength) {
-         return orig;
-      }
-      StringBuilder sb = new StringBuilder(orig.length());
-      int offset = 0;
-      while (offset < orig.length()) {
-         int end = (offset + linelength >= orig.length()) ? orig.length() : offset + linelength;
-         sb.append(orig.substring(offset, end)).append(System.getProperty("line.separator"));
-         offset = end;
-      }
-      return sb.toString();
-   }
 
    private void notify(String buttonText, String title, String details) {
-      l.setText(addNewLines(details, 120));
-      b.setText(buttonText);
-      HBox hb = new HBox(10d);
-      hb.setAlignment(Pos.CENTER);
-      hb.setPadding(new Insets(10));
-      hb.getChildren().addAll(b, l);
-      st.setScene(new Scene(hb));
-      st.setTitle(title);
-      st.show();
+      Dialog<String> dialog = new Dialog<>();
+      dialog.setContentText(details);
+      dialog.setTitle(title);
+      ButtonType bt = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
+      dialog.getDialogPane().getButtonTypes().add(bt);
+      dialog.showAndWait();
    }
 
    private void selectInCombo(Parameterizable par) {
@@ -548,32 +510,37 @@ public class Controller implements Initializable {
       showConfig(null);
    }
 
-   private void pickStylerToConfigure(final List<? extends Parameterizable> stylers) {
+   private static class ParameterizableWrapper {
+
+      private final Parameterizable p;
+
+      public ParameterizableWrapper(Parameterizable p) {
+         this.p = p;
+      }
+
+      @Override
+      public String toString() {
+         return p.getClass().getSimpleName();
+      }
+
+   }
+
+   private void pickStylerToConfigure(final List<Parameterizable> stylers) {
       if (stylers.size() == 1) {
          selectInCombo(stylers.get(0));
          return;
       }
-      ToggleGroup tg = new ToggleGroup();
-      VBox vb = new VBox(10d);
-      Scene sc = new Scene(vb);
-      vb.setPadding(new Insets(20d));
-      int i = -1;
-      for (Parameterizable s : stylers) {
-         RadioButton rb = new RadioButton(s.getClass().getSimpleName());
-         if (s instanceof BaseStyler) {
-            rb.setTooltip(tip(((BaseStyler) s).getHelp()));
-         } else {
-            rb.setTooltip(tip(((StylingCondition) s).getHelp()));
-         }
-         rb.setToggleGroup(tg);
-         vb.getChildren().add(rb);
-         rb.setOnAction((ActionEvent event) -> {
-            selectInCombo(s);
-         });
+      List<ParameterizableWrapper> pw = new ArrayList<>(stylers.size());
+      stylers.stream().forEach((p) -> {
+         pw.add(new ParameterizableWrapper(p));
+      });
+      Dialog<ParameterizableWrapper> dialog = new ChoiceDialog<>(pw.get(0), pw);
+      dialog.setTitle("Please choose");
+      dialog.setContentText("choose the styler or condition you want to configure");
+      Optional<ParameterizableWrapper> choice = dialog.showAndWait();
+      if (choice.isPresent()) {
+         selectInCombo(choice.get().p);
       }
-      st.setScene(sc);
-      st.setTitle("choose styler");
-      st.show();
    }
 
    private String toConfigString(String clazz, List<? extends Parameterizable> sp) throws IOException {
@@ -771,20 +738,15 @@ public class Controller implements Initializable {
 
          // make all stylers and conditions available in the dropdown
          List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
-         for (Parameterizable parameterizable : sorted) {
-            ParamAnnotationProcessor.PAP.initParameters(parameterizable);
-         }
          Collections.sort(sorted, PARAMETERIZABLE_COMPARATOR);
          synchronized (duplicatesAllowed) {
             if (duplicatesAllowed.isEmpty()) {
                duplicatesAllowed.add(Padding.class);
                duplicatesAllowed.add(NewLine.class);
                duplicatesAllowed.add(NewPage.class);
-               for (Parameterizable pz : sorted) {
-                  if (pz instanceof Advanced) {
-                     duplicatesAllowed.add(pz.getClass());
-                  }
-               }
+               sorted.stream().filter((pz) -> (pz instanceof Advanced)).forEach((pz) -> {
+                  duplicatesAllowed.add(pz.getClass());
+               });
             }
          }
          parameterizableCombo.setCellFactory((ListView<Parameterizable> p) -> {
@@ -1085,9 +1047,10 @@ public class Controller implements Initializable {
          help.setText(bo.toString());
          bo.reset();
 
-         IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
-         datamappingxsd.setText(bo.toString());
-         bo.reset();
+//         IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
+         XmlContentHandler xmlContentHandler = new XmlContentHandler();
+         new SaxParser().parse(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), xmlContentHandler);
+         datamappingxsd.getChildren().addAll(xmlContentHandler.getTexts());
 
          IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
          settingsxsd.setText(bo.toString());
@@ -1126,29 +1089,6 @@ public class Controller implements Initializable {
          if (f != null) {
             Files.write(f.toPath(), stylesheet.getText().getBytes());
          }
-      } catch (Exception ex) {
-         toError(ex);
-      }
-   }
-
-   @FXML
-   private void saveXML(ActionEvent event) {
-      try {
-         Datamappingstype fromXML = DatamappingHelper.fromXML(new StringReader(datamappingxsd.getText()));
-         if (fromXML != null) {
-            FileChooser fc = new FileChooser();
-            fc.setTitle("save data mapping xml");
-            File f = fc.showSaveDialog(StylesheetBuilder.topWindow);
-            if (f != null) {
-               Files.write(f.toPath(), datamappingxsd.getText().getBytes());
-            }
-         }
-      } catch (UnmarshalException ex) {
-         Throwable linked = ((UnmarshalException) ex).getLinkedException();
-         if (linked instanceof SAXParseException) {
-            SAXParseException se = (SAXParseException) linked;
-         }
-         toError((linked) != null ? linked : ex);
       } catch (Exception ex) {
          toError(ex);
       }
@@ -1486,8 +1426,8 @@ public class Controller implements Initializable {
 
    @FXML
    private void searchMapping(Event event) {
-      area = datamappingxsd;
-      area.requestFocus();
+//      area = datamappingxsd;
+//      area.requestFocus();
    }
 
    private boolean scroll;

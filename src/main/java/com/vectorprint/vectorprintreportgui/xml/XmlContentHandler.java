@@ -22,23 +22,35 @@ public class XmlContentHandler extends DefaultHandler {
 
    @Override
    public void characters(char[] ch, int start, int length) throws SAXException {
-      super.characters(ch, start, length);
-      Text t = new Text(new String(ch));
+      Text t = new Text(new String(ch).substring(start, start + length));
       texts.add(t);
    }
 
    @Override
    public void endElement(String uri, String localName, String qName) throws SAXException {
-      super.endElement(uri, localName, qName);
-      Text t = new Text('<' + qName + '>');
+      Text t = new Text("</" + qName + '>');
       t.getStyleClass().add("xmlelement");
       texts.add(t);
    }
 
    @Override
    public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-      super.startElement(uri, localName, qName, attributes);
-      Text t = new Text("</" + qName + '>');
+
+      Text t = new Text("<" + qName);
+      t.getStyleClass().add("xmlelement");
+      texts.add(t);
+      for (int i = 0; i < attributes.getLength(); i++) {
+         t = new Text(" " + attributes.getQName(i) + "=\"");
+         t.getStyleClass().add("xmlattribute");
+         texts.add(t);
+         t = new Text(attributes.getValue(i));
+         texts.add(t);
+         t = new Text("\"");
+         t.getStyleClass().add("xmlattribute");
+         texts.add(t);
+
+      }
+      t = new Text(">");
       t.getStyleClass().add("xmlelement");
       texts.add(t);
    }

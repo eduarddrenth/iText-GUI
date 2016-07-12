@@ -16,3 +16,9 @@
 .grayed .content {
    -fx-background-color: #eeeeee;
 }
+.xmlelement {
+   -fx-fill: blue;
+}
+.xmlattribute {
+   -fx-fill: green;
+}

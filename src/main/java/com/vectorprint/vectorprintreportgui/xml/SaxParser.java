@@ -5,8 +5,6 @@
  */
 package com.vectorprint.vectorprintreportgui.xml;
 
-import java.util.List;
-import javafx.scene.text.Text;
 import javax.xml.parsers.SAXParser;
 import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
@@ -57,7 +55,4 @@ public class SaxParser extends SAXParser {
       throw new UnsupportedOperationException("Not supported yet.");
    }
 
-   public List<Text> getTexts() {
-      return ((XmlContentHandler) reader.getContentHandler()).getTexts();
-   }
 }
