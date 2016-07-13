@@ -487,6 +487,7 @@ public class Controller implements Initializable {
       Dialog<String> dialog = new Dialog<>();
       dialog.setContentText(details);
       dialog.setTitle(title);
+      dialog.setResizable(true);
       ButtonType bt = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
       dialog.getDialogPane().getButtonTypes().add(bt);
       dialog.showAndWait();
@@ -533,7 +534,12 @@ public class Controller implements Initializable {
          pw.add(new ParameterizableWrapper(p));
       });
       Dialog<ParameterizableWrapper> dialog = new ChoiceDialog<>(pw.get(0), pw);
+      ButtonType bt = new ButtonType("choose", ButtonBar.ButtonData.OK_DONE);
+      dialog.getDialogPane().getButtonTypes().clear();
+      dialog.getDialogPane().getButtonTypes().add(bt);
       dialog.setTitle("Please choose");
+      dialog.setHeaderText(null);
+      dialog.setResizable(true);
       dialog.setContentText("choose the styler or condition you want to configure");
       Optional<ParameterizableWrapper> choice = dialog.showAndWait();
       if (choice.isPresent()) {
