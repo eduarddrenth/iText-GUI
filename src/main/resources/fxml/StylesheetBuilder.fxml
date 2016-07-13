@@ -138,12 +138,12 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab onSelectionChanged="#searchMapping" text="xsd data mapping">
+            <Tab text="xsd data mapping">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
                         <ScrollPane AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="60.0">
-                           <TextFlow fx:id="datamappingxsd" layoutY="66.0" onKeyPressed="#searchTxt" onKeyReleased="#scroll" prefHeight="670.0" prefWidth="1134.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="60.0">
+                           <TextFlow fx:id="datamappingxsd" layoutY="66.0" prefHeight="670.0" prefWidth="1134.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="60.0">
                            </TextFlow>
                         </ScrollPane>
                         <Button layoutX="935.0" layoutY="22.0" mnemonicParsing="false" onAction="#validateDataMappingXml" prefHeight="26.0" prefWidth="75.0" text="validate">
@@ -161,7 +161,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab onSelectionChanged="#searchSettings" text="settings xsd">
+            <Tab text="settings xsd">
                <content>
                   <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -200,7 +200,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab fx:id="helpTab" closable="false" onSelectionChanged="#searchHelp" text="help">
+            <Tab fx:id="helpTab" closable="false" text="help">
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>
@@ -213,7 +213,7 @@
                   </AnchorPane>
                </content>
             </Tab>
-            <Tab closable="false" onSelectionChanged="#searchError" text="errors">
+            <Tab closable="false" text="errors">
                <content>
                   <AnchorPane id="Content" minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                      <children>

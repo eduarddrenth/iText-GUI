@@ -22,3 +22,6 @@
 .xmlattribute {
    -fx-fill: green;
 }
+.error {
+   -fx-border-color: red;
+}

@@ -25,7 +25,6 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.steadystate.css.parser.SACParser;
 import com.vectorprint.ArrayHelper;
-import com.vectorprint.ClassHelper;
 import com.vectorprint.IOHelper;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
@@ -71,7 +70,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -707,17 +705,7 @@ public class Controller implements Initializable {
             }
             URLClassLoader urlClassLoader = new URLClassLoader(u, orig);
             Thread.currentThread().setContextClassLoader(urlClassLoader);
-            List<Parameterizable> sorted = new ArrayList<>();
-            for (Class<?> c : ClassHelper.fromPackage(AbstractStyler.class.getPackage(), urlClassLoader)) {
-               if (AbstractStyler.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                  sorted.add((Parameterizable) c.newInstance());
-               }
-            }
-            for (Class<?> c : ClassHelper.fromPackage(AbstractCondition.class.getPackage(), urlClassLoader)) {
-               if (AbstractCondition.class.isAssignableFrom(c) && !Modifier.isAbstract(c.getModifiers())) {
-                  sorted.add((Parameterizable) c.newInstance());
-               }
-            }
+            List<Parameterizable> sorted = new ArrayList<>(Help.getStylersAndConditions());
             Collections.sort(sorted, PARAMETERIZABLE_COMPARATOR);
             parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
 
@@ -860,17 +848,18 @@ public class Controller implements Initializable {
                      setGraphic(comboBox);
                   } else if (java.awt.Color.class.equals(valueClass)) {
                      java.awt.Color col = (java.awt.Color) item.getP().getValue();
-                     final ColorPicker cp = col == null ? new ColorPicker() : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
+                     final ColorPicker cp = col == null ? new ColorPicker()
+                         : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
                      cp.valueProperty().addListener(item);
                      setGraphic(cp);
                   } else {
                      final TextField textField = new TextField(item.getValue());
                      textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-                        textField.setStyle(null);
+                        textField.getStyleClass().remove("error");
                         try {
                            item.setValue(newValue);
                         } catch (Exception e) {
-                           textField.setStyle("-fx-border-color: red");
+                           textField.getStyleClass().add("error");
                            writeStackTrace(e);
                         }
                      });
@@ -1404,36 +1393,15 @@ public class Controller implements Initializable {
    @FXML
    private Label search;
 
-   private TextArea area;
-
-   @FXML
-   private void searchHelp(Event event) {
-      area = help;
-      area.requestFocus();
-   }
-
-   @FXML
-   private void searchError(Event event) {
-      area = error;
-      area.requestFocus();
-   }
-
-   @FXML
-   private void searchSettings(Event event) {
-      area = settingsxsd;
-      area.requestFocus();
-   }
-
-   @FXML
-   private void searchMapping(Event event) {
-//      area = datamappingxsd;
-//      area.requestFocus();
-   }
-
    private boolean scroll;
 
    @FXML
    private void searchTxt(KeyEvent event) {
+      Object source = event.getSource();
+      if (!(source instanceof TextArea)) {
+         return;
+      }
+      TextArea area = (TextArea) source;
       KeyCode kc = event.getCode();
 
       scroll = false;
@@ -1487,12 +1455,21 @@ public class Controller implements Initializable {
    @FXML
    private void scroll(KeyEvent event) {
       if (scroll) {
-         area.setScrollTop(area.getScrollTop() + 20);
+         Object source = event.getSource();
+         if (source instanceof TextArea) {
+            TextArea area = (TextArea) source;
+            area.setScrollTop(area.getScrollTop() + 20);
+         }
       }
    }
 
    @FXML
    private void toggleSearch(KeyEvent event) {
+      Object source = event.getSource();
+      if (!(source instanceof TextArea)) {
+         return;
+      }
+      TextArea area = (TextArea) source;
       if (event.isControlDown() && KeyCode.F == event.getCode()) {
          // start search in stylesheet
          if (stylesheet.equals(area) && !area.isEditable()) {
