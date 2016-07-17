@@ -17,7 +17,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class SaxParser extends SAXParser {
+class SaxParser extends SAXParser {
 
    private final XMLReader reader;
 

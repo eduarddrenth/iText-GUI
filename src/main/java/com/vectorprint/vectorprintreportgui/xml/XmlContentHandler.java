@@ -16,14 +16,16 @@ import org.xml.sax.helpers.DefaultHandler;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class XmlContentHandler extends DefaultHandler {
+class XmlContentHandler extends DefaultHandler {
 
    private final List<Text> texts = new ArrayList<>(100);
+   private final StringBuilder text = new StringBuilder();
 
    @Override
    public void characters(char[] ch, int start, int length) throws SAXException {
       Text t = new Text(new String(ch).substring(start, start + length));
       texts.add(t);
+      text.append(t.getText());
    }
 
    @Override
@@ -31,6 +33,7 @@ public class XmlContentHandler extends DefaultHandler {
       Text t = new Text("</" + qName + '>');
       t.getStyleClass().add("xmlelement");
       texts.add(t);
+      text.append(t.getText());
    }
 
    @Override
@@ -39,24 +42,32 @@ public class XmlContentHandler extends DefaultHandler {
       Text t = new Text("<" + qName);
       t.getStyleClass().add("xmlelement");
       texts.add(t);
+      text.append(t.getText());
       for (int i = 0; i < attributes.getLength(); i++) {
          t = new Text(" " + attributes.getQName(i) + "=\"");
          t.getStyleClass().add("xmlattribute");
          texts.add(t);
+         text.append(t.getText());
          t = new Text(attributes.getValue(i));
          texts.add(t);
          t = new Text("\"");
          t.getStyleClass().add("xmlattribute");
          texts.add(t);
+         text.append(t.getText());
 
       }
       t = new Text(">");
       t.getStyleClass().add("xmlelement");
       texts.add(t);
+      text.append(t.getText());
    }
 
    public List<Text> getTexts() {
       return texts;
+   }
+
+   public String getText() {
+      return text.toString();
    }
 
 }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
+   <Label fx:id="searchText" />
+   <ToggleButton text="search" fx:id="findMode" AnchorPane.rightAnchor="5" >
+      <tooltip>
+         <Tooltip text="toggle search / edit mode" />
+      </tooltip>
+   </ToggleButton>
+
+   <TextArea fx:id="text" onKeyTyped="#ignore"  onKeyPressed="#searchOrEdit" onKeyReleased="#scroll" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="30">
+      <tooltip>
+         <Tooltip text="type Ctrl-f to search (supports F3, backspace and escape)"/>
+      </tooltip>
+   </TextArea>
+</fx:root>

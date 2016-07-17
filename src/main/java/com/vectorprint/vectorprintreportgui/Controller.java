@@ -25,7 +25,6 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.steadystate.css.parser.SACParser;
 import com.vectorprint.ArrayHelper;
-import com.vectorprint.IOHelper;
 import com.vectorprint.VectorPrintException;
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
@@ -59,8 +58,8 @@ import com.vectorprint.report.itext.style.stylers.DocumentSettings;
 import com.vectorprint.report.itext.style.stylers.NewLine;
 import com.vectorprint.report.itext.style.stylers.NewPage;
 import com.vectorprint.report.itext.style.stylers.Padding;
-import com.vectorprint.vectorprintreportgui.xml.SaxParser;
-import com.vectorprint.vectorprintreportgui.xml.XmlContentHandler;
+import com.vectorprint.vectorprintreportgui.text.SearchableTextArea;
+import com.vectorprint.vectorprintreportgui.xml.XmlArea;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -119,7 +118,6 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -127,7 +125,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
-import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
@@ -187,11 +184,11 @@ public class Controller implements Initializable {
    @FXML
    private TextField xmlconfig;
    @FXML
-   private TextFlow datamappingxsd;
+   private XmlArea datamappingxsd;
    @FXML
    private TextField xmlsettings;
    @FXML
-   private TextArea settingsxsd;
+   private XmlArea settingsxsd;
    @FXML
    private ComboBox<Class<? extends EnhancedMapBindingFactory>> settingsfactory;
    @FXML
@@ -209,16 +206,16 @@ public class Controller implements Initializable {
    @FXML
    private CheckBox prepost;
    @FXML
-   private TextArea stylesheet;
+   private SearchableTextArea stylesheet;
    @FXML
    private Tab pdftab;
    @FXML
    private SwingNode pdfpane;
    private SwingController controller;
    @FXML
-   private TextArea help;
+   private SearchableTextArea help;
    @FXML
-   private TextArea error;
+   private SearchableTextArea error;
    @FXML
    private Label stylerHelp;
    @FXML
@@ -384,8 +381,8 @@ public class Controller implements Initializable {
    private void writeStackTrace(Throwable ex) {
       StringWriter sw = new StringWriter(1024);
       ex.printStackTrace(new PrintWriter(sw));
-      error.clear();
-      error.setText(sw.toString());
+      error.getText().clear();
+      error.getText().setText(sw.toString());
    }
 
    private void toError(Throwable ex) {
@@ -600,7 +597,7 @@ public class Controller implements Initializable {
 
    private EnhancedMap buildSettings() throws IOException {
       ParsingProperties eh = new ParsingProperties(new SortedProperties(new Settings()));
-      stylesheet.clear();
+      stylesheet.getText().clear();
 
       defaults.stream().forEach((DefaultValue def) -> {
          printComment(def.clazz + "." + def.key + '.' + def.suffix.name(), eh);
@@ -627,7 +624,7 @@ public class Controller implements Initializable {
          EnhancedMap eh = buildSettings();
          StringWriter sw = new StringWriter(eh.size() * 30);
          SettingsBindingService.getInstance().getFactory().getSerializer().serialize(eh, sw);
-         stylesheet.appendText(sw.toString());
+         stylesheet.getText().appendText(sw.toString());
 
          styleTab.getTabPane().getSelectionModel().select(styleTab);
       } catch (Exception ex) {
@@ -809,8 +806,8 @@ public class Controller implements Initializable {
                setTooltip(tip(item + " (click for help)"));
                setOnMouseClicked((MouseEvent event) -> {
                   Parameterizable p = parameterizableCombo.getValue();
-                  searchArea(help, p.getClass().getSimpleName() + ": ", false);
-                  searchArea(help, "key=" + item, false);
+                  help.searchArea(p.getClass().getSimpleName() + ": ", false);
+                  help.searchArea("key=" + item, false);
                   helpTab.getTabPane().getSelectionModel().select(helpTab);
                   help.requestFocus();
                });
@@ -1039,16 +1036,12 @@ public class Controller implements Initializable {
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
-         help.setText(bo.toString());
+         help.getText().setText(bo.toString());
          bo.reset();
 
-//         IOHelper.load(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), bo);
-         XmlContentHandler xmlContentHandler = new XmlContentHandler();
-         new SaxParser().parse(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD), xmlContentHandler);
-         datamappingxsd.getChildren().addAll(xmlContentHandler.getTexts());
+         datamappingxsd.loadXml(DatamappingHelper.class.getResourceAsStream(DatamappingHelper.XSD));
 
-         IOHelper.load(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD), bo);
-         settingsxsd.setText(bo.toString());
+         settingsxsd.loadXml(DatamappingHelper.class.getResourceAsStream(SettingsXMLHelper.XSD));
 
          // build a controller
          controller = new SwingController();
@@ -1082,7 +1075,7 @@ public class Controller implements Initializable {
          fc.setTitle("save stylesheet");
          File f = fc.showSaveDialog(StylesheetBuilder.topWindow);
          if (f != null) {
-            Files.write(f.toPath(), stylesheet.getText().getBytes());
+            Files.write(f.toPath(), stylesheet.getText().getText().getBytes());
          }
       } catch (Exception ex) {
          toError(ex);
@@ -1093,7 +1086,7 @@ public class Controller implements Initializable {
    private void testStylesheet(ActionEvent event) {
       try {
          StylesheetTester stylesheetTester = new StylesheetTester(this);
-         stylesheetTester.testStyleSheet(stylesheet.getText());
+         stylesheetTester.testStyleSheet(stylesheet.getText().getText());
       } catch (Exception ex) {
          toError(ex);
       }
@@ -1397,109 +1390,6 @@ public class Controller implements Initializable {
    }
 
    @FXML
-   private Label search;
-
-   private boolean scroll;
-
-   @FXML
-   private void searchTxt(KeyEvent event) {
-      Object source = event.getSource();
-      if (!(source instanceof TextArea)) {
-         return;
-      }
-      TextArea area = (TextArea) source;
-      KeyCode kc = event.getCode();
-
-      scroll = false;
-      search.setTextFill(Color.BLACK);
-      String s = search.getText();
-      boolean again = false;
-
-      if (kc.isLetterKey() || kc.isDigitKey() || kc.isWhitespaceKey()) {
-         s += event.getText();
-      } else {
-         switch (kc) {
-            case BACK_SPACE:
-               if (s.length() > 0) {
-                  s = s.substring(0, s.length() - 1);
-               }
-            case F3:
-               // search again
-               again = true;
-               break;
-            default:
-               // ignore
-               return;
-         }
-      }
-      search.setText(s);
-      if (s.length() == 0) {
-         return;
-      }
-
-      search.setTextFill(searchArea(area, s, again) ? Color.GREEN : Color.RED);
-   }
-
-   private boolean searchArea(TextArea area, String s, boolean again) {
-      String contents = area.getText();
-      int pos = again ? area.getCaretPosition() : area.getCaretPosition() - s.length() - 1;
-      boolean noBackspace = area.getSelection().getLength() < s.length();
-      if (contents.indexOf(s, pos) != -1) {
-         area.selectRange(contents.indexOf(s, pos), contents.indexOf(s, pos) + s.length());
-         if (noBackspace && area.getCaretPosition() != pos + s.length() + 2) {
-            scroll = true;
-         }
-      } else if (contents.contains(s)) {
-         // wrap
-         area.selectRange(contents.indexOf(s), contents.indexOf(s) + s.length());
-      } else {
-         return false;
-      }
-      return true;
-   }
-
-   @FXML
-   private void scroll(KeyEvent event) {
-      if (scroll) {
-         Object source = event.getSource();
-         if (source instanceof TextArea) {
-            TextArea area = (TextArea) source;
-            area.setScrollTop(area.getScrollTop() + 20);
-         }
-      }
-   }
-
-   @FXML
-   private void toggleSearch(KeyEvent event) {
-      Object source = event.getSource();
-      if (!(source instanceof TextArea)) {
-         return;
-      }
-      TextArea area = (TextArea) source;
-      if (event.isControlDown() && KeyCode.F == event.getCode()) {
-         // start search in stylesheet
-         if (stylesheet.equals(area) && !area.isEditable()) {
-            // stop searching
-            area.setEditable(true);
-            area.getStyleClass().remove("grayed");
-            search.setText("");
-         } else {
-            // start searching
-            area = stylesheet;
-            area.getStyleClass().add("grayed");
-            area.setEditable(false);
-         }
-      } else if (KeyCode.ESCAPE == event.getCode()) {
-         // stop searching
-         area.setEditable(true);
-         area.getStyleClass().remove("grayed");
-         search.setText("");
-      } else if (stylesheet.equals(area) && !area.isEditable()) {
-         searchTxt(event);
-      }
-   }
-
-   @FXML
    private void showParHelp(Event event) {
       if (event instanceof KeyEvent) {
          KeyCode kc = ((KeyEvent) event).getCode();
@@ -1508,7 +1398,7 @@ public class Controller implements Initializable {
          }
       }
       if (parameterizableCombo.getValue() != null) {
-         searchArea(help, parameterizableCombo.getValue().getClass().getSimpleName() + ": ", false);
+         help.searchArea(parameterizableCombo.getValue().getClass().getSimpleName() + ": ", false);
          helpTab.getTabPane().getSelectionModel().select(helpTab);
          help.requestFocus();
       } else {
@@ -1536,4 +1426,5 @@ public class Controller implements Initializable {
       int blue = (int) (color.getBlue() * 255);
       return "#" + Integer.toHexString(red) + Integer.toHexString(green) + Integer.toHexString(blue);
    }
+
 }
