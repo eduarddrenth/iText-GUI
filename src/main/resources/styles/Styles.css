@@ -26,5 +26,9 @@
    -fx-border-color: red;
 }
 .xmlareatabs .tab-header-background {
-   -fx-background-color: #00000022
+   -fx-background-color: #00000008;
+}
+.xmlareatabs {
+   -fx-border-color: #00000008;
+   -fx-border-width: 2px
 }
