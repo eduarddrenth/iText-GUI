@@ -1340,16 +1340,6 @@ public class Controller implements Initializable {
       Platform.exit();
    }
 
-   private Parameterizable findDocStyler() {
-      List<Parameterizable> its = parameterizableCombo.getItems();
-      for (Parameterizable p : its) {
-         if (p instanceof DocumentStyler) {
-            return p;
-         }
-      }
-      return null;
-   }
-
    @FXML
    private void toggleFooter(ActionEvent event) {
       extraSettings.put(ReportConstants.PRINTFOOTER, String.valueOf(footer.isSelected()));
