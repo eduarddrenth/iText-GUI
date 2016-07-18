@@ -38,11 +38,11 @@ import javafx.stage.StageStyle;
  */
 public class StylesheetBuilder extends Application {
 
-   static Stage topWindow;
+   private double xOffset = 0;
+   private double yOffset = 0;
 
    @Override
    public void start(final Stage stage) throws Exception {
-      topWindow = stage;
       Parent root = null;
       try {
          root = FXMLLoader.load(getClass().getResource("/fxml/StylesheetBuilder.fxml"));
