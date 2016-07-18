@@ -126,7 +126,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import javafx.util.Callback;
 import javafx.util.StringConverter;
@@ -666,26 +665,6 @@ public class Controller implements Initializable {
           ? ((BaseStyler) p).getHelp()
           : ((StylingCondition) p).getHelp() : "";
    }
-// records relative x and y co-ordinates.
-
-   private static class Delta {
-
-      double x, y;
-   }
-
-   private final Delta dragDelta = new Delta();
-   private final Stage parent = StylesheetBuilder.topWindow;
-
-   public void dragStart(MouseEvent mouseEvent) {
-      // record a delta distance for the drag and drop operation.
-      dragDelta.x = parent.getX() - mouseEvent.getScreenX();
-      dragDelta.y = parent.getY() - mouseEvent.getScreenY();
-   }
-
-   public void dragged(MouseEvent mouseEvent) {
-      parent.setX(mouseEvent.getScreenX() + dragDelta.x);
-      parent.setY(mouseEvent.getScreenY() + dragDelta.y);
-   }
 
    private static String helpFor(Parameterizable p) {
       return p instanceof BaseStyler ? (((BaseStyler) p).creates() ? "creates iText element " : "") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
@@ -699,7 +678,7 @@ public class Controller implements Initializable {
          fc.setTitle("add jar");
          FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Jar files (*.jar)", "*.jar", "*.JAR", "*.Jar");
          fc.getExtensionFilters().add(extensionFilter);
-         List<File> l = fc.showOpenMultipleDialog(StylesheetBuilder.topWindow);
+         List<File> l = fc.showOpenMultipleDialog(null);
          if (l != null) {
             URL[] u = new URL[l.size()];
             int i = -1;
@@ -1073,7 +1052,7 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("save stylesheet");
-         File f = fc.showSaveDialog(StylesheetBuilder.topWindow);
+         File f = fc.showSaveDialog(null);
          if (f != null) {
             Files.write(f.toPath(), stylesheet.getText().getText().getBytes());
          }
@@ -1225,7 +1204,7 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("import stylesheet");
-         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
+         File f = fc.showOpenDialog(null);
          if (f != null && f.canRead()) {
             importStyle(new ParsingProperties(new SortedProperties(new Settings()), f.getPath()));
          }
@@ -1241,7 +1220,7 @@ public class Controller implements Initializable {
          fc.setTitle("import css");
          FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Css files (*.css)", "*.css", "*.CSS", "*.Css");
          fc.getExtensionFilters().add(extensionFilter);
-         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
+         File f = fc.showOpenDialog(null);
          if (f != null && f.canRead()) {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
@@ -1260,7 +1239,7 @@ public class Controller implements Initializable {
          fc.setTitle("open pdf");
          FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Pdf files (*.pdf)", "*.pdf", "*.PDF", "*.Pdf");
          fc.getExtensionFilters().add(extensionFilter);
-         File f = fc.showOpenDialog(StylesheetBuilder.topWindow);
+         File f = fc.showOpenDialog(null);
          if (f != null && f.canRead()) {
             openPdf(new FileInputStream(f), f.getPath());
          }
