@@ -50,6 +50,7 @@ class XmlContentHandler extends DefaultHandler {
          text.append(t.getText());
          t = new Text(attributes.getValue(i));
          texts.add(t);
+         text.append(t.getText());
          t = new Text("\"");
          t.getStyleClass().add("xmlattribute");
          texts.add(t);
