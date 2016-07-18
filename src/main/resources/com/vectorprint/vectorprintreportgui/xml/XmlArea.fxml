@@ -11,17 +11,17 @@
 <?import javafx.scene.text.TextFlow?>
 <?import com.vectorprint.vectorprintreportgui.text.SearchableTextArea?>
 
-<fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
 
-   <TabPane tabClosingPolicy="UNAVAILABLE"  styleClass="xmlareatabs" AnchorPane.topAnchor="12" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" >
-      <Tab text="xml text (searchable)" >
-         <SearchableTextArea fx:id="searchText" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
-      </Tab>
-      <Tab text="xml highlighted" >
-         <ScrollPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-            <TextFlow fx:id="xmlhighlight" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
-            </TextFlow>
-         </ScrollPane>
-      </Tab>
-   </TabPane>
-</fx:root>
+<!--TODO make this TabPane becomes a custom component (wrap it). Also prevent closing tabs -->
+<TabPane styleClass="xmlareatabs" AnchorPane.topAnchor="12" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" >
+   <Tab text="xml text (searchable)" >
+      <SearchableTextArea fx:id="searchText" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
+   </Tab>
+   <Tab text="xml highlighted" >
+      <ScrollPane AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <TextFlow fx:id="xmlhighlight" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         </TextFlow>
+      </ScrollPane>
+   </Tab>
+</TabPane>
+

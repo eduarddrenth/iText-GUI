@@ -676,8 +676,8 @@ public class Controller implements Initializable {
       try {
          FileChooser fc = new FileChooser();
          fc.setTitle("add jar");
-         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Jar files (*.jar)", "*.jar", "*.JAR", "*.Jar");
-         fc.getExtensionFilters().add(extensionFilter);
+
+         // TODO make this file chooser only look for jar files
          List<File> l = fc.showOpenMultipleDialog(null);
          if (l != null) {
             URL[] u = new URL[l.size()];
@@ -724,8 +724,7 @@ public class Controller implements Initializable {
                @Override
                protected void updateItem(Parameterizable t, boolean bln) {
                   super.updateItem(t, bln);
-                  setText(t == null ? "" : t.getClass().getSimpleName());
-                  setTooltip(t != null ? tip(help(t)) : null);
+                  // TODO show some text in the list and a tooltip
                }
             };
          });
@@ -743,13 +742,13 @@ public class Controller implements Initializable {
                return p;
             }
          });
-         parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
+         // TODO make parameterizableCombo use sorted as its model
 
          stylerKeys.setPromptText("required!");
          parameterTable.setItems(parameters);
          parameterizableTable.setItems(parameterizableForClass);
 
-         pDeclaringClass.setCellValueFactory(new PropertyValueFactory<>("declaringClass"));
+         // TODO make pDeclaringClass use the correct property from ParameterProps as its cell value
          pDeclaringClass.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
             protected void updateItem(String t, boolean bln) {
@@ -850,8 +849,8 @@ public class Controller implements Initializable {
                }
 
                private void bindToCheckbox(final CheckBox child, final ParameterProps item, CheckBox master) {
-                  child.selectedProperty().bindBidirectional(master.selectedProperty());
-                  child.selectedProperty().addListener(item);
+                  // TODO make sure that whenever child changes master changes as well and vise versa
+                  // TODO make sure item is notified of changes in child
                }
 
             };

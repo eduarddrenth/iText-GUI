@@ -60,7 +60,11 @@
                            </tooltip>
                         </Button>
                         <Button layoutX="783.0" layoutY="92.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
-                        <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="193.0" prefHeight="532.0" prefWidth="1008.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="193.0">
+                        <TableView fx:id="parameterTable" editable="true" layoutX="28.0" layoutY="193.0" prefHeight="532.0" prefWidth="1008.0" >
+                           <!-- TODO
+                           make sure the tableview is resized nicely when the window is resized
+                           top, right, bottom left
+                           -->
                            <columns>
                               <TableColumn fx:id="pKey" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="102.0" text="key" />
                               <TableColumn fx:id="pType" editable="false" maxWidth="5000.0" minWidth="10.0" prefWidth="136.0" text="type" />
@@ -197,7 +201,7 @@
             </Tab>
             <Tab closable="false" text="errors">
                <content>
-                  <SearchableTextArea fx:id="error" AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0" />
+                  <!-- TODO add a resizable SearchableTextArea with id error-->
                </content>
             </Tab>
          </tabs>
@@ -213,9 +217,7 @@
                      </accelerator>
                   </MenuItem>
                   <MenuItem onAction="#importStyle" text="Import">
-                     <accelerator>
-                        <KeyCodeCombination alt="UP" code="I" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                     </accelerator>
+                     <!-- TODO make Ctrl-i execute this MenuItem's action-->
                   </MenuItem>
                   <MenuItem onAction="#importCss" text="Import css">
                      <accelerator>

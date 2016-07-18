@@ -25,9 +25,8 @@
 .error {
    -fx-border-color: red;
 }
-.xmlareatabs .tab-header-background {
-   -fx-background-color: #00000008;
-}
+/* TODO give the top of the tabpane identified by .xmlareatabs (with the tabs) a background color #00000008
+*/
 .xmlareatabs {
    -fx-border-color: #00000008;
    -fx-border-width: 2px
