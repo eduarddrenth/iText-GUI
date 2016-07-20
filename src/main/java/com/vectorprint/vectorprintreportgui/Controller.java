@@ -50,7 +50,6 @@ import com.vectorprint.report.itext.style.DefaultStylerFactory;
 import com.vectorprint.report.itext.style.DocumentStyler;
 import com.vectorprint.report.itext.style.StylerFactoryHelper;
 import com.vectorprint.report.itext.style.StylingCondition;
-import com.vectorprint.report.itext.style.conditions.AbstractCondition;
 import com.vectorprint.report.itext.style.css.CssTransformer;
 import com.vectorprint.report.itext.style.stylers.AbstractStyler;
 import com.vectorprint.report.itext.style.stylers.Advanced;
@@ -66,7 +65,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.MalformedURLException;
@@ -90,7 +88,9 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectWrapper;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -107,7 +107,6 @@ import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceDialog;
-import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -120,14 +119,10 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
-import javafx.util.Callback;
 import javafx.util.StringConverter;
 import javax.swing.JPanel;
 import org.icepdf.ri.common.SwingController;
@@ -167,10 +162,12 @@ public class Controller implements Initializable {
       });
    }
    private final ObservableList<Parameterizable> parameterizableForClass = FXCollections.observableArrayList(new ArrayList<Parameterizable>(3));
-   private final ObservableList<ParameterProps> parameters = FXCollections.observableArrayList(new ArrayList<ParameterProps>(25));
 
    /* parameterizables in this set can be used more then once for a styleClass */
    private static final Set<Class<? extends Parameterizable>> duplicatesAllowed = new HashSet();
+
+   @FXML
+   private TableViewController tableViewController;
 
    @FXML
    private ComboBox<Parameterizable> parameterizableCombo;
@@ -178,8 +175,6 @@ public class Controller implements Initializable {
    private ComboBox<String> stylerKeys;
    @FXML
    private ComboBox<String> stylerKeysCopy;
-   @FXML
-   private TextField configString;
    @FXML
    private TextField xmlconfig;
    @FXML
@@ -221,18 +216,6 @@ public class Controller implements Initializable {
    private Tab styleTab;
    @FXML
    private Tab helpTab;
-   @FXML
-   private TableView<ParameterProps> parameterTable;
-   @FXML
-   private TableColumn<ParameterProps, String> pKey;
-   @FXML
-   private TableColumn<ParameterProps, ParameterProps> pValue;
-   @FXML
-   private TableColumn<ParameterProps, String> pType;
-   @FXML
-   private TableColumn<ParameterProps, ParameterProps> pDefault;
-   @FXML
-   private TableColumn<ParameterProps, String> pDeclaringClass;
    @FXML
    private TableView<Parameterizable> parameterizableTable;
    @FXML
@@ -277,8 +260,8 @@ public class Controller implements Initializable {
       stylingConfig.remove(clazz);
       styleClasses.remove(clazz);
       commentsBefore.remove(clazz);
-      configString.clear();
-      parameters.clear();
+      tableViewController.getConfigString().clear();
+      tableViewController.getParameters().clear();
       parameterizableForClass.clear();
    }
 
@@ -298,7 +281,7 @@ public class Controller implements Initializable {
       try {
          pickStylerToConfigure(stylingConfig.get(stylerKeys.getValue()));
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -310,34 +293,34 @@ public class Controller implements Initializable {
       }
 
       try {
-         currentParameterizable = (parameterizableCombo.getValue() instanceof DocumentStyler) ? parameterizableCombo.getValue() : parameterizableCombo.getValue().clone();
+         currentParameterizable.set((parameterizableCombo.getValue() instanceof DocumentStyler) ? parameterizableCombo.getValue() : parameterizableCombo.getValue().clone());
       } catch (NullPointerException e) {
          e.printStackTrace();
       }
-      if (currentParameterizable instanceof DocumentSettings) {
+      if (currentParameterizable.get() instanceof DocumentSettings) {
          chooseOrAdd(ReportConstants.DOCUMENTSETTINGS);
       }
-      parameters.clear();
+      tableViewController.getParameters().clear();
       try {
          Parameterizable _st = parameterizableCombo.getValue();
          stylerHelp.setText((_st instanceof BaseStyler) ? ((BaseStyler) _st).getHelp() : "condition to determine when to style or not");
          _st.getParameters().values().stream().forEach((p) -> {
-            parameters.add(new ParameterProps(p));
+            tableViewController.getParameters().add(new ParameterProps(p));
          });
-         FXCollections.sort(parameters);
+         FXCollections.sort(tableViewController.getParameters());
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
       showStylerHelp(event);
    }
    /*
    the currently item to be configured
     */
-   private Parameterizable currentParameterizable;
+   public final ObjectProperty<Parameterizable> currentParameterizable = new SimpleObjectProperty<>();
 
    @FXML
    private void clear(ActionEvent event) {
-      parameters.clear();
+      tableViewController.getParameters().clear();
       parameterizableForClass.clear();
       stylingConfig.clear();
       defaults.clear();
@@ -365,28 +348,16 @@ public class Controller implements Initializable {
          return;
       }
       try {
-         parameters.stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
-            Parameter p = currentParameterizable.getParameters().get(pp.getKey());
+         tableViewController.getParameters().stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
+            Parameter p = currentParameterizable.get().getParameters().get(pp.getKey());
             p.setValue(pp.getP().getValue());
          });
          StringWriter sw = new StringWriter();
-         ParamBindingService.getInstance().getFactory().getSerializer().serialize(currentParameterizable, sw);
-         configString.setText(sw.toString());
+         ParamBindingService.getInstance().getFactory().getSerializer().serialize(currentParameterizable.get(), sw);
+         tableViewController.getConfigString().setText(sw.toString());
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
-   }
-
-   private void writeStackTrace(Throwable ex) {
-      StringWriter sw = new StringWriter(1024);
-      ex.printStackTrace(new PrintWriter(sw));
-      error.getText().clear();
-      error.getText().setText(sw.toString());
-   }
-
-   private void toError(Throwable ex) {
-      writeStackTrace(ex);
-      notify("ok (errors tab for details)", "error", ex.getMessage());
    }
 
    private void prepareAdd(Parameterizable p, List current) {
@@ -424,22 +395,22 @@ public class Controller implements Initializable {
       String styleClass = stylerKeys.getValue();
       if (p instanceof BaseStyler) {
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
-            notify("ok",
+            ViewHelper.notify("ok",
                 styleClass, String.format("style class %s reserved for document settings, choose another", ReportConstants.DOCUMENTSETTINGS));
             return false;
          }
          if (!ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && p instanceof DocumentStyler) {
-            notify("ok",
+            ViewHelper.notify("ok",
                 styleClass, String.format("style class should be %s for document settings", ReportConstants.DOCUMENTSETTINGS));
             return false;
          }
          if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
             stylingConfig.put(styleClass, new ArrayList<>());
          } else if (((BaseStyler) p).creates() && !stylingConfig.get(styleClass).isEmpty()) {
-            notify("ok", "must be first",
+            ViewHelper.notify("ok", "must be first",
                 String.format("styler %s creates a report element, should be the first styler for a style class, you should probably reorder your stylers", p.getClass().getSimpleName()));
          }
-         if (!configString.getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
+         if (!tableViewController.getConfigString().getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
             prepareAdd(p, stylingConfig.get(styleClass));
             stylingConfig.get(styleClass).add((BaseStyler) p);
             if (!"".equals(p.getValue(AbstractStyler.CONDITONS, String.class))) {
@@ -447,25 +418,25 @@ public class Controller implements Initializable {
                if (null != cnd && !stylingConfig.containsKey(cnd)) {
                   chooseOrAdd(p.getValue(AbstractStyler.CONDITONS, String.class));
                   parameterizableCombo.getSelectionModel().clearSelection();
-                  notify("add " + p.getValue(AbstractStyler.CONDITONS, String.class), "warning", String.format("condition %s is missing", p.getValue(AbstractStyler.CONDITONS, String.class)));
+                  ViewHelper.notify("add " + p.getValue(AbstractStyler.CONDITONS, String.class), "warning", String.format("condition %s is missing", p.getValue(AbstractStyler.CONDITONS, String.class)));
                }
             }
          }
       } else {
          if (stylingConfig.containsKey(styleClass)) {
-            notify("ok",
+            ViewHelper.notify("ok",
                 String.format("style class %s in use for stylers, choose another", styleClass), stylingConfig.get(styleClass).toString());
             return false;
          }
          if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass)) {
-            notify("ok",
+            ViewHelper.notify("ok",
                 "", String.format("style class %s reserved for document settings, choose another", styleClass));
             return false;
          }
          if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
             stylingConfig.put(styleClass, new ArrayList<>());
          }
-         if (!configString.getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
+         if (!tableViewController.getConfigString().getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
             prepareAdd(p, stylingConfig.get(styleClass));
             stylingConfig.get(styleClass).add((StylingCondition) p);
          }
@@ -479,16 +450,6 @@ public class Controller implements Initializable {
       return true;
    }
 
-   private void notify(String buttonText, String title, String details) {
-      Dialog<String> dialog = new Dialog<>();
-      dialog.setContentText(details);
-      dialog.setTitle(title);
-      dialog.setResizable(true);
-      ButtonType bt = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
-      dialog.getDialogPane().getButtonTypes().add(bt);
-      dialog.showAndWait();
-   }
-
    private void selectInCombo(Parameterizable par) {
       for (int j = 0; j < parameterizableCombo.getItems().size(); j++) {
          if (parameterizableCombo.getItems().get(j).getClass().equals(par.getClass())) {
@@ -496,11 +457,11 @@ public class Controller implements Initializable {
             break;
          }
       }
-      parameters.clear();
-      currentParameterizable = par;
+      tableViewController.getParameters().clear();
+      currentParameterizable.set(par);
       stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
-      for (Parameter p : currentParameterizable.getParameters().values()) {
-         parameters.add(new ParameterProps(p));
+      for (Parameter p : currentParameterizable.get().getParameters().values()) {
+         tableViewController.getParameters().add(new ParameterProps(p));
       }
       showConfig(null);
    }
@@ -627,7 +588,7 @@ public class Controller implements Initializable {
 
          styleTab.getTabPane().getSelectionModel().select(styleTab);
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
 
    }
@@ -639,35 +600,22 @@ public class Controller implements Initializable {
             throw new VectorPrintRuntimeException("first choose a style or condition using configure");
          }
          showConfig(event);
-         add(currentParameterizable);
+         add(currentParameterizable.get());
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
-   }
-
-   private Tooltip tip(String text) {
-      Tooltip t = new Tooltip(text);
-      t.setMaxWidth(400);
-      t.setAutoHide(false);
-      t.setAutoFix(true);
-      t.setWrapText(true);
-      return t;
    }
 
    @FXML
    private void showStylerHelp(Event event) {
       stylerHelp.setText(help(parameterizableCombo.getValue()));
-      stylerHelp.setTooltip(tip(help(parameterizableCombo.getValue())));
+      stylerHelp.setTooltip(ViewHelper.tip(help(parameterizableCombo.getValue())));
    }
 
    private String help(Parameterizable p) {
       return p != null ? (p instanceof BaseStyler)
           ? ((BaseStyler) p).getHelp()
           : ((StylingCondition) p).getHelp() : "";
-   }
-
-   private static String helpFor(Parameterizable p) {
-      return p instanceof BaseStyler ? (((BaseStyler) p).creates() ? "creates iText element " : "") + ((BaseStyler) p).getHelp() : ((StylingCondition) p).getHelp();
    }
 
    @FXML
@@ -694,16 +642,24 @@ public class Controller implements Initializable {
          }
       } catch (NoClassDefFoundError error) {
          Thread.currentThread().setContextClassLoader(orig);
-         toError(error);
+         ViewHelper.toError(error, this.error);
       } catch (Exception exception) {
          Thread.currentThread().setContextClassLoader(orig);
-         toError(exception);
+         ViewHelper.toError(exception, this.error);
       }
    }
 
    @Override
    public void initialize(URL url, ResourceBundle rb) {
       try {
+         // TODO make the currentParameterizable property in the tableViewController change whenever the currentParameterizable in this controller changes
+         tableViewController.setDefaults(defaults);
+         tableViewController.setError(error);
+         tableViewController.setHelp(help);
+         tableViewController.setHelpTab(helpTab);
+         tableViewController.setPdf1a(pdf1a);
+         tableViewController.setToc(toc);
+
          initFactories();
 
          // make all stylers and conditions available in the dropdown
@@ -724,7 +680,7 @@ public class Controller implements Initializable {
                @Override
                protected void updateItem(Parameterizable t, boolean bln) {
                   super.updateItem(t, bln);
-                  // TODO show some text in the list and a tooltip
+                  // TODO show some text in the list and a tooltip (use ViewHelper)
                }
             };
          });
@@ -745,161 +701,17 @@ public class Controller implements Initializable {
          // TODO make parameterizableCombo use sorted as its model
 
          stylerKeys.setPromptText("required!");
-         parameterTable.setItems(parameters);
          parameterizableTable.setItems(parameterizableForClass);
 
-         // TODO make pDeclaringClass use the correct property from ParameterProps as its cell value
-         pDeclaringClass.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
-            @Override
-            protected void updateItem(String t, boolean bln) {
-               super.updateItem(t, bln);
-               setText(t);
-               if (t != null && getTableRow().getItem() != null) {
-                  setTooltip(tip(((ParameterProps) getTableRow().getItem()).getHelp()));
-               }
-            }
-         });
-
-         pType.setCellValueFactory(new PropertyValueFactory<>("type"));
-         pType.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
-            @Override
-            protected void updateItem(final String t, boolean bln) {
-               super.updateItem(t, bln);
-               setText(t);
-               if (t == null) {
-                  return;
-               }
-               setTooltip(tip(t));
-            }
-         });
-         pKey.setCellValueFactory(new PropertyValueFactory<>("key"));
-         pKey.setCellFactory((TableColumn<ParameterProps, String> param) -> new TableCell<ParameterProps, String>() {
-
-            @Override
-            protected void updateItem(final String item, boolean empty) {
-               setText(item);
-               if (item == null) {
-                  return;
-               }
-               setTooltip(tip(item + " (click for help)"));
-               setOnMouseClicked((MouseEvent event) -> {
-                  Parameterizable p = parameterizableCombo.getValue();
-                  help.searchArea(p.getClass().getSimpleName() + ": ", false);
-                  help.searchArea("key=" + item, false);
-                  helpTab.getTabPane().getSelectionModel().select(helpTab);
-                  help.requestFocus();
-               });
-            }
-
-         });
-         pValue.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ParameterProps, ParameterProps>, ObservableValue<ParameterProps>>() {
-            @Override
-            public ObservableValue<ParameterProps> call(TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) {
-               return new ReadOnlyObjectWrapper<ParameterProps>(p.getValue());
-            }
-         });
-         pValue.setCellFactory((TableColumn<ParameterProps, ParameterProps> param) -> {
-            return new TableCell<ParameterProps, ParameterProps>() {
-
-               @Override
-               protected void updateItem(final ParameterProps item, boolean empty) {
-                  setGraphic(null);
-                  if (item == null) {
-                     return;
-                  }
-                  Class valueClass = item.getP().getValueClass();
-                  if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
-                     final CheckBox checkBox = new CheckBox();
-                     if (item.getKey().equals(DocumentSettings.PDFA)) {
-                        bindToCheckbox(checkBox, item, pdf1a);
-                     } else if (item.getKey().equals(DocumentSettings.TOC)) {
-                        bindToCheckbox(checkBox, item, toc);
-                     }
-                     checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
-                     setGraphic(checkBox);
-                  } else if (valueClass.isEnum()) {
-                     final ComboBox<String> comboBox = new ComboBox();
-                     ObservableList<String> ol = FXCollections.observableArrayList();
-                     for (Object o : valueClass.getEnumConstants()) {
-                        ol.add(String.valueOf(o));
-                     }
-                     comboBox.setItems(ol);
-                     comboBox.getSelectionModel().select(item.getValue());
-                     comboBox.valueProperty().addListener(item);
-                     setGraphic(comboBox);
-                  } else if (java.awt.Color.class.equals(valueClass)) {
-                     java.awt.Color col = (java.awt.Color) item.getP().getValue();
-                     final ColorPicker cp = col == null ? new ColorPicker()
-                         : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
-                     cp.valueProperty().addListener(item);
-                     setGraphic(cp);
-                  } else {
-                     final TextField textField = new TextField(item.getValue());
-                     textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
-                        textField.getStyleClass().remove("error");
-                        try {
-                           item.setValue(newValue);
-                        } catch (Exception e) {
-                           textField.getStyleClass().add("error");
-                           writeStackTrace(e);
-                        }
-                     });
-                     setGraphic(textField);
-                  }
-               }
-
-               private void bindToCheckbox(final CheckBox child, final ParameterProps item, CheckBox master) {
-                  // TODO make sure that whenever child changes master changes as well and vise versa
-                  // TODO make sure item is notified of changes in child
-               }
-
-            };
-         }
-         );
-         pDefault.setCellValueFactory((TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) -> {
-            return new ReadOnlyObjectWrapper<>(p.getValue());
-         });
-         pDefault.setCellFactory((TableColumn<ParameterProps, ParameterProps> p) -> new TableCell<ParameterProps, ParameterProps>() {
-            @Override
-            protected void updateItem(final ParameterProps pp, boolean bln) {
-               super.updateItem(pp, bln);
-               setGraphic(null);
-               if (pp == null) {
-                  return;
-               }
-               CheckBox checkbox = new CheckBox();
-               DefaultValue defaultValue = new DefaultValue(currentParameterizable.getClass().getSimpleName(), pp.getKey(), pp.getValue(), ParameterHelper.SUFFIX.set_default);
-               checkbox.setSelected(defaults.contains(defaultValue));
-               checkbox.setTooltip(tip(String.format("use value as default for %s in %s", pp.getKey(), currentParameterizable.getClass().getSimpleName())));
-               setGraphic(checkbox);
-               checkbox.setOnAction((ActionEvent e) -> {
-                  defaults.remove(defaultValue);
-                  if (checkbox.isSelected()) {
-                     defaults.add(defaultValue);
-                     configString.clear();
-                     configString.appendText(currentParameterizable.getClass().getSimpleName());
-                     configString.appendText(".");
-                     configString.appendText(pp.getKey());
-                     configString.appendText(".");
-                     configString.appendText(ParameterHelper.SUFFIX.set_default.name());
-                     configString.appendText("=");
-                     configString.appendText(pp.getValue());
-                  } else {
-                     configString.clear();
-                  }
-               });
-            }
-         });
-
          sHelp.setCellValueFactory((CellDataFeatures<Parameterizable, String> p)
-             -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + helpFor(p.getValue())));
+             -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + ViewHelper.helpFor(p.getValue())));
          sHelp.setCellFactory((TableColumn<Parameterizable, String> p) -> new TableCell<Parameterizable, String>() {
             @Override
             protected void updateItem(String t, boolean bln) {
                super.updateItem(t, bln);
                setText(t);
                if (t != null) {
-                  setTooltip(tip(t));
+                  setTooltip(ViewHelper.tip(t));
                }
             }
          });
@@ -914,7 +726,7 @@ public class Controller implements Initializable {
                }
                final Integer t = getTableRow().getIndex();
                Button b = new Button("/\\");
-               b.setTooltip(tip("move styler up"));
+               b.setTooltip(ViewHelper.tip("move styler up"));
                b.setOnAction((ActionEvent e) -> {
                   if (t == null || parameterizableForClass == null) {
                      return;
@@ -931,7 +743,7 @@ public class Controller implements Initializable {
                });
                Button bd = new Button("\\/");
                bd.setLayoutX(35);
-               bd.setTooltip(tip("move styler down"));
+               bd.setTooltip(ViewHelper.tip("move styler down"));
                bd.setOnAction((ActionEvent e) -> {
                   if (t == null || parameterizableForClass == null) {
                      return;
@@ -959,7 +771,7 @@ public class Controller implements Initializable {
                }
                final Integer t = getTableRow().getIndex();
                Button b = new Button("X");
-               b.setTooltip(tip("remove styler"));
+               b.setTooltip(ViewHelper.tip("remove styler"));
                b.setOnAction((ActionEvent e) -> {
                   if (t == null) {
                      return;
@@ -990,7 +802,7 @@ public class Controller implements Initializable {
                super.updateItem(t, bln);
                if (t != null) {
                   setText(t);
-                  final Tooltip tip = tip("config....");
+                  final Tooltip tip = ViewHelper.tip("config....");
                   if (stylingConfig.containsKey(t)) {
                      tip.addEventHandler(WindowEvent.WINDOW_SHOWING, (WindowEvent event) -> {
                         try {
@@ -1056,7 +868,7 @@ public class Controller implements Initializable {
             Files.write(f.toPath(), stylesheet.getText().getText().getBytes());
          }
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1066,7 +878,7 @@ public class Controller implements Initializable {
          StylesheetTester stylesheetTester = new StylesheetTester(this);
          stylesheetTester.testStyleSheet(stylesheet.getText().getText());
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1081,16 +893,16 @@ public class Controller implements Initializable {
       try {
          try {
             DatamappingHelper.validateXml(BindingHelper.URL_PARSER.convert(xmlconfig.getText()));
-            notify("ok", "valid xml", "valid xml");
+            ViewHelper.notify("ok", "valid xml", "valid xml");
          } catch (MalformedURLException malformedURLException) {
             System.out.println("wrong url, trying xml directly");
             malformedURLException.printStackTrace();
             DatamappingHelper.validateXml(xmlconfig.getText());
          }
       } catch (SAXException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       } catch (IOException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1099,16 +911,16 @@ public class Controller implements Initializable {
       try {
          try {
             SettingsXMLHelper.validateXml(BindingHelper.URL_PARSER.convert(xmlsettings.getText()));
-            notify("ok", "valid xml", "valid xml");
+            ViewHelper.notify("ok", "valid xml", "valid xml");
          } catch (MalformedURLException malformedURLException) {
             System.out.println("wrong url, trying xml directly");
             malformedURLException.printStackTrace();
             SettingsXMLHelper.validateXml(xmlsettings.getText());
          }
       } catch (SAXException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       } catch (IOException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1118,7 +930,7 @@ public class Controller implements Initializable {
          BindingHelper.URL_PARSER.convert(xmlconfig.getText());
          extraSettings.put(ReportConstants.DATAMAPPINGXML, xmlconfig.getText());
       } catch (VectorPrintRuntimeException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1127,7 +939,7 @@ public class Controller implements Initializable {
       try {
          BindingHelper.URL_PARSER.convert(xmlsettings.getText());
       } catch (VectorPrintRuntimeException ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1150,7 +962,7 @@ public class Controller implements Initializable {
             stylingConfig.get(e.getKey()).add(sf.getDocumentStyler());
             pdf1a.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.PDFA, Boolean.class));
             toc.setSelected(sf.getDocumentStyler().getValue(DocumentSettings.TOC, Boolean.class));
-         } else if (isStyler(e.getKey(), settings)) {
+         } else if (ViewHelper.isStyler(e.getKey(), settings)) {
             stylingConfig.put(e.getKey(), new ArrayList<>(3));
             try {
                List<BaseStyler> l = sf.getStylers(e.getKey());
@@ -1158,9 +970,9 @@ public class Controller implements Initializable {
                getConditions(l);
                getDefaults(l, settings);
             } catch (VectorPrintException ex) {
-               toError(ex);
+               ViewHelper.toError(ex, error);
             }
-         } else if (!isCondition(e.getKey(), settings)) {
+         } else if (!ViewHelper.isCondition(e.getKey(), settings)) {
             if (DefaultStylerFactory.PREANDPOSTSTYLE.equals(e.getKey())) {
                prepost.setSelected(preAndPost);
                extraSettings.put(e.getKey(), preAndPost.toString());
@@ -1182,7 +994,7 @@ public class Controller implements Initializable {
       }
       // check conditions not referenced
       settings.entrySet().stream().forEach((e) -> {
-         if (isCondition(e.getKey(), settings)) {
+         if (ViewHelper.isCondition(e.getKey(), settings)) {
             Logger.getLogger(Controller.class.getName()).warning(String.format("unreferenced conditions for key: %s", e.getKey()));
             List<StylingCondition> conditions;
             try {
@@ -1195,7 +1007,7 @@ public class Controller implements Initializable {
          }
       });
       commentsAfter.addAll(settings.getTrailingComment());
-      notify("ok", "import complete", "you can now adapt and (re)build your stylesheet");
+      ViewHelper.notify("ok", "import complete", "you can now adapt and (re)build your stylesheet");
    }
 
    @FXML
@@ -1208,7 +1020,7 @@ public class Controller implements Initializable {
             importStyle(new ParsingProperties(new SortedProperties(new Settings()), f.getPath()));
          }
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1227,7 +1039,7 @@ public class Controller implements Initializable {
             importStyle(new ParsingProperties(new SortedProperties(new Settings()), new StringReader(bo.toString())));
          }
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
@@ -1243,57 +1055,13 @@ public class Controller implements Initializable {
             openPdf(new FileInputStream(f), f.getPath());
          }
       } catch (Exception ex) {
-         toError(ex);
+         ViewHelper.toError(ex, error);
       }
    }
 
    void openPdf(InputStream in, String description) {
       controller.openDocument(in, description, null);
       pdftab.getTabPane().getSelectionModel().select(pdftab);
-   }
-
-   static boolean isCondition(String key, EnhancedMap settings) {
-      String[] classes = null;
-      try {
-         classes = settings.getStringProperties(null, key);
-      } catch (VectorPrintRuntimeException e) {
-         if (!e.getMessage().contains("this does not match requested class")) {
-            throw e;
-         }
-      }
-      if (classes == null) {
-         return false;
-      }
-      for (String s : classes) {
-         try {
-            Class.forName(AbstractCondition.class.getPackage().getName() + "." + s.split("\\(")[0]);
-         } catch (ClassNotFoundException ex) {
-            return false;
-         }
-      }
-      return true;
-   }
-
-   static boolean isStyler(String key, EnhancedMap settings) {
-      String[] classes = null;
-      try {
-         classes = settings.getStringProperties(null, key);
-      } catch (VectorPrintRuntimeException e) {
-         if (!e.getMessage().contains("this does not match requested class")) {
-            throw e;
-         }
-      }
-      if (classes == null) {
-         return false;
-      }
-      for (String s : classes) {
-         try {
-            Class.forName(AbstractStyler.class.getPackage().getName() + "." + s.split("\\(")[0]);
-         } catch (ClassNotFoundException ex) {
-            return false;
-         }
-      }
-      return true;
    }
 
    private final Set<String> processed = new HashSet<>(10);
@@ -1386,13 +1154,6 @@ public class Controller implements Initializable {
       settingsfactory.getSelectionModel().select(aClass);
       Class<? extends ParameterizableBindingFactory> aClass1 = ParamBindingService.getInstance().getFactory().getClass();
       paramfactory.getSelectionModel().select(aClass1);
-   }
-
-   public static String toHex(Color color) {
-      int red = (int) (color.getRed() * 255);
-      int green = (int) (color.getGreen() * 255);
-      int blue = (int) (color.getBlue() * 255);
-      return "#" + Integer.toHexString(red) + Integer.toHexString(green) + Integer.toHexString(blue);
    }
 
 }
