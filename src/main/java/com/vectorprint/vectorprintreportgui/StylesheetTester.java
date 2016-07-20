@@ -37,7 +37,6 @@ import com.vectorprint.report.itext.style.stylers.SVG;
 import com.vectorprint.report.itext.style.stylers.SimpleColumns;
 import com.vectorprint.report.itext.style.stylers.Table;
 import com.vectorprint.report.running.ReportRunner;
-import static com.vectorprint.vectorprintreportgui.Controller.isStyler;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -64,12 +63,12 @@ import org.jfree.data.xy.DefaultXYDataset;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -119,7 +118,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
          printExplanation(String.format("styles applied on every page: %s", Arrays.toString(setting)));
       }
       for (Map.Entry<String, String[]> e : getSettings().entrySet()) {
-         if (Controller.isCondition(e.getKey(), getSettings())) {
+         if (ViewHelper.isCondition(e.getKey(), getSettings())) {
             String[] setting = e.getValue();
             printExplanation(String.format("active conditions for %s: %s", e.getKey(), Arrays.toString(setting)));
          }
@@ -130,7 +129,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
          if (DefaultStylerFactory.PRESTYLERS.equals(e.getKey()) || DefaultStylerFactory.POSTSTYLERS.equals(e.getKey()) || ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             continue;
          }
-         if (isStyler(e.getKey(), getSettings())) {
+         if (ViewHelper.isStyler(e.getKey(), getSettings())) {
             String[] setting = e.getValue();
             List<BaseStyler> stylers = getStylers(e.getKey());
             BaseStyler first = stylers.get(0);
