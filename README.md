@@ -1,3 +1,4 @@
+[![Maven Central](https://img.shields.io/maven-central/v/com.vectorprint/VectorPrintReportGUI.svg)](https://maven-badges.herokuapp.com/maven-central/com.vectorprint/VectorPrintReportGUI)
 # iText-GUI
 A JavaFX GUI supporting the ConfigurableReports library
 
