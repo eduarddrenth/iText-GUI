@@ -89,7 +89,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -101,7 +100,6 @@ import javafx.event.ActionEvent;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Group;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -113,9 +111,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
@@ -168,6 +164,8 @@ public class Controller implements Initializable {
 
    @FXML
    private TableViewController tableViewController;
+   @FXML
+   private StyleClassTableController styleClassTableController;
 
    @FXML
    private ComboBox<Parameterizable> parameterizableCombo;
@@ -328,17 +326,6 @@ public class Controller implements Initializable {
       processed.clear();
       commentsAfter.clear();
       commentsBefore.clear();
-   }
-
-   @FXML
-   private void showStylers(Event event) {
-      if (stylerKeysCopy.getValue() != null && stylingConfig.containsKey(stylerKeysCopy.getValue())) {
-         parameterizableForClass.clear();
-         stylingConfig.get(stylerKeysCopy.getValue()).stream().forEach((bs) -> {
-            parameterizableForClass.add(bs);
-         });
-
-      }
    }
 
    @FXML
@@ -701,101 +688,7 @@ public class Controller implements Initializable {
          // TODO make parameterizableCombo use sorted as its model
 
          stylerKeys.setPromptText("required!");
-         parameterizableTable.setItems(parameterizableForClass);
-
-         sHelp.setCellValueFactory((CellDataFeatures<Parameterizable, String> p)
-             -> new ReadOnlyObjectWrapper(p.getValue().getClass().getSimpleName() + ": " + ViewHelper.helpFor(p.getValue())));
-         sHelp.setCellFactory((TableColumn<Parameterizable, String> p) -> new TableCell<Parameterizable, String>() {
-            @Override
-            protected void updateItem(String t, boolean bln) {
-               super.updateItem(t, bln);
-               setText(t);
-               if (t != null) {
-                  setTooltip(ViewHelper.tip(t));
-               }
-            }
-         });
-         sUpDown.setCellValueFactory((TableColumn.CellDataFeatures<Parameterizable, Parameterizable> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
-         sUpDown.setCellFactory((TableColumn<Parameterizable, Parameterizable> p) -> new TableCell<Parameterizable, Parameterizable>() {
-            @Override
-            protected void updateItem(final Parameterizable bs, boolean bln) {
-               super.updateItem(bs, bln);
-               setGraphic(null);
-               if (bs == null || getTableRow() == null) {
-                  return;
-               }
-               final Integer t = getTableRow().getIndex();
-               Button b = new Button("/\\");
-               b.setTooltip(ViewHelper.tip("move styler up"));
-               b.setOnAction((ActionEvent e) -> {
-                  if (t == null || parameterizableForClass == null) {
-                     return;
-                  }
-                  if (t > 0) {
-                     Parameterizable toMove = parameterizableForClass.get(t);
-                     Parameterizable sp = parameterizableForClass.set(t - 1, toMove);
-                     parameterizableForClass.set(t, sp);
-                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                     parameterizableForClass.forEach((p) -> {
-                        stylingConfig.get(stylerKeysCopy.getValue()).add((BaseStyler) p);
-                     });
-                  }
-               });
-               Button bd = new Button("\\/");
-               bd.setLayoutX(35);
-               bd.setTooltip(ViewHelper.tip("move styler down"));
-               bd.setOnAction((ActionEvent e) -> {
-                  if (t == null || parameterizableForClass == null) {
-                     return;
-                  }
-                  if (t < parameterizableForClass.size() - 1) {
-                     Parameterizable toMove = parameterizableForClass.get(t);
-                     Parameterizable sp = parameterizableForClass.set(t + 1, toMove);
-                     parameterizableForClass.set(t, sp);
-                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                  }
-               });
-
-               setGraphic(new Group(b, bd));
-            }
-         });
-         rm.setCellValueFactory((TableColumn.CellDataFeatures<Parameterizable, Parameterizable> p) -> new ReadOnlyObjectWrapper<>(p.getValue()));
-         rm.setCellFactory((TableColumn<Parameterizable, Parameterizable> p) -> new TableCell<Parameterizable, Parameterizable>() {
-            @Override
-            protected void updateItem(final Parameterizable bs, boolean bln) {
-               super.updateItem(bs, bln);
-               setGraphic(null);
-               if (bs == null || getTableRow() == null) {
-                  return;
-               }
-               final Integer t = getTableRow().getIndex();
-               Button b = new Button("X");
-               b.setTooltip(ViewHelper.tip("remove styler"));
-               b.setOnAction((ActionEvent e) -> {
-                  if (t == null) {
-                     return;
-                  }
-                  Parameterizable bs1 = parameterizableForClass.get(t);
-                  boolean removed = parameterizableForClass.remove(bs1);
-                  if (removed) {
-                     // remove from config
-                     stylingConfig.get(stylerKeysCopy.getValue()).clear();
-                     stylingConfig.get(stylerKeysCopy.getValue()).addAll(parameterizableForClass);
-                  }
-                  if (parameterizableForClass.isEmpty()) {
-                     String clazz = stylerKeysCopy.getValue();
-                     if (clazz != null) {
-                        System.out.println("removed config: " + stylingConfig.remove(clazz));
-                     }
-                  }
-               });
-
-               setGraphic(b);
-            }
-         });
          stylerKeys.setItems(styleClasses);
-         stylerKeysCopy.setItems(styleClasses);
          stylerKeys.setCellFactory((ListView<String> p) -> new ListCell<String>() {
             @Override
             protected void updateItem(final String t, boolean bln) {
@@ -817,12 +710,15 @@ public class Controller implements Initializable {
             }
 
          });
-         stylerKeysCopy.setCellFactory(stylerKeys.getCellFactory());
          stylerKeys.valueProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
             if (newValue != null && !"".equals(newValue) && !stylingConfig.containsKey(newValue)) {
                stylingConfig.put(newValue, new ArrayList<>());
             }
          });
+
+         styleClassTableController.setCStylerKeysFactory(stylerKeys.getCellFactory());
+         styleClassTableController.setStylerKeyItems(styleClasses);
+         styleClassTableController.setStylingConfig(stylingConfig);
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
