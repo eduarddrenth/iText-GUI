@@ -337,7 +337,7 @@ public class Controller implements Initializable {
       try {
          tableViewController.getParameters().stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
             Parameter p = currentParameterizable.get().getParameters().get(pp.getKey());
-            p.setValue(pp.getP().getValue());
+            p.setValue(pp.getRawValue());
          });
          StringWriter sw = new StringWriter();
          ParamBindingService.getInstance().getFactory().getSerializer().serialize(currentParameterizable.get(), sw);

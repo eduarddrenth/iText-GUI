@@ -10,12 +10,12 @@ package com.vectorprint.vectorprintreportgui;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -27,8 +27,9 @@ import com.vectorprint.configuration.parameters.Parameter;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.util.Objects;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import java.util.Observable;
+import java.util.Observer;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
@@ -37,64 +38,68 @@ import javafx.scene.paint.Color;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class ParameterProps implements Comparable<ParameterProps>, ChangeListener {
+public class ParameterProps<T extends Serializable> extends SimpleObjectProperty<ParameterProps<T>> implements Comparable<ParameterProps>, ChangeListener, Observer {
 
-   private StringProperty key = new SimpleStringProperty();
-   private StringProperty type = new SimpleStringProperty();
-   private StringProperty value = new SimpleStringProperty();
-   private StringProperty help = new SimpleStringProperty();
-   private StringProperty declaringClass = new SimpleStringProperty();
-   private Parameter p;
+   private final Class type;
+   private String value;
+   private final Parameter<T> p;
 
-   public ParameterProps(Parameter p) {
+   public ParameterProps(Parameter<T> p) {
       this.p = p;
-      key.set(p.getKey());
-      help.set(p.getHelp());
-      type.set(ClassHelper.findParameterClass(0, p.getClass(), Parameter.class).getName());
-      declaringClass.set(p.getDeclaringClass().getName());
+      type = ClassHelper.findParameterClass(0, p.getClass(), Parameter.class);
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
-      value.set(helper.serializeValue(helper.getValueToSerialize(p, false)));
-   }
-
-   public Parameter getP() {
-      return p;
+      value = helper.serializeValue(helper.getValueToSerialize(p, false));
+      fireValueChangedEvent();
+      p.addObserver(this);
+      set(this);
    }
 
    public String getKey() {
-      return key.get();
+      return p.getKey();
    }
 
    public String getType() {
-      return type.get();
+      return type.getName();
    }
 
-   public String getValue() {
-      return value.get();
+   public Class getValueClass() {
+      return type;
+   }
+
+   public String getVal() {
+      return value;
+   }
+
+   public T getRawValue() {
+      return p.getValue();
+   }
+
+   public T getDefault() {
+      return p.getDefault();
    }
 
    public void setValue(String value) {
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
       if (value != null && !value.isEmpty()) {
-         Serializable parseAsParameterValue = ParamBindingService.getInstance().getFactory().getParser(new StringReader("")).parseAsParameterValue(value, p);
+         T parseAsParameterValue = (T) ParamBindingService.getInstance().getFactory().getParser(new StringReader("")).parseAsParameterValue(value, p);
          helper.setValueOrDefault(p, parseAsParameterValue, false);
       } else {
          helper.setValueOrDefault(p, null, false);
       }
-      this.value.set(value == null ? "" : value);
    }
 
    public String getHelp() {
-      return help.get();
+      return p.getHelp();
    }
 
    public String getDeclaringClass() {
-      return declaringClass.get();
+      return p.getDeclaringClass().getName();
    }
 
    @Override
    public int hashCode() {
       int hash = 7;
-      hash = 97 * hash + Objects.hashCode(this.key);
+      hash = 97 * hash + Objects.hashCode(p.getKey());
       return hash;
    }
 
@@ -107,7 +112,7 @@ public class ParameterProps implements Comparable<ParameterProps>, ChangeListene
          return false;
       }
       final ParameterProps other = (ParameterProps) obj;
-      if (!Objects.equals(this.key, other.key)) {
+      if (!Objects.equals(p.getKey(), other.p.getKey())) {
          return false;
       }
       return true;
@@ -128,8 +133,7 @@ public class ParameterProps implements Comparable<ParameterProps>, ChangeListene
          val = new java.awt.Color((int) (c.getRed() * 255), (int) (c.getGreen() * 255), (int) (c.getBlue() * 255));
       }
       if (p.getValueClass().isInstance(val)) {
-         helper.setValueOrDefault(p, (Serializable) val, false);
-         this.value.set(helper.serializeValue(val));
+         helper.setValueOrDefault(p, (T) val, false);
       } else {
          /* here we rely on serialization / parsing to try and get a correct value for the parameter
             - using current syntax
@@ -138,6 +142,18 @@ public class ParameterProps implements Comparable<ParameterProps>, ChangeListene
           */
          setValue(helper.serializeValue(val));
       }
+   }
+
+   public void resetToDefault() {
+      p.setValue(p.getDefault());
+   }
+
+   @Override
+   public void update(Observable o, Object arg) {
+      Parameter<T> p = (Parameter<T>) o;
+      ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
+      value = helper.serializeValue(helper.getValueToSerialize(p, false));
+      fireValueChangedEvent();
    }
 
 }
