@@ -10,12 +10,12 @@ package com.vectorprint.vectorprintreportgui;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -33,7 +33,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -41,6 +40,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
@@ -73,7 +73,9 @@ public class TableViewController implements Initializable {
    @FXML
    private TableColumn<ParameterProps, String> pType;
    @FXML
-   private TableColumn<ParameterProps, ParameterProps> pDefault;
+   private TableColumn<ParameterProps, String> pDefault;
+   @FXML
+   private TableColumn<ParameterProps, String> pReset;
    @FXML
    private TableColumn<ParameterProps, String> pDeclaringClass;
 
@@ -135,8 +137,8 @@ public class TableViewController implements Initializable {
          });
          pValue.setCellValueFactory(new Callback<TableColumn.CellDataFeatures<ParameterProps, ParameterProps>, ObservableValue<ParameterProps>>() {
             @Override
-            public ObservableValue<ParameterProps> call(TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) {
-               return new ReadOnlyObjectWrapper<ParameterProps>(p.getValue());
+            public ObservableValue<ParameterProps> call(TableColumn.CellDataFeatures<ParameterProps, ParameterProps> param) {
+               return param.getValue();
             }
          });
          pValue.setCellFactory((TableColumn<ParameterProps, ParameterProps> param) -> {
@@ -148,7 +150,7 @@ public class TableViewController implements Initializable {
                   if (item == null) {
                      return;
                   }
-                  Class valueClass = item.getP().getValueClass();
+                  Class valueClass = item.getValueClass();
                   if (Boolean.class.equals(valueClass) || boolean.class.equals(valueClass)) {
                      final CheckBox checkBox = new CheckBox();
                      if (item.getKey().equals(DocumentSettings.PDFA)) {
@@ -156,7 +158,7 @@ public class TableViewController implements Initializable {
                      } else if (item.getKey().equals(DocumentSettings.TOC)) {
                         bindToCheckbox(checkBox, item, toc);
                      }
-                     checkBox.setSelected(Boolean.parseBoolean(item.getValue()));
+                     checkBox.setSelected(Boolean.parseBoolean(item.getVal()));
                      setGraphic(checkBox);
                   } else if (valueClass.isEnum()) {
                      final ComboBox<String> comboBox = new ComboBox();
@@ -165,17 +167,17 @@ public class TableViewController implements Initializable {
                         ol.add(String.valueOf(o));
                      }
                      comboBox.setItems(ol);
-                     comboBox.getSelectionModel().select(item.getValue());
+                     comboBox.getSelectionModel().select(item.getVal());
                      comboBox.valueProperty().addListener(item);
                      setGraphic(comboBox);
                   } else if (java.awt.Color.class.equals(valueClass)) {
-                     java.awt.Color col = (java.awt.Color) item.getP().getValue();
+                     java.awt.Color col = (java.awt.Color) item.getRawValue();
                      final ColorPicker cp = col == null ? new ColorPicker()
                          : new ColorPicker(new Color(col.getRed() / 255, col.getGreen() / 255, col.getBlue() / 255, col.getAlpha() / 255));
                      cp.valueProperty().addListener(item);
                      setGraphic(cp);
                   } else {
-                     final TextField textField = new TextField(item.getValue());
+                     final TextField textField = new TextField(item.getVal());
                      textField.textProperty().addListener((ObservableValue<? extends String> observable, String oldValue, String newValue) -> {
                         textField.getStyleClass().remove("error");
                         try {
@@ -197,19 +199,17 @@ public class TableViewController implements Initializable {
             };
          }
          );
-         pDefault.setCellValueFactory((TableColumn.CellDataFeatures<ParameterProps, ParameterProps> p) -> {
-            return new ReadOnlyObjectWrapper<>(p.getValue());
-         });
-         pDefault.setCellFactory((TableColumn<ParameterProps, ParameterProps> p) -> new TableCell<ParameterProps, ParameterProps>() {
+         pDefault.setCellValueFactory(new PropertyValueFactory<>("val"));
+         pDefault.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
             @Override
-            protected void updateItem(final ParameterProps pp, boolean bln) {
-               super.updateItem(pp, bln);
+            protected void updateItem(final String v, boolean bln) {
                setGraphic(null);
-               if (pp == null) {
+               if (v == null) {
                   return;
                }
+               ParameterProps pp = getTableView().getItems().get(getTableRow().getIndex());
                CheckBox checkbox = new CheckBox();
-               DefaultValue defaultValue = new DefaultValue(currentParameterizable.get().getClass().getSimpleName(), pp.getKey(), pp.getValue(), ParameterHelper.SUFFIX.set_default);
+               DefaultValue defaultValue = new DefaultValue(currentParameterizable.get().getClass().getSimpleName(), pp.getKey(), pp.getVal(), ParameterHelper.SUFFIX.set_default);
                checkbox.setSelected(defaults.contains(defaultValue));
                checkbox.setTooltip(tip(String.format("use value as default for %s in %s", pp.getKey(), currentParameterizable.get().getClass().getSimpleName())));
                setGraphic(checkbox);
@@ -224,10 +224,28 @@ public class TableViewController implements Initializable {
                      configString.appendText(".");
                      configString.appendText(ParameterHelper.SUFFIX.set_default.name());
                      configString.appendText("=");
-                     configString.appendText(pp.getValue());
+                     configString.appendText(pp.getVal());
                   } else {
                      configString.clear();
                   }
+               });
+            }
+         });
+         pReset.setCellValueFactory(new PropertyValueFactory<>("val"));
+         pReset.setCellFactory((TableColumn<ParameterProps, String> p) -> new TableCell<ParameterProps, String>() {
+            @Override
+            protected void updateItem(final String v, boolean bln) {
+               setGraphic(null);
+               if (v == null) {
+                  return;
+               }
+               ParameterProps pp = getTableView().getItems().get(getTableRow().getIndex());
+
+               Button button = new Button("reset");
+               button.setTooltip(tip(String.format("click to reset to default value: %s", pp.getDefault())));
+               setGraphic(button);
+               button.setOnAction((ActionEvent e) -> {
+                  pp.resetToDefault();
                });
             }
          });

@@ -10,12 +10,12 @@ package com.vectorprint.vectorprintreportgui;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -337,7 +337,7 @@ public class Controller implements Initializable {
       try {
          tableViewController.getParameters().stream().filter((pp) -> !(pp.getValue() == null || "".equals(pp.getValue()))).forEach((pp) -> {
             Parameter p = currentParameterizable.get().getParameters().get(pp.getKey());
-            p.setValue(pp.getP().getValue());
+            p.setValue(pp.getRawValue());
          });
          StringWriter sw = new StringWriter();
          ParamBindingService.getInstance().getFactory().getSerializer().serialize(currentParameterizable.get(), sw);
