@@ -92,6 +92,7 @@
                   <configuration>
                      <executable>${java.home}/bin/java</executable>
                      <arguments>
+                        <!--<argument>-agentlib:jdwp=transport=dt_socket,server=y,address=8000</argument>-->
                         <argument>-jar</argument>
                         <argument>${basedir}/target/jfx/app/${project.build.finalName}-jfx.jar</argument>
                      </arguments>

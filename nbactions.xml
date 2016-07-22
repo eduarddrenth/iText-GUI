@@ -1,37 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
-        <action>
-            <actionName>run</actionName>
-            <goals>
-                <goal>jfx:jar</goal>
-                <goal>exec:exec</goal>
-                
-                
-            </goals>
-        </action>
-        <action>
-            <actionName>debug</actionName>
-            <goals>
-                <goal>clean</goal>
-                <goal>package</goal>
-                <goal>jfx:jar</goal>
-                <goal>exec:exec</goal>
-            </goals>
-        </action>
-        <action>
-            <actionName>build</actionName>
-            <packagings>
-                <packaging>*</packaging>
-            </packagings>
-            <goals>
-                <goal>verify</goal>
-            </goals>
-        </action>
-        <action>
-            <actionName>CUSTOM-license</actionName>
-            <displayName>license</displayName>
-            <goals>
-                <goal>license:update-file-header</goal>
-            </goals>
-        </action>        
-    </actions>
+   <action>
+      <actionName>run</actionName>
+      <goals>
+         <goal>jfx:jar</goal>
+         <goal>exec:exec</goal>
+
+
+      </goals>
+   </action>
+   <action>
+      <actionName>debug</actionName>
+      <goals>
+         <goal>clean</goal>
+         <goal>package</goal>
+         <goal>jfx:jar</goal>
+         <goal>exec:exec</goal>
+      </goals>
+   </action>
+   <action>
+      <actionName>build</actionName>
+      <packagings>
+         <packaging>*</packaging>
+      </packagings>
+      <goals>
+         <goal>verify</goal>
+      </goals>
+   </action>
+   <action>
+      <actionName>CUSTOM-license</actionName>
+      <displayName>license</displayName>
+      <goals>
+         <goal>license:update-file-header</goal>
+      </goals>
+   </action>
+</actions>
