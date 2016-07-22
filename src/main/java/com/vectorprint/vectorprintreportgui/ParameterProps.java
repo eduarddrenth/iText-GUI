@@ -35,6 +35,9 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.paint.Color;
 
 /**
+ * This class is a SimpleObjectProperty so GUI nodes can be auto updated, it is an Observer so that when the
+ * encapsulated {@link Parameter} changes this class is notified and can update its value, it is a ChangeListener so
+ * when GUI nodes change this class is notified and can update its encapsulated Parameter value.
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
