@@ -9,7 +9,7 @@
 
 <fx:root type="javafx.scene.layout.AnchorPane" xmlns:fx="http://javafx.com/fxml">
    <Label fx:id="searchText" />
-   <ToggleButton text="search" fx:id="findMode" AnchorPane.rightAnchor="5" >
+   <ToggleButton text="search" fx:id="findMode" AnchorPane.rightAnchor="5" onAction="#toggleMode"  >
       <tooltip>
          <Tooltip text="toggle search / edit mode" />
       </tooltip>

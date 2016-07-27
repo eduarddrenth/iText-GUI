@@ -155,23 +155,19 @@ public class SearchableTextArea extends AnchorPane {
          event.consume();
       }
       if (event.isControlDown() && KeyCode.F == event.getCode()) {
-         // start search in stylesheet
-         if (isFindMode()) {
-            // stop searching
-            setFindMode(false);
-            searchText.setText("");
-         } else {
-            // start searching
-            setFindMode(true);
-            text.requestFocus();
-         }
+         setFindMode(!isFindMode());
       } else if (KeyCode.ESCAPE == event.getCode()) {
          // stop searching
          setFindMode(false);
-         searchText.setText("");
       } else if (isFindMode()) {
          searchTxt(event);
       }
+   }
+
+   @FXML
+   private void toggleMode() {
+      searchStyle();
+      text.requestFocus();
    }
 
    private void searchStyle() {
@@ -188,6 +184,9 @@ public class SearchableTextArea extends AnchorPane {
 
    public void setFindMode(boolean findMode) {
       this.findMode.setSelected(findMode);
+      if (!findMode) {
+         searchText.setText("");
+      }
       searchStyle();
    }
 
