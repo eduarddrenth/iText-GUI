@@ -15,17 +15,16 @@ package com.vectorprint.vectorprintreportgui;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import com.vectorprint.VectorPrintRuntimeException;
 import com.vectorprint.configuration.EnhancedMap;
 import com.vectorprint.configuration.parameters.Parameterizable;
@@ -36,6 +35,7 @@ import com.vectorprint.report.itext.style.stylers.AbstractStyler;
 import com.vectorprint.vectorprintreportgui.text.SearchableTextArea;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.List;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
@@ -57,9 +57,23 @@ public class ViewHelper {
       return t;
    }
 
+   public static String addNewLines(String orig, int linelength) {
+      if (orig == null || orig.length() <= linelength) {
+         return orig;
+      }
+      StringBuilder sb = new StringBuilder(orig.length());
+      int offset = 0;
+      while (offset < orig.length()) {
+         int end = (offset + linelength >= orig.length()) ? orig.length() : offset + linelength;
+         sb.append(orig.substring(offset, end)).append(System.getProperty("line.separator"));
+         offset = end;
+      }
+      return sb.toString();
+   }
+
    public static void notify(String buttonText, String title, String details) {
       Dialog<String> dialog = new Dialog<>();
-      dialog.setContentText(details);
+      dialog.setContentText(addNewLines(details, 120));
       dialog.setTitle(title);
       dialog.setResizable(true);
       ButtonType bt = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
@@ -113,6 +127,30 @@ public class ViewHelper {
          }
       }
       return true;
+   }
+
+   public static boolean isCondition(String key, List<Parameterizable> parameterizables) {
+      if (parameterizables == null) {
+         return false;
+      }
+      for (Parameterizable parameterizable : parameterizables) {
+         if (parameterizable instanceof StylingCondition) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   public static boolean isStyler(String key, List<Parameterizable> parameterizables) {
+      if (parameterizables == null) {
+         return false;
+      }
+      for (Parameterizable parameterizable : parameterizables) {
+         if (parameterizable instanceof BaseStyler) {
+            return true;
+         }
+      }
+      return false;
    }
 
    public static String toHex(Color color) {
