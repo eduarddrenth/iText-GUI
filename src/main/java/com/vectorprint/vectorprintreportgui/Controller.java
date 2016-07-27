@@ -119,7 +119,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
-import javafx.util.StringConverter;
 import javax.swing.JPanel;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
@@ -380,10 +379,18 @@ public class Controller implements Initializable {
          return false;
       }
       String styleClass = stylerKeys.getValue();
+      if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
+         ViewHelper.notify("ok",
+             styleClass, String.format("style class %s reserved for document settings, choose another", ReportConstants.DOCUMENTSETTINGS));
+         return false;
+      }
+      if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
+         stylingConfig.put(styleClass, new ArrayList<>());
+      }
       if (p instanceof BaseStyler) {
-         if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && !(p instanceof DocumentStyler)) {
+         if (ViewHelper.isCondition(styleClass, stylingConfig.get(styleClass))) {
             ViewHelper.notify("ok",
-                styleClass, String.format("style class %s reserved for document settings, choose another", ReportConstants.DOCUMENTSETTINGS));
+                styleClass, String.format("style class %s is for stylers, %s is a condition", styleClass, p));
             return false;
          }
          if (!ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && p instanceof DocumentStyler) {
@@ -391,9 +398,7 @@ public class Controller implements Initializable {
                 styleClass, String.format("style class should be %s for document settings", ReportConstants.DOCUMENTSETTINGS));
             return false;
          }
-         if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
-            stylingConfig.put(styleClass, new ArrayList<>());
-         } else if (((BaseStyler) p).creates() && !stylingConfig.get(styleClass).isEmpty()) {
+         if (((BaseStyler) p).creates() && !stylingConfig.get(styleClass).isEmpty()) {
             ViewHelper.notify("ok", "must be first",
                 String.format("styler %s creates a report element, should be the first styler for a style class, you should probably reorder your stylers", p.getClass().getSimpleName()));
          }
@@ -410,18 +415,10 @@ public class Controller implements Initializable {
             }
          }
       } else {
-         if (stylingConfig.containsKey(styleClass)) {
+         if (ViewHelper.isStyler(styleClass, stylingConfig.get(styleClass))) {
             ViewHelper.notify("ok",
-                String.format("style class %s in use for stylers, choose another", styleClass), stylingConfig.get(styleClass).toString());
+                styleClass, String.format("style class %s is for conditions, %s is a styler", styleClass, p));
             return false;
-         }
-         if (ReportConstants.DOCUMENTSETTINGS.equals(styleClass)) {
-            ViewHelper.notify("ok",
-                "", String.format("style class %s reserved for document settings, choose another", styleClass));
-            return false;
-         }
-         if (!stylingConfig.containsKey(styleClass) && !"".equals(styleClass)) {
-            stylingConfig.put(styleClass, new ArrayList<>());
          }
          if (!tableViewController.getConfigString().getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {
             prepareAdd(p, stylingConfig.get(styleClass));
@@ -438,19 +435,21 @@ public class Controller implements Initializable {
    }
 
    private void selectInCombo(Parameterizable par) {
-      for (int j = 0; j < parameterizableCombo.getItems().size(); j++) {
-         if (parameterizableCombo.getItems().get(j).getClass().equals(par.getClass())) {
-            parameterizableCombo.getSelectionModel().select(j);
-            break;
-         }
-      }
       tableViewController.getParameters().clear();
       currentParameterizable.set(par);
-      stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
-      for (Parameter p : currentParameterizable.get().getParameters().values()) {
-         tableViewController.getParameters().add(new ParameterProps(p));
+      if (par != null) {
+         for (int j = 0; j < parameterizableCombo.getItems().size(); j++) {
+            if (parameterizableCombo.getItems().get(j).getClass().equals(par.getClass())) {
+               parameterizableCombo.getSelectionModel().select(j);
+               break;
+            }
+         }
+         stylerHelp.setText((currentParameterizable instanceof BaseStyler) ? ((BaseStyler) currentParameterizable).getHelp() : "condition to determine when to style or not");
+         for (Parameter p : currentParameterizable.get().getParameters().values()) {
+            tableViewController.getParameters().add(new ParameterProps(p));
+         }
+         showConfig(null);
       }
-      showConfig(null);
    }
 
    private static class ParameterizableWrapper {
@@ -471,6 +470,9 @@ public class Controller implements Initializable {
    private void pickStylerToConfigure(final List<Parameterizable> stylers) {
       if (stylers.size() == 1) {
          selectInCombo(stylers.get(0));
+         return;
+      } else if (stylers.isEmpty()) {
+         selectInCombo(null);
          return;
       }
       List<ParameterizableWrapper> pw = new ArrayList<>(stylers.size());
@@ -672,20 +674,7 @@ public class Controller implements Initializable {
                }
             };
          });
-         parameterizableCombo.setConverter(new StringConverter<Parameterizable>() {
-            private Parameterizable p = null;
 
-            @Override
-            public String toString(Parameterizable t) {
-               this.p = t;
-               return t.getClass().getSimpleName();
-            }
-
-            @Override
-            public Parameterizable fromString(String string) {
-               return p;
-            }
-         });
          parameterizableCombo.setItems(FXCollections.observableArrayList(sorted));
 
          stylerKeys.setPromptText("required!");
