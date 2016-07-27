@@ -149,6 +149,7 @@ public class ParameterProps<T extends Serializable> extends SimpleObjectProperty
 
    public void resetToDefault() {
       p.setValue(p.getDefault());
+      fireValueChangedEvent();
    }
 
    @Override
@@ -156,7 +157,6 @@ public class ParameterProps<T extends Serializable> extends SimpleObjectProperty
       Parameter<T> p = (Parameter<T>) o;
       ParamBindingHelper helper = ParamBindingService.getInstance().getFactory().getBindingHelper();
       value = helper.serializeValue(helper.getValueToSerialize(p, false));
-      fireValueChangedEvent();
    }
 
 }
