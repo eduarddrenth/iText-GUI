@@ -390,7 +390,7 @@ public class Controller implements Initializable {
       if (p instanceof BaseStyler) {
          if (ViewHelper.isCondition(styleClass, stylingConfig.get(styleClass))) {
             ViewHelper.notify("ok",
-                styleClass, String.format("style class %s is for stylers, %s is a condition", styleClass, p));
+                styleClass, String.format("style class %s is for stylers, %s is a condition", styleClass, p.getClass().getSimpleName()));
             return false;
          }
          if (!ReportConstants.DOCUMENTSETTINGS.equals(styleClass) && p instanceof DocumentStyler) {
@@ -417,7 +417,7 @@ public class Controller implements Initializable {
       } else {
          if (ViewHelper.isStyler(styleClass, stylingConfig.get(styleClass))) {
             ViewHelper.notify("ok",
-                styleClass, String.format("style class %s is for conditions, %s is a styler", styleClass, p));
+                styleClass, String.format("style class %s is for conditions, %s is a styler", styleClass, p.getClass().getSimpleName()));
             return false;
          }
          if (!tableViewController.getConfigString().getText().startsWith(currentParameterizable.getClass().getSimpleName() + ".")) {

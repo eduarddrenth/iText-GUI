@@ -57,13 +57,23 @@ public class ViewHelper {
       return t;
    }
 
-   public static String addNewLines(String toWrap, int length) {
-      return toWrap;
+   public static String addNewLines(String orig, int linelength) {
+      if (orig == null || orig.length() <= linelength) {
+         return orig;
+      }
+      StringBuilder sb = new StringBuilder(orig.length());
+      int offset = 0;
+      while (offset < orig.length()) {
+         int end = (offset + linelength >= orig.length()) ? orig.length() : offset + linelength;
+         sb.append(orig.substring(offset, end)).append(System.getProperty("line.separator"));
+         offset = end;
+      }
+      return sb.toString();
    }
 
    public static void notify(String buttonText, String title, String details) {
       Dialog<String> dialog = new Dialog<>();
-      dialog.setContentText(details);
+      dialog.setContentText(addNewLines(details, 120));
       dialog.setTitle(title);
       dialog.setResizable(true);
       ButtonType bt = new ButtonType(buttonText, ButtonBar.ButtonData.OK_DONE);
