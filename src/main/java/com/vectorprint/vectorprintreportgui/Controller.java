@@ -119,7 +119,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
-import javafx.util.StringConverter;
 import javax.swing.JPanel;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
@@ -670,20 +669,6 @@ public class Controller implements Initializable {
                   // TODO show some text in the list and a tooltip (use ViewHelper)
                }
             };
-         });
-         parameterizableCombo.setConverter(new StringConverter<Parameterizable>() {
-            private Parameterizable p = null;
-
-            @Override
-            public String toString(Parameterizable t) {
-               this.p = t;
-               return t.getClass().getSimpleName();
-            }
-
-            @Override
-            public Parameterizable fromString(String string) {
-               return p;
-            }
          });
          // TODO make parameterizableCombo use sorted as its model
 
