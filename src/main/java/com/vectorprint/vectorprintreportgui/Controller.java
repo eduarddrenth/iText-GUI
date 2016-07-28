@@ -611,11 +611,7 @@ public class Controller implements Initializable {
    private void addFromClassPath() {
       ClassLoader orig = Thread.currentThread().getContextClassLoader();
       try {
-         FileChooser fc = new FileChooser();
-         fc.setTitle("add jar");
-         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Jar files (*.jar)", "*.jar", "*.JAR", "*.Jar");
-         fc.getExtensionFilters().add(extensionFilter);
-         List<File> l = fc.showOpenMultipleDialog(null);
+         List<File> l = ViewHelper.prepareFC("add jar", "Jar files (*.jar)", "*.jar", "*.JAR", "*.Jar").showOpenMultipleDialog(null);
          if (l != null) {
             URL[] u = new URL[l.size()];
             int i = -1;
@@ -913,11 +909,7 @@ public class Controller implements Initializable {
    @FXML
    private void importCss(ActionEvent event) {
       try {
-         FileChooser fc = new FileChooser();
-         fc.setTitle("import css");
-         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Css files (*.css)", "*.css", "*.CSS", "*.Css");
-         fc.getExtensionFilters().add(extensionFilter);
-         File f = fc.showOpenDialog(null);
+         File f = ViewHelper.prepareFC("import css", "Css files (*.css)", "*.css", "*.CSS", "*.Css").showOpenDialog(null);
          if (f != null && f.canRead()) {
             System.setProperty("org.w3c.css.sac.parser", SACParser.class.getName());
             ByteArrayOutputStream bo = new ByteArrayOutputStream(2048);
@@ -932,11 +924,7 @@ public class Controller implements Initializable {
    @FXML
    private void showPdf(ActionEvent event) {
       try {
-         FileChooser fc = new FileChooser();
-         fc.setTitle("open pdf");
-         FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter("Pdf files (*.pdf)", "*.pdf", "*.PDF", "*.Pdf");
-         fc.getExtensionFilters().add(extensionFilter);
-         File f = fc.showOpenDialog(null);
+         File f = ViewHelper.prepareFC("open pdf", "Pdf files (*.pdf)", "*.pdf", "*.PDF", "*.Pdf").showOpenDialog(null);
          if (f != null && f.canRead()) {
             openPdf(new FileInputStream(f), f.getPath());
          }

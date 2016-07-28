@@ -41,6 +41,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Tooltip;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
 
 /**
  *
@@ -170,6 +171,14 @@ public class ViewHelper {
    public static void toError(Throwable ex, SearchableTextArea area) {
       ViewHelper.writeStackTrace(ex, area);
       ViewHelper.notify("ok (errors tab for details)", "error", ex.getMessage());
+   }
+
+   public static FileChooser prepareFC(String title, String filterDescription, String... filters) {
+      FileChooser fc = new FileChooser();
+      fc.setTitle(title);
+      FileChooser.ExtensionFilter extensionFilter = new FileChooser.ExtensionFilter(filterDescription, filters);
+      fc.getExtensionFilters().add(extensionFilter);
+      return fc;
    }
 
    private ViewHelper() {
