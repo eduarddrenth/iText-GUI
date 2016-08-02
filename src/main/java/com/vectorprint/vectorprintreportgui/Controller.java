@@ -90,6 +90,7 @@ import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.MapChangeListener;
@@ -111,8 +112,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.KeyCode;
@@ -171,8 +170,6 @@ public class Controller implements Initializable {
    @FXML
    private ComboBox<String> stylerKeys;
    @FXML
-   private ComboBox<String> stylerKeysCopy;
-   @FXML
    private TextField xmlconfig;
    @FXML
    private XmlArea datamappingxsd;
@@ -213,14 +210,6 @@ public class Controller implements Initializable {
    private Tab styleTab;
    @FXML
    private Tab helpTab;
-   @FXML
-   private TableView<Parameterizable> parameterizableTable;
-   @FXML
-   private TableColumn<Parameterizable, Parameterizable> sUpDown;
-   @FXML
-   private TableColumn<Parameterizable, Parameterizable> rm;
-   @FXML
-   private TableColumn<Parameterizable, String> sHelp;
    @FXML
    private Button pre;
    @FXML
@@ -705,6 +694,13 @@ public class Controller implements Initializable {
          styleClassTableController.setCStylerKeysFactory(stylerKeys.getCellFactory());
          styleClassTableController.setStylerKeyItems(styleClasses);
          styleClassTableController.setStylingConfig(stylingConfig);
+         stylerKeys.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            @Override
+            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+               styleClassTableController.select(newValue);
+            }
+
+         });
 
          ByteArrayOutputStream bo = new ByteArrayOutputStream(4096);
          Help.printHelp(new PrintStream(bo));
