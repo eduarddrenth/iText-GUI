@@ -31,12 +31,12 @@ import com.vectorprint.report.itext.ItextHelper;
 import com.vectorprint.report.itext.style.BaseStyler;
 import com.vectorprint.report.itext.style.DefaultStylerFactory;
 import com.vectorprint.report.itext.style.stylers.Barcode;
+import com.vectorprint.report.itext.style.stylers.Chart;
 import com.vectorprint.report.itext.style.stylers.ImageAlign;
 import com.vectorprint.report.itext.style.stylers.SVG;
 import com.vectorprint.report.itext.style.stylers.SimpleColumns;
 import com.vectorprint.report.itext.style.stylers.Table;
 import com.vectorprint.report.running.ReportRunner;
-import static com.vectorprint.vectorprintreportgui.Controller.isStyler;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -48,6 +48,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import javax.imageio.ImageIO;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
+import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.data.xy.DefaultXYDataset;
 
 /*
  * #%L
@@ -59,12 +63,12 @@ import javax.imageio.ImageIO;
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
@@ -114,7 +118,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
          printExplanation(String.format("styles applied on every page: %s", Arrays.toString(setting)));
       }
       for (Map.Entry<String, String[]> e : getSettings().entrySet()) {
-         if (Controller.isCondition(e.getKey(), getSettings())) {
+         if (ViewHelper.isCondition(e.getKey(), getSettings())) {
             String[] setting = e.getValue();
             printExplanation(String.format("active conditions for %s: %s", e.getKey(), Arrays.toString(setting)));
          }
@@ -125,7 +129,7 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
          if (DefaultStylerFactory.PRESTYLERS.equals(e.getKey()) || DefaultStylerFactory.POSTSTYLERS.equals(e.getKey()) || ReportConstants.DOCUMENTSETTINGS.equals(e.getKey())) {
             continue;
          }
-         if (isStyler(e.getKey(), getSettings())) {
+         if (ViewHelper.isStyler(e.getKey(), getSettings())) {
             String[] setting = e.getValue();
             List<BaseStyler> stylers = getStylers(e.getKey());
             BaseStyler first = stylers.get(0);
@@ -235,15 +239,44 @@ public class StylesheetTester extends BaseReportGenerator<ReportDataHolderImpl> 
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                } else if (first instanceof SVG) {
                   document.newPage();
-                  SVG bc = (SVG) first;
-                  if (bc.getData() == null) {
-                     bc.setData("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" version=\"1.1\"><defs><filter id=\"test\" filterUnits=\"objectBoundingBox\" x=\"0\" y=\"0\" width=\"1.5\" height=\"4\"><feOffset result=\"Off1\" dx=\"15\" dy=\"20\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.8\" /><feComposite in2=\"Off1\" operator=\"in\" result=\"C1\" /><feOffset in=\"SourceGraphic\" result=\"Off2\" dx=\"30\" dy=\"40\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.4\" /><feComposite in2=\"Off2\" operator=\"in\" result=\"C2\" /><feMerge><feMergeNode in=\"C2\" /><feMergeNode in=\"C1\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter></defs><text x=\"30\" y=\"100\" style=\"font:36px verdana bold;fill:blue;filter:url(#test)\">Test text for SVG!</text></svg>");
+                  SVG svgStyler = (SVG) first;
+                  if (svgStyler.getData() == null) {
+                     svgStyler.setData("<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"200\" height=\"200\" version=\"1.1\"><defs><filter id=\"test\" filterUnits=\"objectBoundingBox\" x=\"0\" y=\"0\" width=\"1.5\" height=\"4\"><feOffset result=\"Off1\" dx=\"15\" dy=\"20\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.8\" /><feComposite in2=\"Off1\" operator=\"in\" result=\"C1\" /><feOffset in=\"SourceGraphic\" result=\"Off2\" dx=\"30\" dy=\"40\" /><feFlood style=\"flood-color:#ff0000;flood-opacity:0.4\" /><feComposite in2=\"Off2\" operator=\"in\" result=\"C2\" /><feMerge><feMergeNode in=\"C2\" /><feMergeNode in=\"C1\" /><feMergeNode in=\"SourceGraphic\" /></feMerge></filter></defs><text x=\"30\" y=\"100\" style=\"font:36px verdana bold;fill:blue;filter:url(#test)\">Test text for SVG!</text></svg>");
                   }
                   printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), Image.class));
                   Image svg = createElement(null, Image.class, stylers);
                   List<BaseStyler> filter = filter(stylers, svg, EXAMPLE_STYLING_OF_ + Image.class.getSimpleName());
                   printExplanation(String.format(SHOWING_EFFECT_OF_S_ON_S_, print(filter), Image.class.getSimpleName()));
                   document.add(svg);
+                  printExplanation(END_EFFECT_OF_S_ON_S_);
+               } else if (first instanceof Chart) {
+                  document.newPage();
+                  Chart chartStyler = (Chart) first;
+                  switch (chartStyler.getType()) {
+                     case AREA:
+                     case BAR:
+                     case BAR3D:
+                     case LINE:
+                     case LINE3D:
+                        chartStyler.setData(new DefaultCategoryDataset());
+                        break;
+                     case PIE:
+                     case PIE3D:
+                        chartStyler.setData(new DefaultPieDataset());
+                        break;
+                     case XYAREA:
+                     case XYLINE:
+                        chartStyler.setData(new DefaultXYDataset());
+                        break;
+                     case TIME:
+                        chartStyler.setData(new TimeSeriesCollection());
+                        break;
+                  }
+                  printExplanation(String.format(TRYING_TO_SHOW_THE_EFFECT_OF_S_ON_S_, e.getKey(), Arrays.toString(setting), Image.class));
+                  Image chart = createElement(null, Image.class, stylers);
+                  List<BaseStyler> filter = filter(stylers, chart, EXAMPLE_STYLING_OF_ + Image.class.getSimpleName());
+                  printExplanation(String.format(SHOWING_EFFECT_OF_S_ON_S_, print(filter), Image.class.getSimpleName()));
+                  document.add(chart);
                   printExplanation(END_EFFECT_OF_S_ON_S_);
                }
 

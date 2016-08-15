@@ -4,7 +4,7 @@
 
    <groupId>com.vectorprint</groupId>
    <artifactId>VectorPrintReportGUI</artifactId>
-   <version>2.1</version>
+   <version>3.1-SNAPSHOT</version>
    <packaging>jar</packaging>
    <inceptionYear>2015</inceptionYear>
 
@@ -72,95 +72,18 @@
    <build>
       <plugins>
          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-shade-plugin</artifactId>
-            <version>2.4.2</version>
-            <executions>
-               <execution>
-                  <phase>package</phase>
-                  <goals>
-                     <goal>shade</goal>
-                  </goals>
-                  <configuration>
-                     <artifactSet>
-                        <excludes>
-                           <exclude>junit:junit</exclude>
-                        </excludes>
-                     </artifactSet>
-                     <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                           <resource>
-                              META-INF/services/com.vectorprint.configuration.binding.parameters.ParameterizableBindingFactory
-                           </resource>
-                        </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                           <resource>
-                              META-INF/services/com.vectorprint.configuration.binding.settings.EnhancedMapBindingFactory
-                           </resource>com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
-                        </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                           <resource>
-                              META-INF/services/com.vectorprint.configuration.binding.parameters.ParamFactoryValidator
-                           </resource>
-                        </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                           <resource>
-                              META-INF/services/com.vectorprint.configuration.binding.settings.SettingsFactoryValidator
-                           </resource>
-                        </transformer>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                           <manifestEntries>
-                              <Main-Class>${mainClass}</Main-Class>
-                              <X-Compile-Source-JDK>${maven.compile.java.version}</X-Compile-Source-JDK>
-                              <X-Compile-Target-JDK>${maven.compile.java.version}</X-Compile-Target-JDK>
-                           </manifestEntries>
-                        </transformer>
-                     </transformers>
-                     <filters>
-                        <filter>
-                           <artifact>*:*</artifact>
-                           <excludes>
-                              <exclude>META-INF/*.SF</exclude>
-                              <exclude>META-INF/*.DSA</exclude>
-                              <exclude>META-INF/*.RSA</exclude>
-                           </excludes>
-                        </filter>
-                     </filters>
-                  </configuration>
-               </execution>
-            </executions>
+            <groupId>com.zenjava</groupId>
+            <artifactId>javafx-maven-plugin</artifactId>
+            <version>8.5.0</version>
+            <configuration>
+               <mainClass>${mainClass}</mainClass>
+            </configuration>
          </plugin>
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
-            <version>1.4.0</version>
+            <version>1.5.0</version>
             <executions>
-               <execution>
-                  <id>deploy</id>
-
-                  <phase>package</phase>
-                  <goals>
-                     <goal>exec</goal>
-                  </goals>
-                  <configuration>
-                     <executable>${java.home}/../bin/javapackager</executable>
-                     <arguments>
-                        <argument>-deploy</argument>
-                        <argument>-width</argument>
-                        <argument>1024</argument>
-                        <argument>-height</argument>
-                        <argument>800</argument>
-                        <argument>-appclass</argument>
-                        <argument>${mainClass}</argument>
-                        <argument>-srcdir</argument>
-                        <argument>${project.build.directory}/classes</argument>
-                        <argument>-outdir</argument>
-                        <argument>${project.build.directory}</argument>
-                        <argument>-outfile</argument>
-                        <argument>${project.build.finalName}.jar</argument>
-                     </arguments>
-                  </configuration>
-               </execution>
                <execution>
                   <id>default-cli</id>
                   <goals>
@@ -168,7 +91,11 @@
                   </goals>
                   <configuration>
                      <executable>${java.home}/bin/java</executable>
-                     <commandlineArgs>${runfx.args}</commandlineArgs>
+                     <arguments>
+                        <!--<argument>-agentlib:jdwp=transport=dt_socket,server=y,address=8000 -Dsun.awt.disablegrab=true</argument>-->
+                        <argument>-jar</argument>
+                        <argument>${basedir}/target/jfx/app/${project.build.finalName}-jfx.jar</argument>
+                     </arguments>
                   </configuration>
                </execution>
             </executions>
@@ -176,7 +103,7 @@
          <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>license-maven-plugin</artifactId>
-            <version>1.8</version>
+            <version>1.9</version>
             <configuration>
                <licenseName>agpl_v3</licenseName>
                <includes>
@@ -187,24 +114,16 @@
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-compiler-plugin</artifactId>
-            <version>3.3</version>
+            <version>3.5.1</version>
             <configuration>
                <source>1.8</source>
                <target>1.8</target>
-               <compilerArguments>
-                  <bootclasspath>${sun.boot.class.path}${path.separator}${java.home}/lib/jfxrt.jar</bootclasspath>
-               </compilerArguments>
             </configuration>
          </plugin>
          <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
-            <version>2.19</version>
-            <configuration>
-               <additionalClasspathElements>
-                  <additionalClasspathElement>${java.home}/lib/jfxrt.jar</additionalClasspathElement>
-               </additionalClasspathElements>
-            </configuration>
+            <version>2.19.1</version>
          </plugin>
 
       </plugins>
@@ -214,13 +133,13 @@
          <artifactId>ConfigurableReports</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>9.1</version>
+         <version>9.2</version>
       </dependency>
       <dependency>
          <artifactId>ReportSVGSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>9.1</version>
+         <version>9.2</version>
       </dependency>
       <dependency>
          <groupId>cssparser</groupId>
@@ -231,7 +150,7 @@
          <artifactId>ReportjFreeChartSupport</artifactId>
          <groupId>com.vectorprint</groupId>
          <type>jar</type>
-         <version>9.2</version>
+         <version>9.3</version>
       </dependency>
       <dependency>
          <groupId>org.icepdf</groupId>
@@ -264,7 +183,7 @@
                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-javadoc-plugin</artifactId>
-                  <version>2.10.3</version>
+                  <version>2.10.4</version>
                </plugin>
                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>

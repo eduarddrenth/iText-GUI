@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<Tab closable="false" onSelectionChanged="#showStylers" text="stylers/conditions" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml" fx:controller="com.vectorprint.vectorprintreportgui.StyleClassTableController">
+   <content>
+      <AnchorPane id="Content"
+                  AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="0">
+         <children>
+            <TableView fx:id="parameterizableTable" layoutX="28.0" layoutY="70.0" prefHeight="648.0" prefWidth="982.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0"  >
+               <columns>
+                  <TableColumn fx:id="sUpDown" text="upDown" sortable="false" prefWidth="${parameterizableTable.width * 0.2}"  />
+                  <TableColumn fx:id="rm" text="rm" sortable="false" prefWidth="${parameterizableTable.width * 0.2}"/>
+                  <TableColumn fx:id="sHelp" editable="false"  text="help" sortable="false" prefWidth="${parameterizableTable.width * 0.6}"/>
+               </columns>
+            </TableView>
+            <ComboBox fx:id="stylerKeysCopy" editable="false" layoutX="152.0" layoutY="16.0" onAction="#showStylers" prefWidth="191.0" />
+            <Label layoutX="30.0" layoutY="19.0" text="styleClass / key" />
+            <Label layoutX="27.0" layoutY="48.0" text="Change order. Stylers that create an element should be on top." />
+         </children>
+      </AnchorPane>
+   </content>
+</Tab>

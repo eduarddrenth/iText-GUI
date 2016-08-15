@@ -6,13 +6,29 @@
 .remove {
    -fx-background-radius: 30;
    -fx-text-fill: red;
-   -fx-font-weight: bolder
+   -fx-font-weight: bolder;
 }
 .help {
    -fx-border-color: black;
    -fx-border-width: 1px;
-   -fx-border-style: dotted
+   -fx-border-style: dotted;
 }
-.grayed {
-   -fx-background-color: #eeeeee
+.searching .content {
+   -fx-background-color: #eeeeee;
+}
+.xmlelement {
+   -fx-fill: blue;
+}
+.xmlattribute {
+   -fx-fill: green;
+}
+.error {
+   -fx-border-color: red;
+}
+.xmlareatabs .tab-header-background {
+   -fx-background-color: #00000008;
+}
+.xmlareatabs {
+   -fx-border-color: #00000008;
+   -fx-border-width: 2px
 }

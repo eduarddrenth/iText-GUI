@@ -5,8 +5,27 @@
  */
 package com.vectorprint.vectorprintreportgui.xml;
 
-import java.util.List;
-import javafx.scene.text.Text;
+/*
+ * #%L
+ * VectorPrintReportGUI
+ * %%
+ * Copyright (C) 2015 - 2016 VectorPrint
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * #L%
+ */
+
 import javax.xml.parsers.SAXParser;
 import org.xml.sax.Parser;
 import org.xml.sax.SAXException;
@@ -19,7 +38,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
  *
  * @author Eduard Drenth at VectorPrint.nl
  */
-public class SaxParser extends SAXParser {
+class SaxParser extends SAXParser {
 
    private final XMLReader reader;
 
@@ -57,7 +76,4 @@ public class SaxParser extends SAXParser {
       throw new UnsupportedOperationException("Not supported yet.");
    }
 
-   public List<Text> getTexts() {
-      return ((XmlContentHandler) reader.getContentHandler()).getTexts();
-   }
 }

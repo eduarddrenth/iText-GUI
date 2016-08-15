@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml" fx:controller="com.vectorprint.vectorprintreportgui.TableViewController"
+            AnchorPane.bottomAnchor="0" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0" AnchorPane.topAnchor="160"
+>
+   <Label  text="Configuration" AnchorPane.leftAnchor="6" AnchorPane.topAnchor="5"/>
+   <TextField fx:id="configString" editable="true" prefHeight="26.0" prefWidth="875.0" AnchorPane.leftAnchor="143.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="5"/>
+   <TableView fx:id="parameterTable" editable="true" prefHeight="532.0" prefWidth="1008.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="33">
+      <columns>
+         <TableColumn fx:id="pKey" editable="false" prefWidth="102.0" text="key" />
+         <TableColumn fx:id="pType" editable="false" prefWidth="136.0" text="type" />
+         <TableColumn fx:id="pValue"  prefWidth="137.0" text="value" />
+         <TableColumn fx:id="pDefault" editable="false" prefWidth="100" text="default" />
+         <TableColumn fx:id="pReset" editable="false" text="reset" />
+         <TableColumn fx:id="pDeclaringClass" editable="false" prefWidth="709.0" text="which class declares (uses) the parameter" />
+      </columns>
+   </TableView>
+</AnchorPane>

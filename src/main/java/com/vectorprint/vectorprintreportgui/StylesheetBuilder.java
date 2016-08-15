@@ -20,7 +20,6 @@ package com.vectorprint.vectorprintreportgui;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * #L%
  */
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -39,11 +38,8 @@ import javafx.stage.StageStyle;
  */
 public class StylesheetBuilder extends Application {
 
-   static Stage topWindow;
-
    @Override
    public void start(final Stage stage) throws Exception {
-      topWindow = stage;
       Parent root = null;
       try {
          root = FXMLLoader.load(getClass().getResource("/fxml/StylesheetBuilder.fxml"));
@@ -63,7 +59,7 @@ public class StylesheetBuilder extends Application {
    public void stop() throws Exception {
       System.exit(0);
    }
-   
+
    public static void main(String[] args) throws IOException {
       if (new File(LOGGINGPROPERTIES).canRead()) {
          LogManager.getLogManager().readConfiguration(new FileInputStream(LOGGINGPROPERTIES));
@@ -73,5 +69,5 @@ public class StylesheetBuilder extends Application {
       }
       launch(args);
    }
-   public static final String LOGGINGPROPERTIES = System.getProperty("user.dir")+File.separator+"VectorPrintGUILogging.properties";
+   public static final String LOGGINGPROPERTIES = System.getProperty("user.dir") + File.separator + "VectorPrintGUILogging.properties";
 }
