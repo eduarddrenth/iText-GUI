@@ -59,6 +59,7 @@ import com.vectorprint.report.itext.style.stylers.NewPage;
 import com.vectorprint.report.itext.style.stylers.Padding;
 import com.vectorprint.vectorprintreportgui.text.SearchableTextArea;
 import com.vectorprint.vectorprintreportgui.xml.XmlArea;
+import java.awt.print.PrinterException;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -119,6 +120,8 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.FileChooser;
 import javafx.stage.WindowEvent;
 import javax.swing.JPanel;
+import javax.swing.JTextArea;
+import javax.swing.text.JTextComponent;
 import org.icepdf.ri.common.SwingController;
 import org.icepdf.ri.common.SwingViewBuilder;
 import org.xml.sax.SAXException;
@@ -733,6 +736,18 @@ public class Controller implements Initializable {
       } catch (Exception ex) {
          Logger.getLogger(Controller.class.getName()).log(Level.SEVERE, null, ex);
          throw new VectorPrintRuntimeException(ex);
+      }
+   }
+
+   @FXML
+   private void print() {
+      JTextComponent jc = new JTextArea(stylesheet.getText().getText());
+      try {
+         if (!jc.print()) {
+            ViewHelper.notify("ok", "printing failed", "printing failed");
+         }
+      } catch (PrinterException ex) {
+         ViewHelper.toError(ex, error);
       }
    }
 

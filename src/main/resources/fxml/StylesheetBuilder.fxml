@@ -201,6 +201,11 @@
                         <KeyCodeCombination alt="UP" code="r" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                      </accelerator>
                   </MenuItem>
+                  <MenuItem onAction="#print" text="Print stylesheet">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="p" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator>
+                  </MenuItem>
                   <MenuItem onAction="#quit" text="Quit">
                      <accelerator>
                         <KeyCodeCombination alt="UP" code="W" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
