@@ -54,9 +54,9 @@
                            </tooltip>
                         </Button>
                         <Button layoutX="589.0" layoutY="92.0" mnemonicParsing="false" onAction="#showConfig" text="show configuration" />
-                        <Button layoutX="736.0" layoutY="92.0" mnemonicParsing="false" onAction="#toConfig" text="add">
+                        <Button layoutX="736.0" layoutY="92.0" mnemonicParsing="false" onAction="#toConfig" text="add/update">
                            <tooltip>
-                              <Tooltip text="add Styler or Condition to styleclass" />
+                              <Tooltip text="add/update Styler or Condition to styleclass" />
                            </tooltip>
                         </Button>
                         <Button layoutX="783.0" layoutY="92.0" mnemonicParsing="false" onAction="#buildStylesheet" text="(re)build stylesheet" />
