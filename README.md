@@ -1,6 +1,10 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.vectorprint/VectorPrintReportGUI.svg)](https://maven-badges.herokuapp.com/maven-central/com.vectorprint/VectorPrintReportGUI)
 # iText-GUI
-A JavaFX GUI supporting the ConfigurableReports library
+A JavaFX GUI supporting the ConfigurableReports library.
+
+build the runtime environemnt with:  
+`mvn jfx:jar`. It will give you a runnable jar in target/jfx/app.  
+`mvn jfx:native` Will give you a binary for your os.
 
 This GUI lets you import, create, modify and test stylesheets for iText. The GUI should give you a pretty good idea of what ConfigurableReports can do for you. See https://github.com/eduarddrenth/ConfigurableReports.
 
