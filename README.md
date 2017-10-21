@@ -13,9 +13,9 @@ With a stylesheet, datamapping and the implementation of 1 Java class you are ab
 The GUI:
 
 ![main tab](iText-GUI.png "main tab")
-![document settings](document settings.png "document settings")
+![document settings](document%20settings.png "document settings")
 ![a condition](condition.png "a condition")
 ![a stylesheet](stylesheet.png "a stylesheet")
-![test the stylesheet](pdf style test.png "test the stylesheet")
-![reorder stylers](order stylers.png "reorder stylers")
+![test the stylesheet](pdf%20style%20test.png "test the stylesheet")
+![reorder stylers](order%20stylers.png "reorder stylers")
 ![change syntax](syntax.png "change syntax")
